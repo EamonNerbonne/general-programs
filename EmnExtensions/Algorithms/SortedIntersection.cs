@@ -10,14 +10,17 @@ namespace EmnExtensions.Algorithms
             var generators = new IEnumerator<int>[inorderLists.Length];
 
             try {
-                for (var i = 0; i < inorderLists.Length; i++)
+                for (var i = 0; i < inorderLists.Length; i++) {
                     generators[i] = inorderLists[i].GetEnumerator();
+                }
 
                 var gens = new CostHeap<IEnumerator<int>>();
 
-                foreach (var gen in generators)
-                    if (gen.MoveNext())
+                foreach (var gen in generators) {
+                    if (gen.MoveNext()) {
                         gens.Add(gen, gen.Current);
+                    }
+                }
                 //the costs *are* the current enumerator value
                 var lastYield = gens.Count > 0 ? gens.Top().Cost - 1 : 0;//anything but equal!
                 var matchCount = 0;
@@ -30,14 +33,16 @@ namespace EmnExtensions.Algorithms
                         matchCount = 1;
                     } else {
                         matchCount++;
-                        if (matchCount == generators.Length)
+                        if (matchCount == generators.Length) {
                             yield return lastYield;
+                        }
                     }
 
-                    if (current.Item.MoveNext())
+                    if (current.Item.MoveNext()) {
                         gens.TopCostChanged(current.Item.Current);
-                    else
+                    } else {
                         gens.RemoveTop();
+                    }
                 }
             } finally {
                 SortedUnionAlgorithm.DisposeAll(generators, 0);
@@ -49,26 +54,37 @@ namespace EmnExtensions.Algorithms
             var enumA = a.GetEnumerator();
             var enumB = b.GetEnumerator();
 
-            if (!enumA.MoveNext() || !enumB.MoveNext())
+            if (!enumA.MoveNext() || !enumB.MoveNext()) {
                 yield break;
+            }
+
             var elA = enumA.Current;
             var elB = enumB.Current;
             while (true) {
                 if (elA == elB) {
                     yield return elA;
-                    while (elA == elB && enumB.MoveNext())
+                    while (elA == elB && enumB.MoveNext()) {
                         elB = enumB.Current;
-                    if (elA == elB)
+                    }
+
+                    if (elA == elB) {
                         yield break;
-                    if (!enumA.MoveNext())
+                    }
+
+                    if (!enumA.MoveNext()) {
                         yield break;
+                    }
                 } else if (elA < elB) {
-                    if (!enumA.MoveNext())
+                    if (!enumA.MoveNext()) {
                         yield break;
+                    }
+
                     elA = enumA.Current;
                 } else {
-                    if (!enumB.MoveNext())
+                    if (!enumB.MoveNext()) {
                         yield break;
+                    }
+
                     elB = enumB.Current;
                 }
             }

@@ -8,8 +8,9 @@ namespace EmnExtensions.DebugTools
     {
         public static void PrintAllDebug<T>(this IEnumerable<T> source)
         {
-            foreach (var item in source)
+            foreach (var item in source) {
                 Console.WriteLine(item);
+            }
         }
 
         public static T PrintDebug<T>(this T obj)
@@ -29,8 +30,10 @@ namespace EmnExtensions.DebugTools
             } else {
                 var runtimeType = obj.GetType();
                 var compileType = typeof(T);
-                if (runtimeType != compileType)
+                if (runtimeType != compileType) {
                     Console.WriteLine("  runtime-type: " + runtimeType.FullName);
+                }
+
                 string stringrep;
                 try {
                     stringrep = obj.ToString();
@@ -52,8 +55,9 @@ namespace EmnExtensions.DebugTools
                         val = e.GetType().Name + ": " + (e.Message ?? "");
                     }
                     var toprint = propname + ": " + val;
-                    if (printedvals.Add(toprint))
+                    if (printedvals.Add(toprint)) {
                         Console.WriteLine(prop.Prop.DeclaringType.Name + "." + toprint);
+                    }
                 }
                 foreach (var field in from type in new Type[] { runtimeType, compileType }
                                       from fi in type.GetFields(BindingFlags.Instance | BindingFlags.Public)
@@ -66,8 +70,9 @@ namespace EmnExtensions.DebugTools
                         val = e.GetType().Name + ": " + (e.Message ?? "");
                     }
                     var toprint = fieldname + ": " + val;
-                    if (printedvals.Add(toprint))
+                    if (printedvals.Add(toprint)) {
                         Console.WriteLine(field.FieldInfo.DeclaringType.Name + "." + toprint);
+                    }
                 }
 
             }

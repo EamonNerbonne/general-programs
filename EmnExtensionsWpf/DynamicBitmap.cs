@@ -20,21 +20,20 @@ namespace EmnExtensions.Wpf
      BitmapGeneratorSet)
  );
 
-        static void BitmapGeneratorSet(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            ((DynamicBitmap)d).InvalidateVisual();
-        }
+        static void BitmapGeneratorSet(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((DynamicBitmap)d).InvalidateVisual();
         public Func<int, int, uint[]> BitmapGenerator
         {
-            get { return (Func<int, int, uint[]>)GetValue(BitmapGeneratorProperty); }
-            set { SetValue(BitmapGeneratorProperty, value); }
+            get => (Func<int, int, uint[]>)GetValue(BitmapGeneratorProperty);
+            set => SetValue(BitmapGeneratorProperty, value);
         }
 
         static uint[] lastAutoGen;
         static uint[] DefaultBitmapGenerator(int width, int height)
         {
-            if (lastAutoGen == null || lastAutoGen.Length < width * height)
+            if (lastAutoGen == null || lastAutoGen.Length < width * height) {
                 lastAutoGen = new uint[width * height];
+            }
+
             return lastAutoGen;
         }
 
@@ -48,13 +47,10 @@ namespace EmnExtensions.Wpf
             InvalidateVisual();
         }
         const int maxWidthHeight = 4096;
-        void MakeBitmap()
-        {
-            bitmap = new WriteableBitmap(
+        void MakeBitmap() => bitmap = new WriteableBitmap(
                 Math.Min((int)Math.Ceiling(ActualWidth), maxWidthHeight),
                 Math.Min((int)Math.Ceiling(ActualHeight), maxWidthHeight),
                 96, 96, PixelFormats.Bgr32, null);
-        }
         void UpdateBitmap()
         {
             var bmpGen = BitmapGenerator ?? DefaultBitmapGenerator;
@@ -64,10 +60,14 @@ namespace EmnExtensions.Wpf
         {
             var shortSide = Math.Min(ActualHeight, ActualWidth);
 
-            if (shortSide <= 0 || !shortSide.IsFinite())
+            if (shortSide <= 0 || !shortSide.IsFinite()) {
                 return;
-            if (bitmap == null)
+            }
+
+            if (bitmap == null) {
                 MakeBitmap();
+            }
+
             UpdateBitmap();
 
             drawingContext.DrawImage(bitmap, new Rect(0, 0, ActualWidth, ActualHeight));

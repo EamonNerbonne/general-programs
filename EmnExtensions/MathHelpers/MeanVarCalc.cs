@@ -10,12 +10,14 @@ namespace EmnExtensions.MathHelpers
         readonly double weightSum, sX, meanX;
         MeanVarDistrib(double _weightSum, double _sX, double _meanX) { meanX = _meanX; sX = _sX; weightSum = _weightSum; }
 
-        public static MeanVarDistrib Init(double val, double weight = 1.0) { return new MeanVarDistrib(weight, 0.0, val); }//equivalent to adding to an empty distribution.
+        public static MeanVarDistrib Init(double val, double weight = 1.0) => new MeanVarDistrib(weight, 0.0, val); //equivalent to adding to an empty distribution.
 
         public MeanVarDistrib Add(double val, double weight = 1.0)
         {
-            if (weight == 0.0)
+            if (weight == 0.0) {
                 return this;//ignore zero-weight stuff...
+            }
+
             var newWeightSum = weightSum + weight;
             var mScale = weight / newWeightSum;
             var sScale = weightSum * weight / newWeightSum;
@@ -30,16 +32,16 @@ namespace EmnExtensions.MathHelpers
             return new MeanVarDistrib(newWeightSum, sX + other.sX + (other.meanX - meanX) * (other.meanX - meanX) * sScale, meanX + (other.meanX - meanX) * mScale);
         }
 
-        public double Mean { get { return meanX; } }
-        public double Var { get { return sX / weightSum; } }
-        public double StdDev { get { return Math.Sqrt(Var); } }
-        public double SampleVar { get { return sX / (weightSum - 1.0); } }
-        public double SampleStdDev { get { return Math.Sqrt(SampleVar); } }
-        public double Weight { get { return weightSum; } }
+        public double Mean => meanX;
+        public double Var => sX / weightSum;
+        public double StdDev => Math.Sqrt(Var);
+        public double SampleVar => sX / (weightSum - 1.0);
+        public double SampleStdDev => Math.Sqrt(SampleVar);
+        public double Weight => weightSum;
 
-        public static MeanVarDistrib Of(IEnumerable<double> vals) { return vals.Aggregate(new MeanVarDistrib(), (mv, v) => mv.Add(v)); }
+        public static MeanVarDistrib Of(IEnumerable<double> vals) => vals.Aggregate(new MeanVarDistrib(), (mv, v) => mv.Add(v));
 
-        public override string ToString() { return Mean.ToString(CultureInfo.InvariantCulture) + " +/- " + StdDev.ToString(CultureInfo.InvariantCulture); }
+        public override string ToString() => Mean.ToString(CultureInfo.InvariantCulture) + " +/- " + StdDev.ToString(CultureInfo.InvariantCulture);
 
     }
 

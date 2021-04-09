@@ -15,8 +15,9 @@ namespace EmnExtensions.Text
         {
             foreach (UnicodeCategory cat in Enum.GetValues(typeof(UnicodeCategory))) {
                 var val = (int)cat;
-                if (val < 0 || val > 255)
+                if (val < 0 || val > 255) {
                     throw new ApplicationException("Programming Error: Invalid category number!  Can't cache in byte: " + cat);
+                }
             }
             categorycache = new byte[(int)char.MaxValue + 1];
             reasonablechar = new BitArray((int)char.MaxValue + 1);
@@ -30,63 +31,57 @@ namespace EmnExtensions.Text
             reasonablechar[(int)'\t'] = true;
         }
 
-        public static UnicodeCategory FastGetUnicodeCategory(char c)
-        {
-            return (UnicodeCategory)(int)categorycache[(int)c];
-        }
+        public static UnicodeCategory FastGetUnicodeCategory(char c) => (UnicodeCategory)(int)categorycache[(int)c];
 
         /// <summary>
         /// Determines whether a character is safe to use, essentially meaning "can be present in an XML file".
         /// This allows the surrogate pair ranges, though they aren't necessarily valid in xml (they must come in pairs) and simply bans really bad things you don't ever want,
         /// being control characters below 0x20 (except tab, carriage return and newline), 0xfffe and 0xffff.  
         /// </summary>
-        public static bool IsSafeChar(char c)
-        {
-            return c >= 0x20 && c < 0xfffe || c == '\n' || c == '\t' || c == '\r';
-        }
+        public static bool IsSafeChar(char c) => c >= 0x20 && c < 0xfffe || c == '\n' || c == '\t' || c == '\r';
 
         /// <summary>
         /// Determines whether a character is safe to use and not ' ','\t','\r' or '\n' - see IsSafeChar.
         /// </summary>
-        public static bool IsSafeNonWhitespaceChar(char c)
-        {
-            return c > 0x20 && c < 0xfffe;
-        }
+        public static bool IsSafeNonWhitespaceChar(char c) => c > 0x20 && c < 0xfffe;
 
         /// <summary>
         /// Determines whether a character is a "reasonable" text character.  Basically, this means any kind of symbol, spacing, surrogate or newline,
         /// but not unassigned, format, control or private characters (except newline and tab, which are OK).
         /// </summary>
-        public static bool IsReasonableChar(char c)
-        {
-            return reasonablechar[(int)c];
-        }
+        public static bool IsReasonableChar(char c) => reasonablechar[(int)c];
 
         /// <summary>
         /// Strips all characters deemed unsafe by IsSafeChar.  Returns null if the input is null or empty.
         /// </summary>
         public static string TrimAndMakeSafe(string input)
         {
-            if (input == null)
+            if (input == null) {
                 return null;
+            }
+
             var retval = new char[input.Length];
             int pos = 0, srcPos = 0;
-            while (srcPos < input.Length && !IsSafeNonWhitespaceChar(input[srcPos]))
+            while (srcPos < input.Length && !IsSafeNonWhitespaceChar(input[srcPos])) {
                 srcPos++;//skip inital space or junk
+            }
+
             while (srcPos < input.Length) {
                 var c = input[srcPos];
-                if (IsSafeChar(c))
+                if (IsSafeChar(c)) {
                     retval[pos++] = c;
+                }
+
                 srcPos++;
             }
-            while (pos > 0 && !IsSafeNonWhitespaceChar(retval[pos - 1]))
+            while (pos > 0 && !IsSafeNonWhitespaceChar(retval[pos - 1])) {
                 pos--;//skip trailing space or junk
-
+            }
 
             return pos == 0 ? null : new string(retval, 0, pos);
         }
 
-        public static string CanonicalizeBasic(this string input) { return Basic(input); }
+        public static string CanonicalizeBasic(this string input) => Basic(input);
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         public static string Basic(string input)
@@ -95,17 +90,17 @@ namespace EmnExtensions.Text
             var temp = input.ToLowerInvariant().Normalize(NormalizationForm.FormD);//Normalize is fast! Much faster than ToLower for instance.
             var output = new StringBuilder(temp.Length);
             foreach (var c in temp) {
-                if (c >= 'a' && c <= 'z')
+                if (c >= 'a' && c <= 'z') {
                     output.Append(c);
-                else if (c >= '1' && c <= '9')
+                } else if (c >= '1' && c <= '9') {
                     output.Append(c);
-                else if (c == '\t' || c == ' ')
+                } else if (c == '\t' || c == ' ') {
                     output.Append(' ');
-                else if (c == '\n')
+                } else if (c == '\n') {
                     output.Append('\n');
-                else if (c == '0')
+                } else if (c == '0') {
                     output.Append('o');//normalize the number 0 and the letter 'o' - controversial.
-                else
+                } else {
                     switch (FastGetUnicodeCategory(c)) {
                         case UnicodeCategory.NonSpacingMark:
                         case UnicodeCategory.Control:
@@ -216,12 +211,15 @@ namespace EmnExtensions.Text
                                     output.Append('c');
                                     break;//169 'c'
                                 default:
-                                    if (c < 128)
+                                    if (c < 128) {
                                         output.Append(c);
+                                    }
+
                                     break;
                             }//Unclear: should I normalize any of:  | # % & * + ; : = ? @ ~
                             break;
                     }
+                }
             }
             return output.ToString();
         }

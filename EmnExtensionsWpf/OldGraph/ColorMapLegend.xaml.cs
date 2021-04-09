@@ -12,7 +12,7 @@ namespace EmnExtensions.Wpf.OldGraph
             InitializeComponent();
         }
 
-        public TickedLegendControl TickedLegendControl { get { return colorLegend; } }
-        public DynamicBitmap DynamicBitmap { get { return colormapControl; } }
+        public TickedLegendControl TickedLegendControl => colorLegend;
+        public DynamicBitmap DynamicBitmap => colormapControl;
     }
 }

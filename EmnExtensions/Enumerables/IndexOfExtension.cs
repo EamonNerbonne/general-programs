@@ -9,8 +9,10 @@ namespace EmnExtensions
         {
             var index = 0;
             foreach (var item in list) {
-                if (pred(item))
+                if (pred(item)) {
                     return index;
+                }
+
                 index++;
             }
             return -1;

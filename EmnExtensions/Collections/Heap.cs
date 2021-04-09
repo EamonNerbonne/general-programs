@@ -28,32 +28,26 @@ namespace EmnExtensions.Collections
 
     public static class Heap
     {
-        public static HeapFactory<T> Factory<T>() { return new HeapFactory<T>(); }
+        public static HeapFactory<T> Factory<T>() => new HeapFactory<T>();
 
-        public static IHeap<T> CreateSelfTracked<T>() where T : IComparable<T>, IHeapIndexed<T>
-        {
-            return new Heap<T, SelfSink<T>, ComparableComparer<T>>(new SelfSink<T>(), new ComparableComparer<T>());
-        }
+        public static IHeap<T> CreateSelfTracked<T>() where T : IComparable<T>, IHeapIndexed<T> => new Heap<T, SelfSink<T>, ComparableComparer<T>>(new SelfSink<T>(), new ComparableComparer<T>());
 
-        public static IHeap<T> CreateUntracked<T>() where T : IComparable<T>
-        {
-            return new Heap<T, NoSink<T>, ComparableComparer<T>>(new NoSink<T>(), new ComparableComparer<T>());
-        }
+        public static IHeap<T> CreateUntracked<T>() where T : IComparable<T> => new Heap<T, NoSink<T>, ComparableComparer<T>>(new NoSink<T>(), new ComparableComparer<T>());
 
-        public static IHeap<T> CreateTracked<T>(Action<T, int> indexChanged) where T : IComparable<T>
-        {
-            return new Heap<T, DelegateSink<T>, ComparableComparer<T>>(CreateDelegateSink(indexChanged), new ComparableComparer<T>());
-        }
+        public static IHeap<T> CreateTracked<T>(Action<T, int> indexChanged) where T : IComparable<T> => new Heap<T, DelegateSink<T>, ComparableComparer<T>>(CreateDelegateSink(indexChanged), new ComparableComparer<T>());
 
 
         public struct HeapFactory<T>
         {
             public IHeap<T> Create(Action<T, int> indexSet = null)
             {
-                if (typeof(T) == typeof(int))
+                if (typeof(T) == typeof(int)) {
                     return (IHeap<T>)new HeapFactory<int>().Create(new IntComparer(), (Action<int, int>)((object)indexSet));
-                if (typeof(T) == typeof(long))
+                }
+
+                if (typeof(T) == typeof(long)) {
                     return (IHeap<T>)new HeapFactory<long>().Create(new LongComparer(), (Action<long, int>)((object)indexSet));
+                }
 
                 return Create(Comparer<T>.Default, indexSet);
             }
@@ -61,31 +55,29 @@ namespace EmnExtensions.Collections
             public IHeap<T> Create<TComp>(TComp customComparer, Action<T, int> indexSet = null)
                 where TComp : IComparer<T>
             {
-                if (indexSet == null)
+                if (indexSet == null) {
                     return Create(customComparer, new NoSink<T>());
-                else
+                } else {
                     return Create(customComparer, CreateDelegateSink(indexSet));
+                }
             }
 
             public IHeap<T> Create<TSink, TComp>(TComp customComparer, TSink sink)
                 where TComp : IComparer<T>
-                where TSink : IHeapIndexSink<T>
-            {
-                return new Heap<T, TSink, TComp>(sink, customComparer);
-            }
+                where TSink : IHeapIndexSink<T> => new Heap<T, TSink, TComp>(sink, customComparer);
         }
 
-        public struct IntComparer : IComparer<int> { public int Compare(int x, int y) { return x < y ? -1 : x > y ? 1 : 0; } }
-        public struct FastIntComparer : IComparer<int> { public int Compare(int x, int y) { return x - y; } }
-        public struct LongComparer : IComparer<long> { public int Compare(long x, long y) { return x < y ? -1 : x > y ? 1 : 0; } }
-        public struct ComparableComparer<T> : IComparer<T> where T : IComparable<T> { public int Compare(T x, T y) { return x.CompareTo(y); } }
+        public struct IntComparer : IComparer<int> { public int Compare(int x, int y) => x < y ? -1 : x > y ? 1 : 0; }
+        public struct FastIntComparer : IComparer<int> { public int Compare(int x, int y) => x - y; }
+        public struct LongComparer : IComparer<long> { public int Compare(long x, long y) => x < y ? -1 : x > y ? 1 : 0; }
+        public struct ComparableComparer<T> : IComparer<T> where T : IComparable<T> { public int Compare(T x, T y) => x.CompareTo(y); }
 
-        static DelegateSink<T> CreateDelegateSink<T>(Action<T, int> sink) { return new DelegateSink<T>(sink); }
+        static DelegateSink<T> CreateDelegateSink<T>(Action<T, int> sink) => new DelegateSink<T>(sink);
         struct DelegateSink<T> : IHeapIndexSink<T>
         {
             readonly Action<T, int> sink;
             public DelegateSink(Action<T, int> sink) { this.sink = sink; }
-            public void IndexChanged(T item, int newIndex) { sink(item, newIndex); }
+            public void IndexChanged(T item, int newIndex) => sink(item, newIndex);
         }
         struct NoSink<T> : IHeapIndexSink<T>
         {
@@ -94,7 +86,7 @@ namespace EmnExtensions.Collections
 
         struct SelfSink<T> : IHeapIndexSink<T> where T : IHeapIndexed<T>
         {
-            public void IndexChanged(T item, int newIndex) { item.HeapIndexChanged(newIndex); }
+            public void IndexChanged(T item, int newIndex) => item.HeapIndexChanged(newIndex);
         }
 
     }
@@ -117,13 +109,15 @@ namespace EmnExtensions.Collections
 
         public void Add(T elem)
         {
-            if (backingCount == backingStore.Length)
+            if (backingCount == backingStore.Length) {
                 Array.Resize(ref backingStore, backingStore.Length * 2);
+            }
+
             var newIndex = backingCount++;
             Bubble(newIndex, elem);
         }
 
-        public int Count { get { return backingCount; } }
+        public int Count => backingCount;
 
         void Bubble(int newIndex, T elem)
         {
@@ -148,8 +142,10 @@ namespace EmnExtensions.Collections
             retval = backingStore[0];
 
             backingCount--;
-            if (0 != backingCount)
+            if (0 != backingCount) {
                 Sink(0, backingStore[backingCount]);
+            }
+
             backingStore[backingCount] = default(T);
 
             return true;
@@ -157,23 +153,24 @@ namespace EmnExtensions.Collections
 
         public T RemoveTop()
         {
-            if (backingCount == 0)
+            if (backingCount == 0) {
                 throw new InvalidOperationException("Can't remove top; sequence empty");
+            }
+
             var retval = backingStore[0];
 
             backingCount--;
-            if (0 != backingCount)
+            if (0 != backingCount) {
                 Sink(0, backingStore[backingCount]);
+            }
+
             backingStore[backingCount] = default(T);
 
             return retval;
         }
-        public T Top() { return this[0]; }
+        public T Top() => this[0];
 
-        public void TopChanged()
-        {
-            Sink(0, Top());
-        }
+        public void TopChanged() => Sink(0, Top());
 
         public void Delete(int indexOfItem)
         {
@@ -184,11 +181,11 @@ namespace EmnExtensions.Collections
             //but if it's lighter, we need to bubble as usual.
 
             if (indexOfItem == backingCount) { } //we deleted the last item.
-            else if (comparer.Compare(tailItem, backingStore[indexOfItem]) > 0)
+            else if (comparer.Compare(tailItem, backingStore[indexOfItem]) > 0) {
                 Sink(indexOfItem, tailItem);// tail item has higher cost, need to sink it.
-            else
+            } else {
                 Bubble(indexOfItem, tailItem);// tail item has lower cost, need to bubble it.
-
+            }
 
             backingStore[backingCount] = default(T);
         }
@@ -201,8 +198,9 @@ namespace EmnExtensions.Collections
                 if (comparer.Compare(elem, backingStore[kid]) > 0) {//elem isn't smaller than kid
                     indexSet.IndexChanged(backingStore[p] = backingStore[kid], p);
                     p = kid;
-                } else
+                } else {
                     break;
+                }
             }
             var singleKid = 2 * p + 1;
             if (singleKid < backingCount && comparer.Compare(elem, backingStore[singleKid]) > 0) {
@@ -213,8 +211,8 @@ namespace EmnExtensions.Collections
         }
 
 
-        public T this[int i] { get { if (i >= backingCount) throw new IndexOutOfRangeException(); return backingStore[i]; } }
-        public IEnumerable<T> ElementsInRoughOrder { get { return backingStore.Take(backingCount); } }
+        public T this[int i] { get { if (i >= backingCount) { throw new IndexOutOfRangeException(); } return backingStore[i]; } }
+        public IEnumerable<T> ElementsInRoughOrder => backingStore.Take(backingCount);
     }
 
 
@@ -227,13 +225,15 @@ namespace EmnExtensions.Collections
 
         public void Add(T elem, int cost)
         {
-            if (backingCount == backingStore.Length)
+            if (backingCount == backingStore.Length) {
                 Array.Resize(ref backingStore, backingStore.Length * 2);
+            }
+
             var newIndex = backingCount++;
             Bubble(newIndex, new Entry { Cost = cost, Item = elem });
         }
 
-        public int Count { get { return backingCount; } }
+        public int Count => backingCount;
 
         void Bubble(int newIndex, Entry elem)
         {
@@ -260,8 +260,9 @@ namespace EmnExtensions.Collections
             cost = backingStore[0].Cost;
 
             backingCount--;
-            if (0 != backingCount)
+            if (0 != backingCount) {
                 Sink(0, backingStore[backingCount]);
+            }
 
             backingStore[backingCount].Item = default(T);//don't care about Cost.
 
@@ -270,23 +271,29 @@ namespace EmnExtensions.Collections
 
         public T RemoveTop()
         {
-            if (backingCount == 0)
+            if (backingCount == 0) {
                 throw new InvalidOperationException("Can't remove top; sequence empty");
+            }
+
             var retval = backingStore[0].Item;
 
             backingCount--;
-            if (0 != backingCount)
+            if (0 != backingCount) {
                 Sink(0, backingStore[backingCount]);
+            }
+
             backingStore[backingCount].Item = default(T);
 
             return retval;
         }
-        public Entry Top() { return this[0]; }
+        public Entry Top() => this[0];
 
         public void TopCostChanged(int newCost)
         {
-            if (0 == backingCount)
+            if (0 == backingCount) {
                 throw new IndexOutOfRangeException();
+            }
+
             Sink(0, new Entry { Item = backingStore[0].Item, Cost = newCost });
         }
 
@@ -296,9 +303,12 @@ namespace EmnExtensions.Collections
 
             if (indexOfItem == backingCount) { }  //we deleted the last item.
             else if (tailItem.Cost > backingStore[indexOfItem].Cost) // sink item is heavier than deleted item, need to sink it.
+{
                 Sink(indexOfItem, tailItem);
-            else  // last item is lighter than deleted item, need to bubble it.
+            } else  // last item is lighter than deleted item, need to bubble it.
+ {
                 Bubble(indexOfItem, tailItem);
+            }
 
             backingStore[backingCount].Item = default(T);
         }
@@ -312,8 +322,9 @@ namespace EmnExtensions.Collections
                     backingStore[p] = backingStore[kid];
                     //indexSet.IndexChanged(backingStore[p], p);
                     p = kid;
-                } else
+                } else {
                     break;
+                }
             }
             var singleKid = 2 * p + 1;
             if (singleKid < backingCount && elem.Cost > backingStore[singleKid].Cost) {
@@ -326,8 +337,8 @@ namespace EmnExtensions.Collections
         }
 
 
-        public Entry this[int i] { get { if (i >= backingCount) throw new IndexOutOfRangeException(); return backingStore[i]; } }
-        public IEnumerable<Entry> ElementsInRoughOrder { get { return backingStore.Take(backingCount); } }
+        public Entry this[int i] { get { if (i >= backingCount) { throw new IndexOutOfRangeException(); } return backingStore[i]; } }
+        public IEnumerable<Entry> ElementsInRoughOrder => backingStore.Take(backingCount);
     }
 
 }

@@ -42,26 +42,24 @@ namespace LvqGui
         }
 
 
-        public static IEnumerable<Tuple<LvqModelSettingsCli, double>> UniformResults()
-        {
-            return
-                from line in File.ReadAllLines(resultsDir.FullName + "\\uniform-results.txt")
-                let settingsOrNull = CreateLvqModelValues.TryParseShorthand(line.SubstringUntil(" "))
-                where settingsOrNull.HasValue
-                let settings = settingsOrNull.Value
-                let geomean = Double.Parse(line.SubstringAfterFirst("GeoMean: ").SubstringUntil(";").SubstringUntil("~"))
-                group Tuple.Create(settings, geomean) by settings.WithCanonicalizedDefaults() into settingsGroup
-                select settingsGroup.MinBy(tuple => tuple.Item2).First()
+        public static IEnumerable<Tuple<LvqModelSettingsCli, double>> UniformResults() => from line in File.ReadAllLines(resultsDir.FullName + "\\uniform-results.txt")
+                                                                                          let settingsOrNull = CreateLvqModelValues.TryParseShorthand(line.SubstringUntil(" "))
+                                                                                          where settingsOrNull.HasValue
+                                                                                          let settings = settingsOrNull.Value
+                                                                                          let geomean = Double.Parse(line.SubstringAfterFirst("GeoMean: ").SubstringUntil(";").SubstringUntil("~"))
+                                                                                          group Tuple.Create(settings, geomean) by settings.WithCanonicalizedDefaults() into settingsGroup
+                                                                                          select settingsGroup.MinBy(tuple => tuple.Item2).First()
                 ;
-        }
 
         static readonly Regex resultsFilenameRegex = new Regex(@"^(?<iters>[0-9]?e[0-9]+)\-(?<shorthand>[^ ]*?)\.txt$");
 
         public static Tuple<bool, double, LvqModelSettingsCli> ExtractItersAndSettings(string filename)
         {
             var match = resultsFilenameRegex.Match(filename);
-            if (!match.Success)
+            if (!match.Success) {
                 return Tuple.Create(false, default(double), default(LvqModelSettingsCli));
+            }
+
             var iters = double.Parse(match.Groups["iters"].Value.StartsWith("e") ? "1" + match.Groups["iters"].Value : match.Groups["iters"].Value);
             var shorthand = match.Groups["shorthand"].Value;
             var modelSettings = CreateLvqModelValues.ParseShorthand(shorthand);

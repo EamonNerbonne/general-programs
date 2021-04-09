@@ -9,9 +9,9 @@ namespace EmnExtensions.Wpf.VizEngines
     {
         public VizDelegateBitmap(IPlotMetaData owner) : base(owner) { UpdateBitmapDelegate = DefaultUpdateBitmapDelegate; BoundsComputer = DefaultComputeBounds; }
         static void DefaultUpdateBitmapDelegate(WriteableBitmap bmp, Matrix mat, int pixelWidth, int pixelHeight, T data) { }
-        static Rect DefaultComputeBounds(T data) { return Rect.Empty; }
-        protected override Rect? OuterDataBound { get { return m_OuterDataBound; } }
-        public Rect? MaximalDataBound { get { return m_OuterDataBound; } set { m_OuterDataBound = value; TriggerChange(GraphChange.Projection); } }
+        static Rect DefaultComputeBounds(T data) => Rect.Empty;
+        protected override Rect? OuterDataBound => m_OuterDataBound;
+        public Rect? MaximalDataBound { get => m_OuterDataBound; set { m_OuterDataBound = value; TriggerChange(GraphChange.Projection); } }
         Rect? m_OuterDataBound;
 
         /// <summary>
@@ -24,9 +24,9 @@ namespace EmnExtensions.Wpf.VizEngines
         public Action<WriteableBitmap, Matrix, int, int, T> UpdateBitmapDelegate { get; set; }
         public Func<T, Rect> BoundsComputer { get; set; }
 
-        protected override Rect ComputeBounds() { return BoundsComputer(Data); }
+        protected override Rect ComputeBounds() => BoundsComputer(Data);
 
-        protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap, double viewAreaSize) { UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, Data); }
+        protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap, double viewAreaSize) => UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, Data);
         protected override void OnDataChanged(T oldData) { InvalidateDataBounds(); TriggerChange(GraphChange.Projection); }
 
         public override void OnRenderOptionsChanged() { } //we don't use color changes.

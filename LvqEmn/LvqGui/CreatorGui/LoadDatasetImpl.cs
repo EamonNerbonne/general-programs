@@ -17,10 +17,7 @@ namespace LvqGui
 
     public sealed class LoadedDatasetSettings : DatasetCreatorBase<LoadedDatasetSettings>
     {
-        protected override string RegexText
-        {
-            get {
-                return @"^
+        protected override string RegexText => @"^
                 (?<Filename>.*?)
                 (\,(?<TestFilename>.*?))?
                 \-(?<DimCount>[0-9]+)D
@@ -30,30 +27,29 @@ namespace LvqGui
                 \,(?<PointCount>[0-9]+)
                 (\[(?<InstanceSeed_>[0-9a-fA-F]+)\])?
                 (\^(?<Folds>\d+))?\s*$";
-            }
-        }
 
         public string Filename, TestFilename;
         public int DimCount, ClassCount, PointCount;
 
 
-        protected override string GetShorthand()
-        {
-            return Filename + (TestFilename != null ? "," + TestFilename : "") + "-" + DimCount + "D" + (ExtendDataByCorrelation ? "x" : "") + (!NormalizeDimensions ? "" : NormalizeByScaling ? "S" : "n") + "-"
+        protected override string GetShorthand() => Filename + (TestFilename != null ? "," + TestFilename : "") + "-" + DimCount + "D" + (ExtendDataByCorrelation ? "x" : "") + (!NormalizeDimensions ? "" : NormalizeByScaling ? "S" : "n") + "-"
                 + ClassCount + "," + PointCount
                 + (InstanceSeed == defaults.InstanceSeed ? "" : "[" + InstanceSeed.ToString("x") + "]")
                 + (Folds == defaults.Folds ? "" : "^" + Folds);
-        }
 
 
         public override LvqDatasetCli CreateDataset()
         {
             var trainFile = LoadDatasetImpl.dataDir.GetFiles(Filename).FirstOrDefault();
-            if (trainFile == null)
+            if (trainFile == null) {
                 return null;
+            }
+
             var testFile = TestFilename == null ? null : LoadDatasetImpl.dataDir.GetFiles(TestFilename).FirstOrDefault();
-            if (testFile == null && TestFilename != null)
+            if (testFile == null && TestFilename != null) {
                 return null;
+            }
+
             var trainSet = LoadDatasetImpl.LoadData(trainFile, testFile, this);
             return trainSet;
         }
@@ -78,19 +74,22 @@ namespace LvqGui
         {
             var outerLen = jaggedArray.Length;
 
-            if (outerLen == 0)
+            if (outerLen == 0) {
                 throw new FileFormatException("No data!");
+            }
 
             var innerLen = jaggedArray[0].Length;
 
             var retval = new T[outerLen, innerLen];
             for (var i = 0; i < outerLen; i++) {
                 var row = jaggedArray[i];
-                if (row.Length != innerLen)
+                if (row.Length != innerLen) {
                     throw new FileFormatException("Vectors are of inconsistent lengths");
+                }
 
-                for (var j = 0; j < innerLen; j++)
+                for (var j = 0; j < innerLen; j++) {
                     retval[i, j] = row[j];
+                }
             }
             return retval;
         }
@@ -101,9 +100,9 @@ namespace LvqGui
         {
             settings = settings.Clone();
             settings.Filename = dataFile.Name;
-            if (settings.Folds != 0 && settings.TestFilename != null)
+            if (settings.Folds != 0 && settings.TestFilename != null) {
                 throw new ArgumentException("Cannot use n-fold crossvalidation and a separate test-set simultaneously");
-
+            }
 
             var trainingdata = LoadRawData(dataFile);
 
@@ -124,13 +123,16 @@ namespace LvqGui
             var testPointArray = testdata.Item1;
             var testLabelArray = testdata.Item2;
             if (testPointArray != null) {
-                if (settings.DimCount != testPointArray.GetLength(1))
+                if (settings.DimCount != testPointArray.GetLength(1)) {
                     throw new InvalidOperationException("training file " + dataFile.Name + " has " + settings.DimCount +
                                                         " dimensions, but test file " + testFile.Name + " has " +
                                                         testPointArray.GetLength(1));
-                if (!trainingdata.Item3.SequenceEqual(testdata.Item3))
+                }
+
+                if (!trainingdata.Item3.SequenceEqual(testdata.Item3)) {
                     throw new InvalidOperationException("training file " + dataFile.Name + " has classes: " + string.Join(",", trainingdata.Item3) +
                                                         " classes, but test file " + testFile.Name + " has " + string.Join(",", testdata.Item3));
+                }
             }
 
 
@@ -168,17 +170,22 @@ namespace LvqGui
         {
             using (var stream = new GZipStream(file.OpenRead(), CompressionMode.Decompress, false))
             using (var reader = new BinaryReader(stream)) {
-                int magic = reader.ReadInt32BigEndian();
+                var magic = reader.ReadInt32BigEndian();
 
-                if ((magic & 0xffff0000) != 0)
+                if ((magic & 0xffff0000) != 0) {
                     throw new FileFormatException("Incorrect magic number; should start with two 0 bytes");
+                }
 
-                if ((magic & 0xff00) != 0x800)
+                if ((magic & 0xff00) != 0x800) {
                     throw new FileFormatException("Incorrect magic number; should be 0x8?? - only supports unsigned byte data");
+                }
+
                 var dimCount = magic & 0xff;
-                if (dimCount == 0 || dimCount > 4)
+                if (dimCount == 0 || dimCount > 4) {
                     throw new FileFormatException("number of dimensions isn't in range [1,4], that's probably corrupt.");
-                int dim0 = reader.ReadInt32BigEndian();
+                }
+
+                var dim0 = reader.ReadInt32BigEndian();
                 var dimsRest = Enumerable.Range(1, dimCount - 1).Select(_ => reader.ReadInt32BigEndian()).Aggregate(1, (product, num) => { checked { return product * num; } });
 
                 if (dimCount == 1) {
@@ -188,9 +195,12 @@ namespace LvqGui
                     return iLabels;
                 } else {
                     var data = new double[dim0, dimsRest];
-                    for (var i = 0; i < dim0; ++i)
-                        for (var j = 0; j < dimsRest; ++j)
+                    for (var i = 0; i < dim0; ++i) {
+                        for (var j = 0; j < dimsRest; ++j) {
                             data[i, j] = reader.ReadByte();
+                        }
+                    }
+
                     return data;
                 }
             }
@@ -214,8 +224,9 @@ namespace LvqGui
                     select int.Parse(labelline, CultureInfo.InvariantCulture)
                     ).ToArray();
 
-            if (dataVectors.GetLength(0) != itemLabels.Length)
+            if (dataVectors.GetLength(0) != itemLabels.Length) {
                 throw new FileFormatException("Labels have different length(" + itemLabels.Length + " than data(" + dataVectors.GetLength(0) + ")!");
+            }
 
             var denseLabelsAndCount = MakeLabelsDense(itemLabels);
 
@@ -240,14 +251,17 @@ namespace LvqGui
         static IEnumerable<string> LoadLines(Stream stream, string extension)
         {
             using (var decompS = extension == ".gz" ? new GZipStream(stream, CompressionMode.Decompress, false) : null)
-            using (var reader = new StreamReader(decompS ?? stream))
-                for (var line = reader.ReadLine(); line != null; line = reader.ReadLine())
+            using (var reader = new StreamReader(decompS ?? stream)) {
+                for (var line = reader.ReadLine(); line != null; line = reader.ReadLine()) {
                     yield return line;
+                }
+            }
         }
         static string[] LoadLines(FileInfo file)
         {
-            using (var stream = file.OpenRead())
+            using (var stream = file.OpenRead()) {
                 return LoadLines(stream, file.Extension).ToArray();
+            }
         }
 
         public static Tuple<LvqFloat[,], int[], string[]> LoadDatasetHelper(FileInfo dataAndLabelFile)
@@ -301,8 +315,10 @@ namespace LvqGui
             var minLabel = labelSet.Min();
             var maxLabel = labelSet.Max();
             var labelCount = labelSet.Count;
-            if (labelCount != maxLabel + 1 || minLabel != 0)
+            if (labelCount != maxLabel + 1 || minLabel != 0) {
                 throw new FileFormatException("Class labels must be consecutive integers starting at 0");
+            }
+
             var origLabelLookup = denseLabelLookup.OrderBy(kv => kv.Value).Select(kv => kv.Key).ToArray();
 
             return Tuple.Create(dataVectors.ToRectangularArray(), itemIntLabels, origLabelLookup);

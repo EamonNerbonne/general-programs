@@ -14,15 +14,28 @@ namespace EmnExtensions.Text
             writers = targetWriters.ToArray();
         }
 
-        protected override void WriteString(string value) { foreach (var writer in writers) writer.Write(value); }
+        protected override void WriteString(string value)
+        {
+            foreach (var writer in writers) {
+                writer.Write(value);
+            }
+        }
 
-        public override void Flush() { base.Flush(); foreach (var writer in writers) writer.Flush(); }
+        public override void Flush()
+        {
+            base.Flush();
+            foreach (var writer in writers) {
+                writer.Flush();
+            }
+        }
 
         protected override void Dispose(bool disposing)
         {
-            if (closeUnderlying && disposing)
-                foreach (var writer in writers)
+            if (closeUnderlying && disposing) {
+                foreach (var writer in writers) {
                     writer.Dispose();
+                }
+            }
         }
     }
 }

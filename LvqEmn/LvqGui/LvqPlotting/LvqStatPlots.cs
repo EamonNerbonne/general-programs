@@ -47,20 +47,11 @@ namespace LvqGui
         }
 
 
-        public void SetScatterBounds(Rect bounds)
-        {
-            ((IPlotMetaDataWriteable)dataClouds.MetaData).OverrideBounds = bounds;
-            //foreach (IPlotMetaDataWriteable metadata in dataClouds.Select(viz => viz.Plot.MetaData)) metadata.OverrideBounds = bounds;
-        }
+        public void SetScatterBounds(Rect bounds) => ((IPlotMetaDataWriteable)dataClouds.MetaData).OverrideBounds = bounds;//foreach (IPlotMetaDataWriteable metadata in dataClouds.Select(viz => viz.Plot.MetaData)) metadata.OverrideBounds = bounds;
 
-        static IVizEngine<LvqStatPlots>[] ExtractDataSinksFromPlots(IEnumerable<PlotControl> plots)
-        {
-            return plots.SelectMany(plot => plot.Graphs).Cast<IVizEngine<LvqStatPlots>>().ToArray();
-        }
+        static IVizEngine<LvqStatPlots>[] ExtractDataSinksFromPlots(IEnumerable<PlotControl> plots) => plots.SelectMany(plot => plot.Graphs).Cast<IVizEngine<LvqStatPlots>>().ToArray();
 
-        static PlotControl[] MakeDataPlots(LvqDatasetCli dataset, LvqMultiModel model)
-        {
-            return (
+        static PlotControl[] MakeDataPlots(LvqDatasetCli dataset, LvqMultiModel model) => (
                     from statname in model.TrainingStatNames.Select(LvqStatName.Create)
                     where statname.StatGroup != null
                     group statname by statname.StatGroup into statGroup
@@ -73,24 +64,18 @@ namespace LvqGui
                         Visibility = statGroup.First().HideByDefault ? Visibility.Collapsed : Visibility.Visible,
                     }
                 ).ToArray();
-        }
 
-        static PlotControl MakeScatterPlotControl(IEnumerable<IVizEngine> graphs)
-        {
-            return new PlotControl {
-                ShowAxes = false,
-                AttemptBorderTicks = false,
-                //ShowGridLines = true,
-                UniformScaling = true,
-                //Title = "ScatterPlot: " + model.ModelLabel,
-                GraphsEnumerable = graphs,
-                PlotName = "embed",
-            };
-        }
+        static PlotControl MakeScatterPlotControl(IEnumerable<IVizEngine> graphs) => new PlotControl {
+            ShowAxes = false,
+            AttemptBorderTicks = false,
+            //ShowGridLines = true,
+            UniformScaling = true,
+            //Title = "ScatterPlot: " + model.ModelLabel,
+            GraphsEnumerable = graphs,
+            PlotName = "embed",
+        };
 
-        static IVizEngine<Point[]>[] MakePerClassScatterGraph(LvqDatasetCli dataset, float colorIntensity, int? PointCount = null, int? zIndex = null)
-        {
-            return (
+        static IVizEngine<Point[]>[] MakePerClassScatterGraph(LvqDatasetCli dataset, float colorIntensity, int? PointCount = null, int? zIndex = null) => (
                     from classColor in dataset.ClassColors//.Select((color,index)=>new{color,index})
                     let darkColor = Color.FromScRgb(1.0f, classColor.ScR * colorIntensity, classColor.ScG * colorIntensity, classColor.ScB * colorIntensity)
                     select PlotHelpers.CreatePixelScatter(
@@ -104,25 +89,18 @@ namespace LvqGui
                             plot.CoverageGradient = 5.0;
                         })
                 ).ToArray();
-        }
 
-        static IVizEngine<LabelledPoint[]> MakePointCloudGraph(LvqDatasetCli dataset, int? zIndex = null)
-        {
-            return PlotHelpers.CreatePointCloud(new PlotMetaData { ZIndex = zIndex ?? 0 })
+        static IVizEngine<LabelledPoint[]> MakePointCloudGraph(LvqDatasetCli dataset, int? zIndex = null) => PlotHelpers.CreatePointCloud(new PlotMetaData { ZIndex = zIndex ?? 0 })
                 .Update(plot => {
                     plot.CoverageRatio = 0.95;
                     plot.CoverageGradient = 5.0;
                     plot.ClassColors = dataset.ClassColors;
                 });
-        }
 
-        IVizEngine<LvqMultiModel.ModelProjectionAndImage> MakeClassBoundaryGraph()
-        {
-            return PlotHelpers.CreateBitmapDelegate<LvqMultiModel.ModelProjectionAndImage>(UpdateClassBoundaries, new PlotMetaData { ZIndex = -1, OverrideBounds = Rect.Empty });
-        }
+        IVizEngine<LvqMultiModel.ModelProjectionAndImage> MakeClassBoundaryGraph() => PlotHelpers.CreateBitmapDelegate<LvqMultiModel.ModelProjectionAndImage>(UpdateClassBoundaries, new PlotMetaData { ZIndex = -1, OverrideBounds = Rect.Empty });
 
         Tuple<int, int> lastWidthHeight;
-        Tuple<int, int> LastWidthHeight { get { return lastWidthHeight; } }
+        Tuple<int, int> LastWidthHeight => lastWidthHeight;
 
         void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqMultiModel.ModelProjectionAndImage lastProjection)
         {

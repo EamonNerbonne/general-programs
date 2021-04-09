@@ -16,11 +16,12 @@ namespace LvqGui
     public partial class LvqWindow
     {
         readonly CancellationTokenSource cts = new CancellationTokenSource();
-        public CancellationToken ClosingToken { get { return cts.Token; } }
+        public CancellationToken ClosingToken => cts.Token;
         public LvqWindow()
         {
-            using (var proc = Process.GetCurrentProcess())
+            using (var proc = Process.GetCurrentProcess()) {
                 proc.PriorityClass = ProcessPriorityClass.BelowNormal;
+            }
 
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
             var windowValues = new LvqWindowValues(this);
@@ -35,7 +36,7 @@ namespace LvqGui
             Closed += LvqWindow_Closed;
         }
 
-        LvqWindowValues Values { get { return (LvqWindowValues)DataContext; } }
+        LvqWindowValues Values => (LvqWindowValues)DataContext;
 
         void LvqWindow_Closed(object sender, EventArgs e)
         {
@@ -53,64 +54,73 @@ namespace LvqGui
         }
 
         // ReSharper disable UnusedMember.Local
-        void DoBenchmark()
-        {        // ReSharper restore UnusedMember.Local
-            ThreadPool.QueueUserWorkItem(o => {
-                var values = ((LvqWindowValues)o);
-                values.CreateStarDatasetValues.ParamsSeed = 1337;
-                values.CreateStarDatasetValues.InstanceSeed = 37;
+        void DoBenchmark() => ThreadPool.QueueUserWorkItem(o => {
+            var values = ((LvqWindowValues)o);
+            values.CreateStarDatasetValues.ParamsSeed = 1337;
+            values.CreateStarDatasetValues.InstanceSeed = 37;
 
-                values.CreateLvqModelValues.ParamsSeed = 42;
-                values.CreateLvqModelValues.InstanceSeed = 1234;
+            values.CreateLvqModelValues.ParamsSeed = 42;
+            values.CreateLvqModelValues.InstanceSeed = 1234;
 
-                values.CreateStarDatasetValues.ConfirmCreation().Completed +=
-                        (s, e) => Dispatcher.BeginInvokeBackground(
-                            () => values.CreateLvqModelValues.ConfirmCreation().ContinueWith(
-                            creationTask => Dispatcher.BeginInvokeBackground(
-                            () => { values.TrainingControlValues.AnimateTraining = true; }
-                            )));
+            values.CreateStarDatasetValues.ConfirmCreation().Completed +=
+                    (s, e) => Dispatcher.BeginInvokeBackground(
+                        () => values.CreateLvqModelValues.ConfirmCreation().ContinueWith(
+                        creationTask => Dispatcher.BeginInvokeBackground(
+                        () => { values.TrainingControlValues.AnimateTraining = true; }
+                        )));
 
-            }, DataContext);
-        }
+        }, DataContext);
 
         LvqStatPlotsContainer lvqPlotContainer;
-        void TrainingControlValues_SelectedModelUpdatedInBackgroundThread()
-        {
-            LvqStatPlotsContainer.QueueUpdateIfCurrent(lvqPlotContainer);
-        }
+        void TrainingControlValues_SelectedModelUpdatedInBackgroundThread() => LvqStatPlotsContainer.QueueUpdateIfCurrent(lvqPlotContainer);
 
         void TrainingControlValues_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "ShowBoundaries" && lvqPlotContainer != null)
+            if (e.PropertyName == "ShowBoundaries" && lvqPlotContainer != null) {
                 lvqPlotContainer.ShowBoundaries(Values.TrainingControlValues.ShowBoundaries);
-            if (e.PropertyName == "ShowPrototypes" && lvqPlotContainer != null)
+            }
+
+            if (e.PropertyName == "ShowPrototypes" && lvqPlotContainer != null) {
                 lvqPlotContainer.ShowPrototypes(Values.TrainingControlValues.ShowPrototypes);
-            if (e.PropertyName == "ShowTestEmbedding" && lvqPlotContainer != null)
+            }
+
+            if (e.PropertyName == "ShowTestEmbedding" && lvqPlotContainer != null) {
                 lvqPlotContainer.ShowTestEmbedding(Values.TrainingControlValues.ShowTestEmbedding);
-            if (e.PropertyName == "ShowTestErrorRates" && lvqPlotContainer != null)
+            }
+
+            if (e.PropertyName == "ShowTestErrorRates" && lvqPlotContainer != null) {
                 lvqPlotContainer.ShowTestErrorRates(Values.TrainingControlValues.ShowTestErrorRates);
-            if (e.PropertyName == "ShowNnErrorRates" && lvqPlotContainer != null)
+            }
+
+            if (e.PropertyName == "ShowNnErrorRates" && lvqPlotContainer != null) {
                 lvqPlotContainer.ShowNnErrorRates(Values.TrainingControlValues.ShowNnErrorRates);
-            if (e.PropertyName == "CurrProjStats" && lvqPlotContainer != null)
+            }
+
+            if (e.PropertyName == "CurrProjStats" && lvqPlotContainer != null) {
                 lvqPlotContainer.ShowCurrentProjectionStats(Values.TrainingControlValues.CurrProjStats);
-            if (e.PropertyName == "SelectedDataset" || e.PropertyName == "SelectedLvqModel" || e.PropertyName == "SubModelIndex")
+            }
+
+            if (e.PropertyName == "SelectedDataset" || e.PropertyName == "SelectedLvqModel" || e.PropertyName == "SubModelIndex") {
                 ModelChanged();
+            }
         }
 
 
         void ModelChanged()
         {
-            if (lvqPlotContainer == null && Values.TrainingControlValues.SelectedDataset != null && Values.TrainingControlValues.SelectedLvqModel != null)
+            if (lvqPlotContainer == null && Values.TrainingControlValues.SelectedDataset != null && Values.TrainingControlValues.SelectedLvqModel != null) {
                 lvqPlotContainer = new LvqStatPlotsContainer(ClosingToken);
+            }
 
-            if (lvqPlotContainer != null)
+            if (lvqPlotContainer != null) {
                 lvqPlotContainer.DisplayModel(Values.TrainingControlValues.SelectedDataset, Values.TrainingControlValues.SelectedLvqModel, Values.TrainingControlValues.SubModelIndex, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes, Values.TrainingControlValues.ShowTestEmbedding, Values.TrainingControlValues.ShowTestErrorRates);
+            }
         }
 
         public bool Fullscreen
         {
-            get { return (bool)GetValue(FullscreenProperty); }
-            set { SetValue(FullscreenProperty, value); }
+            get => (bool)GetValue(FullscreenProperty);
+            set => SetValue(FullscreenProperty, value);
         }
 
         WindowState lastState = WindowState.Normal;
@@ -132,8 +142,8 @@ namespace LvqGui
             }));
 
         // ReSharper disable MemberCanBeMadeStatic.Global
-        public IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
-        public IEnumerable<long> Iters { get { return new[] { 100000L, 1000000L, 10000000L, }; } }
+        public IEnumerable<LvqModelType> ModelTypes => (LvqModelType[])Enum.GetValues(typeof(LvqModelType));
+        public IEnumerable<long> Iters => new[] { 100000L, 1000000L, 10000000L, };
         // ReSharper restore MemberCanBeMadeStatic.Global
 
 
@@ -162,8 +172,10 @@ namespace LvqGui
                                 Console.WriteLine(counter + "/" + allmodels.Length);
                             })
                 ).ContinueWith(t => {
-                    if (t.Status == TaskStatus.Faulted)
+                    if (t.Status == TaskStatus.Faulted) {
                         Console.WriteLine(t.Exception);
+                    }
+
                     lvqInnerPlotContainer.Dispose();
                     Console.WriteLine("saved.");
                 });

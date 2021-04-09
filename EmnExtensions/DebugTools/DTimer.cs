@@ -12,7 +12,7 @@ namespace EmnExtensions.DebugTools
         public void NextAction(string newActionLabel) { Stop(); Start(newActionLabel); }
         public void NextAction(Action<TimeSpan> nextResultSink) { Stop(); Start(nextResultSink); }
 
-        public void Start(string actionLabel) { Start(ts => Console.WriteLine("{0} took {1}", actionLabel, ts)); }
+        public void Start(string actionLabel) => Start(ts => Console.WriteLine("{0} took {1}", actionLabel, ts));
         public void Start(Action<TimeSpan> resultSink) { m_resultSink = resultSink; underlyingTimer = Stopwatch.StartNew(); }
 
         public void Stop() { underlyingTimer.Stop(); m_resultSink(underlyingTimer.Elapsed); }
@@ -21,13 +21,28 @@ namespace EmnExtensions.DebugTools
 
         Action<TimeSpan> m_resultSink;
         Stopwatch underlyingTimer;
-        public static Task TimeTask(Func<Task> f, string actionLabel) { return TimeTask(f, new DTimer(actionLabel)); }
-        public static Task TimeTask(Func<Task> f, Action<TimeSpan> resultSink) { return TimeTask(f, new DTimer(resultSink)); }
-        static Task TimeTask(Func<Task> f, DTimer timer) { return f().ContinueWith(t => { ((IDisposable)timer).Dispose(); t.Wait(); }, TaskContinuationOptions.ExecuteSynchronously); }
+        public static Task TimeTask(Func<Task> f, string actionLabel) => TimeTask(f, new DTimer(actionLabel));
+        public static Task TimeTask(Func<Task> f, Action<TimeSpan> resultSink) => TimeTask(f, new DTimer(resultSink));
+        static Task TimeTask(Func<Task> f, DTimer timer) => f().ContinueWith(t => { ((IDisposable)timer).Dispose(); t.Wait(); }, TaskContinuationOptions.ExecuteSynchronously);
 
-        public static T TimeFunc<T>(Func<T> f, string actionLabel) { using (new DTimer(actionLabel)) return f(); }
-        public static T TimeFunc<T>(Func<T> f, Action<TimeSpan> resultSink) { using (new DTimer(resultSink)) return f(); }
-        public static T TimeFunc<T, M>(Func<T> f, M key, Action<M, TimeSpan> resultsSink) { using (new DTimer(t => resultsSink(key, t))) return f(); }
+        public static T TimeFunc<T>(Func<T> f, string actionLabel)
+        {
+            using (new DTimer(actionLabel)) {
+                return f();
+            }
+        }
+        public static T TimeFunc<T>(Func<T> f, Action<TimeSpan> resultSink)
+        {
+            using (new DTimer(resultSink)) {
+                return f();
+            }
+        }
+        public static T TimeFunc<T, M>(Func<T> f, M key, Action<M, TimeSpan> resultsSink)
+        {
+            using (new DTimer(t => resultsSink(key, t))) {
+                return f();
+            }
+        }
         public static TimeSpan BenchmarkAction(Action a, int repeats)
         {
             var times = new long[repeats];
@@ -44,8 +59,8 @@ namespace EmnExtensions.DebugTools
 
     public static class DTimerExtensions
     {
-        public static T TimeFunc<T>(this Func<T> f, string actionLabel) { return DTimer.TimeFunc(f, actionLabel); }
-        public static T TimeFunc<T>(this Func<T> f, Action<TimeSpan> resultSink) { return DTimer.TimeFunc(f, resultSink); }
-        public static T TimeFunc<T, M>(this Func<T> f, M key, Action<M, TimeSpan> resultsSink) { return DTimer.TimeFunc(f, key, resultsSink); }
+        public static T TimeFunc<T>(this Func<T> f, string actionLabel) => DTimer.TimeFunc(f, actionLabel);
+        public static T TimeFunc<T>(this Func<T> f, Action<TimeSpan> resultSink) => DTimer.TimeFunc(f, resultSink);
+        public static T TimeFunc<T, M>(this Func<T> f, M key, Action<M, TimeSpan> resultsSink) => DTimer.TimeFunc(f, key, resultsSink);
     }
 }

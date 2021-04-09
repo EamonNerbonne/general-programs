@@ -63,10 +63,10 @@ namespace EmnExtensions.Wpf
 
         DimensionBounds m_DataBound;
         DimensionMargins m_DataMargin;
-        public DimensionBounds DataBound { get { return m_DataBound; } set { if (m_DataBound != value) { m_DataBound = value; InvalidateMeasure(); InvalidateVisual(); InvalidateRender(); } } }
-        public DimensionMargins DataMargin { get { return m_DataMargin; } set { if (m_DataMargin != value) { m_DataMargin = value; InvalidateMeasure(); InvalidateVisual(); InvalidateRender(); } } }
+        public DimensionBounds DataBound { get => m_DataBound; set { if (m_DataBound != value) { m_DataBound = value; InvalidateMeasure(); InvalidateVisual(); InvalidateRender(); } } }
+        public DimensionMargins DataMargin { get => m_DataMargin; set { if (m_DataMargin != value) { m_DataMargin = value; InvalidateMeasure(); InvalidateVisual(); InvalidateRender(); } } }
         Brush _background;
-        public Brush Background { get { return _background; } set { _background = value; InvalidateVisual(); } }
+        public Brush Background { get => _background; set { _background = value; InvalidateVisual(); } }
 
         TickedAxis ClockwisePrevAxis, ClockwiseNextAxis, OppositeAxis;//set in OnInitialized
 
@@ -74,60 +74,61 @@ namespace EmnExtensions.Wpf
 
         double RequiredThicknessOfNext
         {
-            get { return m_reqOfNext; }
+            get => m_reqOfNext;
             set {
                 //value = Math.Ceiling(value);
-                if (value != m_reqOfNext && ClockwiseNextAxis != null)
+                if (value != m_reqOfNext && ClockwiseNextAxis != null) {
                     ClockwiseNextAxis.InvalidateArrange();
+                }
+
                 m_reqOfNext = value;
             }
         }
         double RequiredThicknessOfPrev
         {
-            get { return m_reqOfPrev; }
+            get => m_reqOfPrev;
             set {
                 //    value = Math.Ceiling(value);
-                if (value != m_reqOfPrev && ClockwisePrevAxis != null)
+                if (value != m_reqOfPrev && ClockwisePrevAxis != null) {
                     ClockwisePrevAxis.InvalidateArrange();
+                }
+
                 m_reqOfPrev = value;
             }
         }
-        double Thickness { get { return Math.Max(0.0, IsHorizontal ? m_bestGuessCurrentSize.Height : m_bestGuessCurrentSize.Width); } }
+        double Thickness => Math.Max(0.0, IsHorizontal ? m_bestGuessCurrentSize.Height : m_bestGuessCurrentSize.Width);
 
-        double ThicknessOfNext { get { return Math.Max(ClockwiseNextAxis == null ? 0.0 : ClockwiseNextAxis.Thickness, RequiredThicknessOfNext); } }
-        double ThicknessOfPrev { get { return Math.Max(ClockwisePrevAxis == null ? 0.0 : ClockwisePrevAxis.Thickness, RequiredThicknessOfPrev); } }
-        double RequiredThickness
-        {
-            get {
-                return Math.Max(
+        double ThicknessOfNext => Math.Max(ClockwiseNextAxis == null ? 0.0 : ClockwiseNextAxis.Thickness, RequiredThicknessOfNext);
+        double ThicknessOfPrev => Math.Max(ClockwisePrevAxis == null ? 0.0 : ClockwisePrevAxis.Thickness, RequiredThicknessOfPrev);
+        double RequiredThickness => Math.Max(
                 ClockwiseNextAxis == null ? 0.0 : ClockwiseNextAxis.RequiredThicknessOfPrev,
                 ClockwisePrevAxis == null ? 0.0 : ClockwisePrevAxis.RequiredThicknessOfNext);
-            }
-        }
-        public double EffectiveThickness { get { return Math.Max(Thickness, RequiredThickness); } }
+        public double EffectiveThickness => Math.Max(Thickness, RequiredThickness);
 
         string _dataUnits;
-        public string DataUnits { get { return _dataUnits; } set { _dataUnits = value; InvalidateMeasure(); InvalidateVisual(); } }
+        public string DataUnits { get => _dataUnits; set { _dataUnits = value; InvalidateMeasure(); InvalidateVisual(); } }
 
         bool m_AttemptBorderTicks, m_matchOppositeTicks, m_UniformScale;
-        public bool AttemptBorderTicks { get { return m_AttemptBorderTicks || (MatchOppositeTicks && OppositeAxis != null && !OppositeAxis.IsCollapsedOrEmpty); } set { m_AttemptBorderTicks = value; InvalidateMeasure(); } }
-        public bool MatchOppositeTicks { get { return m_matchOppositeTicks; } set { m_matchOppositeTicks = value; if (value) UniformScale = false; InvalidateMeasure(); InvalidateVisual(); } }
-        public bool UniformScale { get { return m_UniformScale && !AttemptBorderTicks; } set { m_UniformScale = value; if (value) { AttemptBorderTicks = false; MatchOppositeTicks = false; } InvalidateMeasure(); InvalidateVisual(); } }
+        public bool AttemptBorderTicks { get => m_AttemptBorderTicks || (MatchOppositeTicks && OppositeAxis != null && !OppositeAxis.IsCollapsedOrEmpty); set { m_AttemptBorderTicks = value; InvalidateMeasure(); } }
+        public bool MatchOppositeTicks { get => m_matchOppositeTicks; set { m_matchOppositeTicks = value; if (value) { UniformScale = false; } InvalidateMeasure(); InvalidateVisual(); } }
+        public bool UniformScale { get => m_UniformScale && !AttemptBorderTicks; set { m_UniformScale = value; if (value) { AttemptBorderTicks = false; MatchOppositeTicks = false; } InvalidateMeasure(); InvalidateVisual(); } }
 
 
         double _tickLength, _labelOffset, _pixelsPerTick;
-        public double TickLength { get { return _tickLength; } set { _tickLength = value; InvalidateVisual(); InvalidateMeasure(); } }
-        public double LabelOffset { get { return _labelOffset; } set { _labelOffset = value; InvalidateVisual(); InvalidateMeasure(); } }
-        public double PixelsPerTick { get { return _pixelsPerTick; } set { _pixelsPerTick = value; InvalidateMeasure(); } }
+        public double TickLength { get => _tickLength; set { _tickLength = value; InvalidateVisual(); InvalidateMeasure(); } }
+        public double LabelOffset { get => _labelOffset; set { _labelOffset = value; InvalidateVisual(); InvalidateMeasure(); } }
+        public double PixelsPerTick { get => _pixelsPerTick; set { _pixelsPerTick = value; InvalidateMeasure(); } }
 
 
         TickedAxisLocation m_axisPos = 0;
         public TickedAxisLocation AxisPos
         {
-            get { return m_axisPos; }
+            get => m_axisPos;
             set {
-                if (value != TickedAxisLocation.AboveGraph && value != TickedAxisLocation.BelowGraph && value != TickedAxisLocation.LeftOfGraph && value != TickedAxisLocation.RightOfGraph)
+                if (value != TickedAxisLocation.AboveGraph && value != TickedAxisLocation.BelowGraph && value != TickedAxisLocation.LeftOfGraph && value != TickedAxisLocation.RightOfGraph) {
                     throw new ArgumentException("A Ticked Axis must be along precisely one side");
+                }
+
                 m_axisPos = value;
                 VerticalAlignment = m_axisPos == TickedAxisLocation.BelowGraph ? VerticalAlignment.Bottom : VerticalAlignment.Top;
                 HorizontalAlignment = m_axisPos == TickedAxisLocation.RightOfGraph ? HorizontalAlignment.Right : HorizontalAlignment.Left;
@@ -136,12 +137,12 @@ namespace EmnExtensions.Wpf
             }
         }
 
-        public bool IsHorizontal { get { return AxisPos == TickedAxisLocation.AboveGraph || AxisPos == TickedAxisLocation.BelowGraph; } }
+        public bool IsHorizontal => AxisPos == TickedAxisLocation.AboveGraph || AxisPos == TickedAxisLocation.BelowGraph;
 
-        static TickedAxisLocation NextLoc(TickedAxisLocation current) { return (TickedAxisLocation)Math.Max((int)TickedAxisLocation.Any & (int)current * 2, 1); }
-        static TickedAxisLocation PrevLoc(TickedAxisLocation current) { return (TickedAxisLocation)((int)current * 17 / 2 & (int)TickedAxisLocation.Any); }
+        static TickedAxisLocation NextLoc(TickedAxisLocation current) => (TickedAxisLocation)Math.Max((int)TickedAxisLocation.Any & (int)current * 2, 1);
+        static TickedAxisLocation PrevLoc(TickedAxisLocation current) => (TickedAxisLocation)((int)current * 17 / 2 & (int)TickedAxisLocation.Any);
 
-        IEnumerable<TickedAxis> Siblings { get { return LogicalTreeHelper.GetChildren(Parent).OfType<TickedAxis>(); } }
+        IEnumerable<TickedAxis> Siblings => LogicalTreeHelper.GetChildren(Parent).OfType<TickedAxis>();
 
         void GuessNeighborsBasedOnAxisPos()
         {
@@ -184,38 +185,44 @@ namespace EmnExtensions.Wpf
         double AxisLengthGuess()
         {
             var axisAlignedLength = IsHorizontal ? m_bestGuessCurrentSize.Width : m_bestGuessCurrentSize.Height;
-            if (!axisAlignedLength.IsFinite() || axisAlignedLength <= 0)
+            if (!axisAlignedLength.IsFinite() || axisAlignedLength <= 0) {
                 axisAlignedLength = DefaultAxisLength;
+            }
+
             return axisAlignedLength - ThicknessOfNext - ThicknessOfPrev - DataMargin.Sum;
         }
 
-        IEnumerable<double> Rank1Values
-        {
-            get {
-                return m_ticks == null ? Enumerable.Empty<double>() :
+        IEnumerable<double> Rank1Values => m_ticks == null ? Enumerable.Empty<double>() :
                     from tick in m_ticks
                     where tick.Rank <= 1
                     select tick.Value;
-            }
-        }
         IEnumerable<Tick> TicksNeedingLabels
         {
             get {
-                if (m_ticks == null)
+                if (m_ticks == null) {
                     yield break;
-                for (var i = 0; i < m_ticks.Length; i++)
-                    if (i == 0 || i == m_ticks.Length - 1 || m_ticks[i].Rank <= 1)
+                }
+
+                for (var i = 0; i < m_ticks.Length; i++) {
+                    if (i == 0 || i == m_ticks.Length - 1 || m_ticks[i].Rank <= 1) {
                         yield return m_ticks[i];
+                    }
+                }
             }
         }
 
         static bool TickArrEqual(Tick[] a, Tick[] b)
         {
-            if (a.Length != b.Length)
+            if (a.Length != b.Length) {
                 return false;
-            for (var i = 0; i < a.Length; i++)
-                if (a[i].Rank != b[i].Rank || a[i].Value != b[i].Value)
+            }
+
+            for (var i = 0; i < a.Length; i++) {
+                if (a[i].Rank != b[i].Rank || a[i].Value != b[i].Value) {
                     return false;
+                }
+            }
+
             return true;
         }
 
@@ -226,8 +233,10 @@ namespace EmnExtensions.Wpf
         {
             var preferredNrOfTicks = AxisLengthGuess() / PreferredPixelsPerTick;
             if (preferredNrOfTicks < MinimumNumberOfTicks) {
-                if (m_ticks != null)
+                if (m_ticks != null) {
                     InvalidateVisual();
+                }
+
                 m_ticks = null;
                 m_tickLabels = null;
                 m_redrawGridLines = true;
@@ -272,27 +281,26 @@ namespace EmnExtensions.Wpf
         {
             double oldDOOM = m_dataOrderOfMagnitude;
             m_dataOrderOfMagnitude = ComputedDataOrderOfMagnitude();
-            if (Math.Abs(m_dataOrderOfMagnitude) < 4)
+            if (Math.Abs(m_dataOrderOfMagnitude) < 4) {
                 m_dataOrderOfMagnitude = 0;//don't use scientific notation for small powers of 10
+            }
 
-            if (m_dataOrderOfMagnitude != oldDOOM)
+            if (m_dataOrderOfMagnitude != oldDOOM) {
                 m_axisLegend = null; //if order of magnitude has changed, we'll need to recreate the axis legend.
+            }
         }
 
-        int ComputedDataOrderOfMagnitude()
-        {
-            return (int)(0.5 + Math.Floor(Math.Log10(Math.Max(Math.Abs(DataBound.Start), Math.Abs(DataBound.End)))));
-        }
+        int ComputedDataOrderOfMagnitude() => (int)(0.5 + Math.Floor(Math.Log10(Math.Max(Math.Abs(DataBound.Start), Math.Abs(DataBound.End)))));
 
         Size TickLabelSizeGuess
         {
             get {
-                if (m_tickLabels != null)
+                if (m_tickLabels != null) {
                     return new Size(
                         m_tickLabels.Select(label => label.Item2.Width).DefaultIfEmpty(0.0).Max(),
                         m_tickLabels.Select(label => label.Item2.Height).DefaultIfEmpty(0.0).Max()
                         );
-                else {
+                } else {
                     var canBeNegative = TicksNeedingLabels.Any(tick => tick.Value < 0.0);
                     var excessMagnitude = m_dataOrderOfMagnitude == 0 ? ComputedDataOrderOfMagnitude() : 0;
                     var textSample = MakeText(8.88888888888888888 * Math.Pow(10.0, excessMagnitude) * (canBeNegative ? -1 : 1));
@@ -301,26 +309,21 @@ namespace EmnExtensions.Wpf
             }
         }
 
-        double PreferredPixelsPerTick
-        {
-            get {
-                return m_ticks == null ? PixelsPerTick : Math.Max((PixelsPerTick + CondTranspose(TickLabelSizeGuess).Width) / 2.0, CondTranspose(TickLabelSizeGuess).Width * Math.Sqrt(10) / 2.0 + 4); //factor sqrt(10)/2 since actual tick distance may be off by that much from the preferred quantity.
-            }
-        }
-        static Size Transpose(Size size) { return new Size(size.Height, size.Width); }
+        double PreferredPixelsPerTick => m_ticks == null ? PixelsPerTick : Math.Max((PixelsPerTick + CondTranspose(TickLabelSizeGuess).Width) / 2.0, CondTranspose(TickLabelSizeGuess).Width * Math.Sqrt(10) / 2.0 + 4); //factor sqrt(10)/2 since actual tick distance may be off by that much from the preferred quantity.
+        static Size Transpose(Size size) => new Size(size.Height, size.Width);
 
-        Size CondTranspose(Size size) { return IsHorizontal ? size : Transpose(size); }//height==thickness, width == along span of axis
+        Size CondTranspose(Size size) => IsHorizontal ? size : Transpose(size); //height==thickness, width == along span of axis
 
 
-        public bool HideAxis { get { return (bool)GetValue(HideAxisProperty); } set { SetValue(HideAxisProperty, value); } }
+        public bool HideAxis { get => (bool)GetValue(HideAxisProperty); set => SetValue(HideAxisProperty, value); }
         public static readonly DependencyProperty HideAxisProperty =
             DependencyProperty.Register("HideAxis", typeof(bool), typeof(TickedAxis), new UIPropertyMetadata(false, HideAxisChanged));
-        static void HideAxisChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) { ((TickedAxis)d).InvalidateVisual(); }
+        static void HideAxisChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((TickedAxis)d).InvalidateVisual();
 
 
-        bool IsCollapsedOrEmpty { get { return HideAxis || Visibility == Visibility.Collapsed || DataBound.Length <= 0 || !DataBound.Length.IsFinite(); } }
+        bool IsCollapsedOrEmpty => HideAxis || Visibility == Visibility.Collapsed || DataBound.Length <= 0 || !DataBound.Length.IsFinite();
 
-        static double ZeroIfInf(double val) { return double.IsInfinity(val) ? 0 : val; }
+        static double ZeroIfInf(double val) => double.IsInfinity(val) ? 0 : val;
 
         Size DontShow(Size constraint)
         {
@@ -332,20 +335,27 @@ namespace EmnExtensions.Wpf
         void RedrawNeighborsAsNeeded(double oldThickness)
         {
             var newThickness = Thickness;
-            if (newThickness == oldThickness)
+            if (newThickness == oldThickness) {
                 return;//no change.
+            }
             //change...
             var maxThickness = Math.Max(newThickness, oldThickness);
 
             var toUpdate = new List<TickedAxis>();
-            if (ClockwiseNextAxis != null && ClockwiseNextAxis.RequiredThicknessOfPrev < maxThickness)
+            if (ClockwiseNextAxis != null && ClockwiseNextAxis.RequiredThicknessOfPrev < maxThickness) {
                 toUpdate.Add(ClockwiseNextAxis);
-            if (ClockwisePrevAxis != null && ClockwisePrevAxis.RequiredThicknessOfNext < maxThickness)
+            }
+
+            if (ClockwisePrevAxis != null && ClockwisePrevAxis.RequiredThicknessOfNext < maxThickness) {
                 toUpdate.Add(ClockwisePrevAxis);
+            }
 
             foreach (var axis in toUpdate) {
                 if (newThickness > oldThickness) //less space for them, need to remeasure.
+{
                     axis.InvalidateMeasure();
+                }
+
                 axis.InvalidateVisual();
             }
         }
@@ -355,28 +365,33 @@ namespace EmnExtensions.Wpf
             var origThickness = Thickness;
             try {
                 m_minReqTickCount = OppositeAxis == null || OppositeAxis.IsCollapsedOrEmpty || !MatchOppositeTicks ? 0 : OppositeAxis.m_tickCount;
-                if (IsCollapsedOrEmpty)
+                if (IsCollapsedOrEmpty) {
                     return DontShow(constraint);
+                }
 #if TRACE
-                Console.WriteLine("MeasureOverride: " + this.AxisPos);
+                Console.WriteLine("MeasureOverride: " + AxisPos);
 #endif
-                if (m_cachedCulture == null)
+                if (m_cachedCulture == null) {
                     m_cachedCulture = CultureInfo.CurrentCulture;
+                }
 
                 var isReasonableConstraint = constraint.Height >= 0 && constraint.Width >= 0 && constraint.Width.IsFinite() && constraint.Height.IsFinite();
 
-                if (isReasonableConstraint)
+                if (isReasonableConstraint) {
                     m_bestGuessCurrentSize = constraint;
+                }
 
                 RecomputeDataOrderOfMagnitude();
 
-                if (m_axisLegend == null)
+                if (m_axisLegend == null) {
                     m_axisLegend = MakeAxisLegendText(m_dataOrderOfMagnitude, DataUnits, m_cachedCulture, FontSize, m_typeface);
+                }
 
                 RecomputeTicks(true);
 
-                if (m_ticks == null)
+                if (m_ticks == null) {
                     return DontShow(constraint);
+                }
 
                 //ticks are likely good now, so we compute labels...
                 RecomputeTickLabels();            //we now have ticks and labels, yay!
@@ -384,8 +399,9 @@ namespace EmnExtensions.Wpf
                 var constraintAxisAlignedWidth = CondTranspose(constraint).Width;
                 m_bestGuessCurrentSize = CondTranspose(ComputeSize(constraintAxisAlignedWidth));
 
-                if (isReasonableConstraint && (m_bestGuessCurrentSize.Width > constraint.Width || m_bestGuessCurrentSize.Height > constraint.Height))
+                if (isReasonableConstraint && (m_bestGuessCurrentSize.Width > constraint.Width || m_bestGuessCurrentSize.Height > constraint.Height)) {
                     return DontShow(constraint);
+                }
 
                 //At the end of Measure, m_bestGuessCurrentSize is either 0x0 if we don't think we can render, 
                 //or it's a reasonable estimate of a final layout size, producing reasonable thickness.
@@ -406,8 +422,9 @@ namespace EmnExtensions.Wpf
             //Size minimumSize = m_axisLegend.Bounds.Size;
             //minBounds.Union(new Point(constraintAxisAlignedWidth, 0));
 
-            if (constraintAxisAlignedWidth.IsFinite())
+            if (constraintAxisAlignedWidth.IsFinite()) {
                 minBounds.Union(new Point(constraintAxisAlignedWidth, 0));
+            }
 
             RequiredThicknessOfNext = RequiredThicknessOfPrev = tickLabelSize.Width / 2.0;
             var minAxisLength = MinimumNumberOfTicks * PreferredPixelsPerTick;
@@ -424,16 +441,18 @@ namespace EmnExtensions.Wpf
             var origThickness = Thickness;
             try {
                 m_bestGuessCurrentSize = constraint;
-                if (IsCollapsedOrEmpty)
+                if (IsCollapsedOrEmpty) {
                     return DontShow(constraint);
+                }
 #if TRACE
-                Console.WriteLine("Arrange: " + this.AxisPos);
+                Console.WriteLine("Arrange: " + AxisPos);
 #endif
 
                 RecomputeTicks(false); //now with accurate info of actual size and an estimate of neighbors thicknesses.
 
-                if (m_ticks == null)
+                if (m_ticks == null) {
                     return DontShow(constraint);
+                }
 
                 //ticks are likely good now, so we compute labels...
                 RecomputeTickLabels();            //we now have ticks and labels, yay!
@@ -448,16 +467,18 @@ namespace EmnExtensions.Wpf
                 return m_bestGuessCurrentSize;
             } finally {
                 RedrawNeighborsAsNeeded(origThickness);
-                if (m_bestGuessCurrentSize.Width > constraint.Width || m_bestGuessCurrentSize.Height > constraint.Height)
+                if (m_bestGuessCurrentSize.Width > constraint.Width || m_bestGuessCurrentSize.Height > constraint.Height) {
                     InvalidateMeasure();
+                }
             }
         }
 
         public DimensionBounds DisplayBounds
         { //depends on AxisPos, DataMargin, ThicknessOf*, m_bestGuessCurrentSize
             get {
-                if (DataBound == DimensionBounds.Empty)
+                if (DataBound == DimensionBounds.Empty) {
                     return DimensionBounds.Empty;
+                }
                 //if we're on bottom or right, data low values are towards the clockwise end.
                 var lowAtNext = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph; //flipped-vertical-relevant
 
@@ -477,8 +498,9 @@ namespace EmnExtensions.Wpf
         public DimensionBounds DisplayClippingBounds
         {
             get {
-                if (DataBound == DimensionBounds.Empty)
+                if (DataBound == DimensionBounds.Empty) {
                     return DimensionBounds.Empty;
+                }
                 //if we're on bottom or right, data low values are towards the clockwise end.
                 var lowAtNext = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph; //flipped-vertical-relevant
 
@@ -496,8 +518,10 @@ namespace EmnExtensions.Wpf
 
         static Matrix MapBounds(DimensionBounds srcBounds, DimensionBounds dstBounds)
         {
-            if (dstBounds.IsEmpty || srcBounds.IsEmpty)
+            if (dstBounds.IsEmpty || srcBounds.IsEmpty) {
                 return Matrix.Identity;
+            }
+
             var transform = Matrix.Identity;
 
             var scaleFactor = (dstBounds.End - dstBounds.Start) / (srcBounds.End - srcBounds.Start);
@@ -513,8 +537,10 @@ namespace EmnExtensions.Wpf
         static Matrix AlignmentTransform(TickedAxisLocation side, Size axisAlignedRenderSize)
         {
             var transform = Matrix.Identity; //top-left is 0,0, so if you're on the bottom you're happy
-            if (side == TickedAxisLocation.LeftOfGraph || side == TickedAxisLocation.AboveGraph)
+            if (side == TickedAxisLocation.LeftOfGraph || side == TickedAxisLocation.AboveGraph) {
                 transform.ScaleAt(1.0, -1.0, 0.0, axisAlignedRenderSize.Height / 2.0);
+            }
+
             if (side == TickedAxisLocation.LeftOfGraph || side == TickedAxisLocation.RightOfGraph) {
                 transform.Rotate(-90.0);
                 transform.Scale(1.0, -1.0);
@@ -527,13 +553,15 @@ namespace EmnExtensions.Wpf
             var transform = Matrix.Identity;
             var center = 0.5 * ((Vector)axisLegendBounds.TopLeft + (Vector)axisLegendBounds.BottomRight);
             transform.Translate(-center.X, -center.Y);
-            if (side == TickedAxisLocation.RightOfGraph || side == TickedAxisLocation.LeftOfGraph)
+            if (side == TickedAxisLocation.RightOfGraph || side == TickedAxisLocation.LeftOfGraph) {
                 transform.Rotate(90.0);
+            }
+
             transform.Translate(centerAt.X, centerAt.Y);
             return transform;
         }
 
-        Matrix DataToDisplayAlongXTransform { get { return MapBounds(DisplayedDataBounds, DisplayBounds); } }
+        Matrix DataToDisplayAlongXTransform => MapBounds(DisplayedDataBounds, DisplayBounds);
 
         public Matrix DataToDisplayTransform
         {
@@ -549,8 +577,8 @@ namespace EmnExtensions.Wpf
             }
         }
 
-        DimensionBounds DisplayedDataBoundsRaw { get { return m_ticks == null ? DataBound : DataBound.UnionWith(m_ticks.First().Value, m_ticks.Last().Value); } }
-        double UnitsPerPixelRaw { get { return DisplayedDataBoundsRaw.IsEmpty ? 0 : DisplayedDataBoundsRaw.Length / DisplayBounds.Length; } }
+        DimensionBounds DisplayedDataBoundsRaw => m_ticks == null ? DataBound : DataBound.UnionWith(m_ticks.First().Value, m_ticks.Last().Value);
+        double UnitsPerPixelRaw => DisplayedDataBoundsRaw.IsEmpty ? 0 : DisplayedDataBoundsRaw.Length / DisplayBounds.Length;
         public DimensionBounds DisplayedDataBounds
         {
             get {
@@ -567,25 +595,23 @@ namespace EmnExtensions.Wpf
 
         public ulong RepaintWorkaround
         {
-            get { return (ulong)GetValue(RepaintWorkaroundProperty); }
-            set { SetValue(RepaintWorkaroundProperty, value); }
+            get => (ulong)GetValue(RepaintWorkaroundProperty);
+            set => SetValue(RepaintWorkaroundProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for RepaintWorkaround.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty RepaintWorkaroundProperty =
             DependencyProperty.Register("RepaintWorkaround", typeof(ulong), typeof(TickedAxis), new FrameworkPropertyMetadata(0UL, FrameworkPropertyMetadataOptions.NotDataBindable | FrameworkPropertyMetadataOptions.AffectsRender));
 
-        void InvalidateRender()
-        {
-            RepaintWorkaround++;
-        }
+        void InvalidateRender() => RepaintWorkaround++;
 
 
         protected override void OnRender(DrawingContext drawingContext)
         {
             drawingContext.DrawRectangle(Background, null, new Rect(m_bestGuessCurrentSize));
-            if (IsCollapsedOrEmpty || m_ticks == null)
+            if (IsCollapsedOrEmpty || m_ticks == null) {
                 return;
+            }
 
 #if TRACE
             Console.WriteLine("Rendering ticks: " + AxisPos);
@@ -631,8 +657,9 @@ namespace EmnExtensions.Wpf
                         return Math.Abs(offset) < 0.6 * widthsum;
                     });
 
-                if (!tooClose)
+                if (!tooClose) {
                     drawingContext.DrawText(labelledValue.Item2, originPoint);
+                }
             }
 
             //finally, we draw the axisLegend:
@@ -662,9 +689,12 @@ namespace EmnExtensions.Wpf
         static StreamGeometry DrawGridLines(IEnumerable<Tick> ticks)
         {
             var geom = new StreamGeometry();
-            using (var context = geom.Open())
-                foreach (var tick in ticks)
+            using (var context = geom.Open()) {
+                foreach (var tick in ticks) {
                     DrawGridLinesHelper(context, tick.Value, 1);
+                }
+            }
+
             return geom;
         }
 
@@ -679,24 +709,30 @@ namespace EmnExtensions.Wpf
         static StreamGeometry DrawTicksAlongX(IEnumerable<Tick> ticks, double tickLength)
         {
             var geom = new StreamGeometry();
-            using (var context = geom.Open())
-                foreach (var tick in ticks)
+            using (var context = geom.Open()) {
+                foreach (var tick in ticks) {
                     DrawGridLinesHelper(context, tick.Value, (3.8 - Math.Max(tick.Rank - 1, 0)) / 3.8 * tickLength);
+                }
+            }
+
             return geom;
         }
-        static Matrix TransposeMatrix { get { return new Matrix { M11 = 0, M12 = 1, M21 = 1, M22 = 0, OffsetX = 0, OffsetY = 0 }; } }
+        static Matrix TransposeMatrix => new Matrix { M11 = 0, M12 = 1, M21 = 1, M22 = 0, OffsetX = 0, OffsetY = 0 };
 
         readonly MatrixTransform m_gridLineAlignTransform = new MatrixTransform();
         readonly DrawingGroup m_gridLines = new DrawingGroup();
 
-        public Drawing GridLines { get { return m_gridLines; } }
+        public Drawing GridLines => m_gridLines;
 
         public void SetGridLineExtent(Size outerBounds)
         {
-            if (m_ticks == null)
+            if (m_ticks == null) {
                 return;
-            if (m_redrawGridLines)
+            }
+
+            if (m_redrawGridLines) {
                 RenderGridLines();
+            }
 
             var oppFirst = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph;
             var oppAxis = ClockwiseNextAxis.ClockwiseNextAxis ?? ClockwisePrevAxis.ClockwisePrevAxis;
@@ -715,8 +751,9 @@ namespace EmnExtensions.Wpf
             transform.Scale(1.0, endAt - startAt);
             transform.Translate(0.0, startAt);//grid lines long enough;
             transform.Append(tickIdxToDisp);
-            if (!IsHorizontal)
+            if (!IsHorizontal) {
                 transform.Append(TransposeMatrix);
+            }
 
             m_gridLineAlignTransform.Matrix = transform;
         }
@@ -762,8 +799,9 @@ namespace EmnExtensions.Wpf
             //convert subDivTicks into "cumulative" multiples, i.e. 2,2,5 into 20,10,5,1
             var subMultiple = new int[subDivTicks.Length + 1];
             subMultiple[subDivTicks.Length] = 1;
-            for (var i = subDivTicks.Length - 1; i >= 0; i--)
+            for (var i = subDivTicks.Length - 1; i >= 0; i--) {
                 subMultiple[i] = subDivTicks[i] * subMultiple[i + 1];
+            }
 
             var subSlotSize = totalSlotSize / subMultiple[0];
             var subSlotCount = (int)(lastTickMult - firstTickMult) * subMultiple[0];
@@ -772,26 +810,35 @@ namespace EmnExtensions.Wpf
             for (var i = 0; i <= subSlotCount; i++) {
                 var value = (firstTickMult * subMultiple[0] + i) * subSlotSize; //by working in integral math here, we ensure that 0 falls on 0.0 exactly.
                 var rank = 1;
-                if (value == 0.0)
+                if (value == 0.0) {
                     rank = 0;
-                else
-                    while (i % subMultiple[rank - 1] != 0)
+                } else {
+                    while (i % subMultiple[rank - 1] != 0) {
                         rank++;
+                    }
+                }
+
                 allTicks.Add(new Tick { Rank = rank, Value = value });
             }
             //we have all ticks, now trim ticks down to relevant ones
 
             var startSkip = 0;
-            if (minReqTickCount == 0 && (!attemptBorderTicks || range.Min - allTicks[0].Value > 0.2 * range.Length))
-                for (var i = 0; i < allTicks.Count && !range.EncompassesValue(allTicks[i].Value); i++)
-                    if (allTicks[i].Rank <= 2)
+            if (minReqTickCount == 0 && (!attemptBorderTicks || range.Min - allTicks[0].Value > 0.2 * range.Length)) {
+                for (var i = 0; i < allTicks.Count && !range.EncompassesValue(allTicks[i].Value); i++) {
+                    if (allTicks[i].Rank <= 2) {
                         startSkip = i; //found SubPrime before range!
+                    }
+                }
+            }
 
             var upto = allTicks.Count;
-            if (minReqTickCount == 0 && (!attemptBorderTicks || allTicks[allTicks.Count - 1].Value - range.Max > 0.2 * range.Length))
-                for (var i = allTicks.Count - 1; i >= 0 && !range.EncompassesValue(allTicks[i].Value); i--)
-                    if (allTicks[i].Rank <= 2)
+            if (minReqTickCount == 0 && (!attemptBorderTicks || allTicks[allTicks.Count - 1].Value - range.Max > 0.2 * range.Length)) {
+                for (var i = allTicks.Count - 1; i >= 0 && !range.EncompassesValue(allTicks[i].Value); i--) {
+                    if (allTicks[i].Rank <= 2) {
                         upto = i + 1; //found SubPrime after range!
+                    }
+                }
+            }
 
             if ((startSkip != 0 || upto != allTicks.Count) && fixedSlot == 1) {//subdividing into a new significant digit!
                 //Console.WriteLine("Subdividing for range " + allTicks[startSkip].Value.ToString("g3") + " - " + allTicks[upto - 1].Value.ToString("g3"));
@@ -832,8 +879,9 @@ namespace EmnExtensions.Wpf
         /// <param name="slotOrderOfMagnitude">output: The order of magnitude of the difference between consecutive major ticks, in base 10 - useful for deciding how many digits of a label to print.</param>
         static void CalcTickPositions(DimensionBounds range, int minReqTickCount, double preferredNum, out double slotSize, out int slotOrderOfMagnitude, out long firstTickAtSlotMultiple, out long lastTickAtSlotMultiple, out int[] ticks, out int tickCount, out int fixedSlot)
         {
-            if (preferredNum > 10.0)
+            if (preferredNum > 10.0) {
                 preferredNum = Math.Sqrt(10 * preferredNum);
+            }
 
             var idealSlotSize = range.Length / preferredNum;
             slotOrderOfMagnitude = (int)Math.Floor(Math.Log10(idealSlotSize)); //i.e  for 143 or 971 this is 2

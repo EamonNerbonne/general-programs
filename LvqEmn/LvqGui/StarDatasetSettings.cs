@@ -27,10 +27,7 @@ namespace LvqGui
 
         public uint ParamsSeed;
 
-        protected override string RegexText
-        {
-            get {
-                return @"
+        protected override string RegexText => @"
                 ^\s*(.*?--)?
                 star-(?<Dimensions>\d+)D
                 (?<ExtendDataByCorrelation>x?)
@@ -45,22 +42,15 @@ namespace LvqGui
                 (\[(?<ParamsSeed_>[\dA-Fa-f]+)?\,(?<InstanceSeed_>[\dA-Fa-f]+)?\])?
                 (\^(?<Folds>\d+))?\s*$"
                     ;
-            }
-        }
 
-        protected override string GetShorthand()
-        {
-            return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (!NormalizeDimensions ? "" : NormalizeByScaling ? "S" : "n") + "-" + NumberOfClasses + "x" + PointsPerClass + ","
+        protected override string GetShorthand() => "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (!NormalizeDimensions ? "" : NormalizeByScaling ? "S" : "n") + "-" + NumberOfClasses + "x" + PointsPerClass + ","
                 + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "r" : "") + ")x" + ClusterCenterDeviation.ToString("r") + "i"
                 + IntraClusterClassRelDev.ToString("r") + (NoiseSigma != 1.0 ? "n" + NoiseSigma.ToString("r") : "")
                 + (GlobalNoiseMaxSigma != 0.0 ? "g" + GlobalNoiseMaxSigma.ToString("r") : "")
                 + (ParamsSeed == defaults.ParamsSeed && InstanceSeed == defaults.InstanceSeed ? "" : "[" + (ParamsSeed == defaults.ParamsSeed ? "" : ParamsSeed.ToString("x")) + "," + (InstanceSeed == defaults.InstanceSeed ? "" : InstanceSeed.ToString("x")) + "]")
                 + (Folds == defaults.Folds ? "" : "^" + Folds);
-        }
 
-        public override LvqDatasetCli CreateDataset()
-        {
-            return LvqDatasetCli.ConstructStarDataset(Shorthand,
+        public override LvqDatasetCli CreateDataset() => LvqDatasetCli.ConstructStarDataset(Shorthand,
                 colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)ParamsSeed)),
                 folds: Folds,
                 extend: ExtendDataByCorrelation,
@@ -79,6 +69,5 @@ namespace LvqGui
                 noiseSigma: NoiseSigma,
                 globalNoiseMaxSigma: GlobalNoiseMaxSigma
             );
-        }
     }
 }

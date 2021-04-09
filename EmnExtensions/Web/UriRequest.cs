@@ -12,7 +12,7 @@ namespace EmnExtensions.Web
         public Uri Uri { get; private set; }
         public string EncodingName { get; private set; }
         public Encoding Encoding { get; private set; }
-        public string ContentAsString { get { return Encoding.GetString(Content); } }
+        public string ContentAsString => Encoding.GetString(Content);
 
 
         const int BUFSIZE = 4096;
@@ -21,12 +21,15 @@ namespace EmnExtensions.Web
         static readonly Encoding FallbackEncoding = Encoding.UTF8;
         public static UriRequest Execute(Uri uri, CookieContainer cookies = null, Uri referer = null, string UserAgent = null, string PostData = null)
         {
-            if (uri.Scheme.ToUpperInvariant() != "HTTP")
+            if (uri.Scheme.ToUpperInvariant() != "HTTP") {
                 throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "Scheme \"{0}\" is unknown in Uri \"{1}\".", uri.Scheme, uri));
+            }
 
             var request = (HttpWebRequest)WebRequest.Create(uri);
-            if (UserAgent != null)
+            if (UserAgent != null) {
                 request.UserAgent = UserAgent;
+            }
+
             request.CookieContainer = cookies;
             request.Referer = referer == null ? null : referer.ToString();
             //request.AllowAutoRedirect = true;//this is the default
@@ -42,8 +45,9 @@ namespace EmnExtensions.Web
 
                 var contentBytes = FallbackEncoding.GetBytes(PostData);
                 request.ContentLength = contentBytes.Length;
-                using (var reqStream = request.GetRequestStream())
+                using (var reqStream = request.GetRequestStream()) {
                     reqStream.Write(contentBytes, 0, contentBytes.Length);
+                }
             }
 
             var retval = new UriRequest { Uri = uri };
@@ -52,8 +56,10 @@ namespace EmnExtensions.Web
                 var httpResponse = (HttpWebResponse)response;
 
                 var encodingName = httpResponse.ContentEncoding;
-                if (string.IsNullOrEmpty(encodingName))
+                if (string.IsNullOrEmpty(encodingName)) {
                     encodingName = httpResponse.CharacterSet;
+                }
+
                 if (string.IsNullOrEmpty(encodingName)) {
                     retval.EncodingName = null;
                     retval.Encoding = FallbackEncoding;

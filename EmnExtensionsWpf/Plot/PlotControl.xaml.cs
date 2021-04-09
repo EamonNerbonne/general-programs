@@ -23,9 +23,9 @@ namespace EmnExtensions.Wpf
     {
         bool needRedrawGraphs;
         readonly ObservableCollection<IVizEngine> graphs = new ObservableCollection<IVizEngine>();
-        IEnumerable<IVizEngine> visibleGraphs { get { return graphs.Where(g => !g.MetaData.Hidden); } }
-        public ObservableCollection<IVizEngine> Graphs { get { return graphs; } }
-        public IEnumerable<IVizEngine> GraphsEnumerable { get { return graphs; } set { Graphs.Clear(); foreach (var plot in value) Graphs.Add(plot); } }
+        IEnumerable<IVizEngine> visibleGraphs => graphs.Where(g => !g.MetaData.Hidden);
+        public ObservableCollection<IVizEngine> Graphs => graphs;
+        public IEnumerable<IVizEngine> GraphsEnumerable { get => graphs; set { Graphs.Clear(); foreach (var plot in value) { Graphs.Add(plot); } } }
         readonly DrawingBrush bgBrush;
         readonly UIElement drawingUi;
 
@@ -33,15 +33,17 @@ namespace EmnExtensions.Wpf
         {
             readonly Drawing drawing;
             public PlainDrawing(DrawingGroup dg) { drawing = dg; }
-            protected override void OnRender(DrawingContext drawingContext) { drawingContext.DrawDrawing(drawing); }
+            protected override void OnRender(DrawingContext drawingContext) => drawingContext.DrawDrawing(drawing);
         }
 
         static readonly object syncType = new object();
         public PlotControl()
         {
             graphs.CollectionChanged += graphs_CollectionChanged;
-            lock (syncType)
+            lock (syncType) {
                 InitializeComponent();//Apparently InitializeComponent isn't thread safe.
+            }
+
             RenderOptions.SetBitmapScalingMode(dg, BitmapScalingMode.Linear);
             bgBrush = new DrawingBrush(dg) {
                 Stretch = Stretch.None, //No stretch since we want the ticked axis to determine stretch
@@ -55,23 +57,21 @@ namespace EmnExtensions.Wpf
             manualRender = true;
         }
 
-        public bool ShowAxes { get { return (bool)GetValue(ShowAxesProperty); } set { SetValue(ShowAxesProperty, value); } }
+        public bool ShowAxes { get => (bool)GetValue(ShowAxesProperty); set => SetValue(ShowAxesProperty, value); }
         public static readonly DependencyProperty ShowAxesProperty =
             DependencyProperty.Register("ShowAxes", typeof(bool), typeof(PlotControl), new UIPropertyMetadata(true, ShowAxesSet));
-        static void ShowAxesSet(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            ((PlotControl)d).SetAxesShow((bool)e.NewValue);
-        }
+        static void ShowAxesSet(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((PlotControl)d).SetAxesShow((bool)e.NewValue);
 
         void SetAxesShow(bool showAxes)
         {
-            foreach (var axis in Axes)
+            foreach (var axis in Axes) {
                 axis.HideAxis = !showAxes;
+            }
         }
 
-        public bool UniformScaling { get { return Axes.All(axis => axis.UniformScale); } set { foreach (var axis in Axes) axis.UniformScale = value; } }
+        public bool UniformScaling { get => Axes.All(axis => axis.UniformScale); set { foreach (var axis in Axes) { axis.UniformScale = value; } } }
 
-        public string Title { get { return (string)GetValue(TitleProperty); } set { SetValue(TitleProperty, value); } }
+        public string Title { get => (string)GetValue(TitleProperty); set => SetValue(TitleProperty, value); }
         public static readonly DependencyProperty TitleProperty =
             DependencyProperty.Register("Title", typeof(string), typeof(PlotControl), new UIPropertyMetadata(
                 (depObj, evtArg) => { (depObj as PlotControl).titleTextbox.Visibility = evtArg.NewValue == null ? Visibility.Collapsed : Visibility.Visible; }
@@ -85,29 +85,37 @@ namespace EmnExtensions.Wpf
                                     select graph
                                ).ToArray();
             var randomColors = WpfTools.MakeDistributedColors(ColoredPlots.Length, rnd);
-            foreach (var plotAndColor in ColoredPlots.Zip(randomColors, Tuple.Create))
+            foreach (var plotAndColor in ColoredPlots.Zip(randomColors, Tuple.Create)) {
                 plotAndColor.Item1.MetaData.RenderColor = plotAndColor.Item2;
+            }
         }
 
         void RegisterChanged(IEnumerable<IVizEngine> newGraphs)
         {
-            foreach (var newgraph in newGraphs)
+            foreach (var newgraph in newGraphs) {
                 newgraph.MetaData.Container = this;
+            }
         }
         static void UnregisterChanged(IEnumerable<IVizEngine> oldGraphs)
         {
-            foreach (var oldgraph in oldGraphs)
+            foreach (var oldgraph in oldGraphs) {
                 oldgraph.MetaData.Container = null;
+            }
         }
 
         void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (e.OldItems != null)
+            if (e.OldItems != null) {
                 UnregisterChanged(e.OldItems.Cast<IVizEngine>());
-            if (e.NewItems != null)
+            }
+
+            if (e.NewItems != null) {
                 RegisterChanged(e.NewItems.Cast<IVizEngine>());
-            if (e.OldItems != null && e.OldItems.Count > 0 || e.NewItems != null && e.NewItems.Cast<IVizEngine>().Any(p => !p.MetaData.Hidden))
+            }
+
+            if (e.OldItems != null && e.OldItems.Count > 0 || e.NewItems != null && e.NewItems.Cast<IVizEngine>().Any(p => !p.MetaData.Hidden)) {
                 RequireRedisplay();
+            }
         }
 
         void RequireRedisplay()
@@ -119,13 +127,18 @@ namespace EmnExtensions.Wpf
 
             labelarea.Children.Clear();
             var any = false;
-            var label = new TextBlock();
-            label.TextWrapping = TextWrapping.Wrap;
+            var label = new TextBlock {
+                TextWrapping = TextWrapping.Wrap
+            };
             foreach (var graph in Graphs) {
-                if (graph.MetaData.DataLabel == null)
+                if (graph.MetaData.DataLabel == null) {
                     continue;
-                if (any)
+                }
+
+                if (any) {
                     label.Inlines.Add(";  ");
+                }
+
                 any = true;
                 label.Inlines.Add(new Image {
                     Source = new DrawingImage(graph.SampleDrawing).AsFrozen(),
@@ -134,17 +147,18 @@ namespace EmnExtensions.Wpf
                 });
                 label.Inlines.Add(graph.MetaData.DataLabel);
             }
-            if (any)
+            if (any) {
                 labelarea.Children.Add(label);
+            }
         }
 
 
 
         void IPlotContainer.GraphChanged(IVizEngine plot, GraphChange graphChange)
         {
-            if (GraphChange.Visibility == graphChange)
+            if (GraphChange.Visibility == graphChange) {
                 RequireRedisplay();
-            else if (!plot.MetaData.Hidden)
+            } else if (!plot.MetaData.Hidden) {
                 switch (graphChange) {
                     case GraphChange.Drawing:
                         needRedrawGraphs = true;
@@ -159,13 +173,20 @@ namespace EmnExtensions.Wpf
                         RequireRedisplay();
                         break;
                 }
+            }
         }
 
         IEnumerable<TickedAxis> Axes { get { yield return tickedAxisLft; yield return tickedAxisBot; yield return tickedAxisRgt; yield return tickedAxisTop; } }
 
         public bool? AttemptBorderTicks
         {
-            set { if (value.HasValue) foreach (var axis in Axes) axis.AttemptBorderTicks = value.Value; }
+            set {
+                if (value.HasValue) {
+                    foreach (var axis in Axes) {
+                        axis.AttemptBorderTicks = value.Value;
+                    }
+                }
+            }
             get {
                 var vals = Axes.Select(axis => axis.AttemptBorderTicks).Distinct().ToArray();
                 return vals.Length != 1 ? (bool?)null : vals[0];
@@ -182,9 +203,9 @@ namespace EmnExtensions.Wpf
                 yield return TickedAxisLocation.AboveGraph | TickedAxisLocation.RightOfGraph;
             }
         }
-        static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) { return bounds.IsEmpty || bounds.Width == 0 || bounds.Height == 0 ? DimensionBounds.Empty : isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds); }
-        static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) { return isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins); }
-        static TickedAxisLocation ChooseProjection(IVizEngine graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.MetaData.AxisBindings & corner) == corner); }
+        static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) => bounds.IsEmpty || bounds.Width == 0 || bounds.Height == 0 ? DimensionBounds.Empty : isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds);
+        static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) => isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins);
+        static TickedAxisLocation ChooseProjection(IVizEngine graph) => ProjectionCorners.FirstOrDefault(corner => (graph.MetaData.AxisBindings & corner) == corner);
         #endregion
 
         void RecomputeBounds()
@@ -214,15 +235,17 @@ namespace EmnExtensions.Wpf
         void RedrawGraphs(TickedAxisLocation gridLineAxes)
         {
             Trace.WriteLine("Redrawing Graphs");
-            using (var drawingContext = dg.Open())
+            using (var drawingContext = dg.Open()) {
                 RedrawScene(drawingContext, gridLineAxes);
+            }
+
             needRedrawGraphs = false;
         }
 
         public bool ShowGridLines
         {
-            get { return (bool)GetValue(ShowGridLinesProperty); }
-            set { SetValue(ShowGridLinesProperty, value); }
+            get => (bool)GetValue(ShowGridLinesProperty);
+            set => SetValue(ShowGridLinesProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for ShowGridLines.  This enables animation, styling, binding, etc...
@@ -232,8 +255,10 @@ namespace EmnExtensions.Wpf
         static void ShowGridLinesChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
             var self = (PlotControl)o;
-            foreach (var axis in self.Axes)
+            foreach (var axis in self.Axes) {
                 axis.MatchOppositeTicks = (bool)e.NewValue;
+            }
+
             self.needRedrawGraphs = true;
             self.InvalidateVisual();
         }
@@ -241,12 +266,17 @@ namespace EmnExtensions.Wpf
         void RedrawScene(DrawingContext drawingContext, TickedAxisLocation gridLineAxes)
         {
             //drawingContext.PushClip(overallClipRect);
-            if (ShowGridLines)
-                foreach (var axis in Axes)
-                    if ((axis.AxisPos & gridLineAxes) != 0)
+            if (ShowGridLines) {
+                foreach (var axis in Axes) {
+                    if ((axis.AxisPos & gridLineAxes) != 0) {
                         drawingContext.DrawDrawing(axis.GridLines);
-            foreach (var graph in visibleGraphs.OrderBy(g => g.MetaData.ZIndex))
+                    }
+                }
+            }
+
+            foreach (var graph in visibleGraphs.OrderBy(g => g.MetaData.ZIndex)) {
                 graph.DrawGraph(drawingContext);
+            }
             //drawingContext.Pop();
         }
 
@@ -304,19 +334,24 @@ namespace EmnExtensions.Wpf
             }
 
             var axisBounds = Axes.Aggregate(Rect.Empty, (bound, axis) => Rect.Union(bound, new Rect(axis.RenderSize)));
-            foreach (var axis in Axes)
+            foreach (var axis in Axes) {
                 axis.SetGridLineExtent(axisBounds.Size);
-            if (needRedrawGraphs)
+            }
+
+            if (needRedrawGraphs) {
                 RedrawGraphs(relevantAxes);
+            }
 
             if (manualRender) {
                 plotArea.Background = null;
-                if (!plotArea.Children.Contains(drawingUi))
+                if (!plotArea.Children.Contains(drawingUi)) {
                     plotArea.Children.Add(drawingUi);
+                }
             } else {
                 plotArea.Background = bgBrush;
-                if (plotArea.Children.Contains(drawingUi))
+                if (plotArea.Children.Contains(drawingUi)) {
                     plotArea.Children.Remove(drawingUi);
+                }
             }
             base.OnRender(drawingContext);
         }
@@ -336,21 +371,24 @@ namespace EmnExtensions.Wpf
                     Filter = "XPS files (*.xps)|*.xps",
                 };
 
-                using (var emnExtensionsWpfKey = Registry.CurrentUser.OpenSubKey(@"Software\EmnExtensionsWpf"))
-                    if (emnExtensionsWpfKey != null)
+                using (var emnExtensionsWpfKey = Registry.CurrentUser.OpenSubKey(@"Software\EmnExtensionsWpf")) {
+                    if (emnExtensionsWpfKey != null) {
                         saveDialog.InitialDirectory = emnExtensionsWpfKey.GetValue("ExportDir") as string;
+                    }
+                }
 
 
                 // ReSharper disable ConstantNullCoalescingCondition
                 if (saveDialog.ShowDialog() ?? false) {
                     // ReSharper restore ConstantNullCoalescingCondition
                     var selectedFile = new FileInfo(saveDialog.FileName);
-                    using (var emnExtensionsWpfKey = Registry.CurrentUser.CreateSubKey(@"Software\EmnExtensionsWpf"))
+                    using (var emnExtensionsWpfKey = Registry.CurrentUser.CreateSubKey(@"Software\EmnExtensionsWpf")) {
                         emnExtensionsWpfKey.SetValue("ExportDir", selectedFile.Directory.FullName);
+                    }
 
-
-                    using (var fileStream = selectedFile.Open(FileMode.Create))
+                    using (var fileStream = selectedFile.Open(FileMode.Create)) {
                         fileStream.Write(xpsData, 0, xpsData.Length);
+                    }
                 }
             });
             dialogThread.SetApartmentState(ApartmentState.STA);

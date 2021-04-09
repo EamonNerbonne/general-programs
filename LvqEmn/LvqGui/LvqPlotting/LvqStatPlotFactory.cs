@@ -16,12 +16,9 @@ namespace LvqGui
     static class LvqStatPlotFactory
     {
         static readonly ConcurrentDictionary<int, Color[]> colorLookup = new ConcurrentDictionary<int, Color[]>();
-        static Color[] GetColors(int length)
-        {
-            return colorLookup.GetOrAdd(length, len =>
-                    WpfTools.MakeDistributedColors(len, new MersenneTwister(42))
+        static Color[] GetColors(int length) => colorLookup.GetOrAdd(length, len =>
+                                                                  WpfTools.MakeDistributedColors(len, new MersenneTwister(42))
                 );
-        }
 
 
         public static IEnumerable<IVizEngine<LvqStatPlots>> Create(string statisticGroup, IEnumerable<LvqStatName> stats, bool isMultiModel, bool hasTestSet, Color[] classColors, int protosPerClass)
@@ -31,8 +28,10 @@ namespace LvqGui
                 ? classColors.SelectMany(color => Enumerable.Repeat(color, protosPerClass)).ToArray()
                 : GetColors(relevantStatistics.Length);
             var isSpecialGroup = (statisticGroup == "Error Rates" || statisticGroup == "Cost Function");
-            if (isSpecialGroup)
+            if (isSpecialGroup) {
                 Array.Reverse(relevantStatistics);
+            }
+
             var i = 0;
             foreach (var stat in relevantStatistics) {
                 var color =
@@ -42,8 +41,9 @@ namespace LvqGui
                     : isSpecialGroup && stat.TrainingStatLabel.StartsWith("NN") ? Color.FromRgb(0, 140, 255)
                     : colors[i];
                 i++;
-                foreach (var plot in MakePlotsForStatIdx(stat.TrainingStatLabel, stat.UnitLabel, color, stat.Index, isMultiModel))
+                foreach (var plot in MakePlotsForStatIdx(stat.TrainingStatLabel, stat.UnitLabel, color, stat.Index, isMultiModel)) {
                     yield return plot;
+                }
             }
         }
 
@@ -66,24 +66,18 @@ namespace LvqGui
         static readonly object IsCurrNnPlotTag = new object();
 
 
-        public static bool IsTestPlot(IPlotMetaData plot) { return plot.Tag == IsTestPlotTag || plot.Tag == IsCurrTestPlotTag; }
-        public static bool IsCurrPlot(IPlotMetaData plot) { return plot.Tag == IsCurrPlotTag || plot.Tag == IsCurrTestPlotTag || plot.Tag == IsCurrNnPlotTag; }
-        public static bool IsNnPlot(IPlotMetaData plot) { return plot.Tag == IsNnPlotTag || plot.Tag == IsCurrNnPlotTag; }
-        public static bool IsTestPlot(IVizEngine plot) { return IsTestPlot(plot.MetaData); }
-        public static bool IsCurrPlot(IVizEngine plot) { return IsCurrPlot(plot.MetaData); }
-        public static bool IsNnPlot(IVizEngine plot) { return IsNnPlot(plot.MetaData); }
+        public static bool IsTestPlot(IPlotMetaData plot) => plot.Tag == IsTestPlotTag || plot.Tag == IsCurrTestPlotTag;
+        public static bool IsCurrPlot(IPlotMetaData plot) => plot.Tag == IsCurrPlotTag || plot.Tag == IsCurrTestPlotTag || plot.Tag == IsCurrNnPlotTag;
+        public static bool IsNnPlot(IPlotMetaData plot) => plot.Tag == IsNnPlotTag || plot.Tag == IsCurrNnPlotTag;
+        public static bool IsTestPlot(IVizEngine plot) => IsTestPlot(plot.MetaData);
+        public static bool IsCurrPlot(IVizEngine plot) => IsCurrPlot(plot.MetaData);
+        public static bool IsNnPlot(IVizEngine plot) => IsNnPlot(plot.MetaData);
 
 
         public static readonly DashStyle CurrPlotDashStyle = new DashStyle(new[] { 0.0, 3.0 }, 0.0);
-        static IVizEngine<LvqStatPlots> MakeCurrentModelPlot(string yunitLabel, Color color, int statIdx, bool isTest, bool isNn)
-        {
-            return MakePlotHelper(null, color, yunitLabel, isTest ? IsCurrTestPlotTag : isNn ? IsCurrNnPlotTag : IsCurrPlotTag, SelectedModelToPointsMapper(statIdx), CurrPlotDashStyle);
-        }
+        static IVizEngine<LvqStatPlots> MakeCurrentModelPlot(string yunitLabel, Color color, int statIdx, bool isTest, bool isNn) => MakePlotHelper(null, color, yunitLabel, isTest ? IsCurrTestPlotTag : isNn ? IsCurrNnPlotTag : IsCurrPlotTag, SelectedModelToPointsMapper(statIdx), CurrPlotDashStyle);
 
-        static IVizEngine<LvqStatPlots> MakeMeanPlot(string dataLabel, string yunitLabel, Color color, int statIdx, bool isTest, bool isNn)
-        {
-            return MakePlotHelper(dataLabel, color, yunitLabel, isTest ? IsTestPlotTag : isNn ? IsNnPlotTag : null, ModelToPointsMapper(statIdx));
-        }
+        static IVizEngine<LvqStatPlots> MakeMeanPlot(string dataLabel, string yunitLabel, Color color, int statIdx, bool isTest, bool isNn) => MakePlotHelper(dataLabel, color, yunitLabel, isTest ? IsTestPlotTag : isNn ? IsNnPlotTag : null, ModelToPointsMapper(statIdx));
 
         static IVizEngine<LvqStatPlots> MakePlotHelper(string dataLabel, Color color, string yunitLabel, object tag, Func<LvqStatPlots, Point[]> mapper, DashStyle dashStyle = null)
         {
@@ -120,37 +114,30 @@ namespace LvqGui
             return rangeplot.Map(ModelToRangeMapper(statIdx));
         }
 
-        static Func<LvqStatPlots, Point[]> ModelToPointsMapper(int statIdx)
-        {
-            return subplots => LimitGraphDetail(subplots.model.TrainingStats.Where(info => info.Value[statIdx].IsFinite()).Select(info => new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx])).ToArray());
-        }
-        static Func<LvqStatPlots, Point[]> SelectedModelToPointsMapper(int statIdx)
-        {
-            return subplots => LimitGraphDetail(subplots.model.SelectedStats(subplots.selectedSubModel).Where(stat => stat.values[statIdx].IsFinite()).Select(stat => new Point(stat.values[LvqTrainingStatCli.TrainingIterationI], stat.values[statIdx])).ToArray());
-        }
-        static Func<LvqStatPlots, Tuple<Point[], Point[]>> ModelToRangeMapper(int statIdx)
-        {
-            return subplots => {
-                var okstats = subplots.model.TrainingStats.Where(info => (info.Value[statIdx] + info.StandardError[statIdx]).IsFinite());
-                return
-                Tuple.Create(
-                    LimitGraphDetail(
-                        okstats.Select(info =>
-                            new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx] + info.StandardError[statIdx])
-                        ).ToArray()),
-                    LimitGraphDetail(
-                        okstats.Select(info =>
-                            new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx] - info.StandardError[statIdx])
-                        ).ToArray()
-                    )
-                );
-            };
-        }
+        static Func<LvqStatPlots, Point[]> ModelToPointsMapper(int statIdx) => subplots => LimitGraphDetail(subplots.model.TrainingStats.Where(info => info.Value[statIdx].IsFinite()).Select(info => new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx])).ToArray());
+        static Func<LvqStatPlots, Point[]> SelectedModelToPointsMapper(int statIdx) => subplots => LimitGraphDetail(subplots.model.SelectedStats(subplots.selectedSubModel).Where(stat => stat.values[statIdx].IsFinite()).Select(stat => new Point(stat.values[LvqTrainingStatCli.TrainingIterationI], stat.values[statIdx])).ToArray());
+        static Func<LvqStatPlots, Tuple<Point[], Point[]>> ModelToRangeMapper(int statIdx) => subplots => {
+            var okstats = subplots.model.TrainingStats.Where(info => (info.Value[statIdx] + info.StandardError[statIdx]).IsFinite());
+            return
+            Tuple.Create(
+                LimitGraphDetail(
+                    okstats.Select(info =>
+                        new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx] + info.StandardError[statIdx])
+                    ).ToArray()),
+                LimitGraphDetail(
+                    okstats.Select(info =>
+                        new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx] - info.StandardError[statIdx])
+                    ).ToArray()
+                )
+            );
+        };
         static Point[] LimitGraphDetail(Point[] retval)
         {
             var scaleFac = retval.Length / 1024; //not necessary anymore?
-            if (scaleFac <= 1)
+            if (scaleFac <= 1) {
                 return retval;
+            }
+
             var newret = new Point[retval.Length / scaleFac];
             for (var i = 0; i < newret.Length; ++i) {
                 for (var j = i * scaleFac; j < i * scaleFac + scaleFac; ++j) {

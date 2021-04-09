@@ -109,8 +109,10 @@ namespace EmnExtensions.MathHelpers
         public MersenneTwister() //changed by eamon; was:            : this(new Random().Next()) /* a default initial seed is used   */
         {
             var initkey = new uint[N];
-            for (var i = 0; i < initkey.Length; i++)
+            for (var i = 0; i < initkey.Length; i++) {
                 initkey[i] = RndHelper.MakeSecureUInt();
+            }
+
             init(initkey);
         }
 
@@ -137,10 +139,7 @@ namespace EmnExtensions.MathHelpers
         /// Returns the next pseudo-random <see cref="UInt32"/>.
         /// </summary>
         /// <returns>A pseudo-random <see cref="UInt32"/> value.</returns>
-        public UInt32 NextUInt32()
-        {
-            return GenerateUInt32();
-        }
+        public UInt32 NextUInt32() => GenerateUInt32();
 
         /// <summary>
         /// Returns the next pseudo-random <see cref="UInt32"/> 
@@ -152,10 +151,7 @@ namespace EmnExtensions.MathHelpers
         /// <returns>
         /// A pseudo-random <see cref="UInt32"/> value which is at most <paramref name="maxValue"/>.
         /// </returns>
-        public UInt32 NextUInt32(UInt32 maxValue)
-        {
-            return (UInt32)(GenerateUInt32() / ((Double)UInt32.MaxValue / maxValue));
-        }
+        public UInt32 NextUInt32(UInt32 maxValue) => (UInt32)(GenerateUInt32() / ((Double)UInt32.MaxValue / maxValue));
 
         /// <summary>
         /// Returns the next pseudo-random <see cref="UInt32"/> at least 
@@ -183,10 +179,7 @@ namespace EmnExtensions.MathHelpers
         /// Returns the next pseudo-random <see cref="Int32"/>.
         /// </summary>
         /// <returns>A pseudo-random <see cref="Int32"/> value.</returns>
-        public override Int32 Next()
-        {
-            return Next(Int32.MaxValue);
-        }
+        public override Int32 Next() => Next(Int32.MaxValue);
 
         /// <summary>
         /// Returns the next pseudo-random <see cref="Int32"/> up to <paramref name="maxValue"/>.
@@ -287,10 +280,7 @@ namespace EmnExtensions.MathHelpers
         /// </code>
         /// </para>
         /// </remarks>
-        public override Double NextDouble()
-        {
-            return compute53BitRandom(0, InverseOnePlus53BitsOf1s);
-        }
+        public override Double NextDouble() => compute53BitRandom(0, InverseOnePlus53BitsOf1s);
 
         /// <summary>
         /// Returns a pseudo-random number greater than or equal to zero, and 
@@ -310,19 +300,13 @@ namespace EmnExtensions.MathHelpers
         /// returns a double-precision pseudo-random number greater than or equal to zero and
         /// strictly less than one.
         /// </returns>
-        public Double NextDouble(Boolean includeOne)
-        {
-            return includeOne ? compute53BitRandom(0, Inverse53BitsOf1s) : NextDouble();
-        }
+        public Double NextDouble(Boolean includeOne) => includeOne ? compute53BitRandom(0, Inverse53BitsOf1s) : NextDouble();
 
         /// <summary>
         /// Returns a pseudo-random number greater than 0.0 and less than 1.0.
         /// </summary>
         /// <returns>A pseudo-random number greater than 0.0 and less than 1.0.</returns>
-        public Double NextDoublePositive()
-        {
-            return compute53BitRandom(0.5, Inverse53BitsOf1s);
-        }
+        public Double NextDoublePositive() => compute53BitRandom(0.5, Inverse53BitsOf1s);
 
         /// <summary>
         /// Returns a pseudo-random number between 0.0 and 1.0.
@@ -331,10 +315,7 @@ namespace EmnExtensions.MathHelpers
         /// A single-precision floating point number greater than or equal to 0.0, 
         /// and less than 1.0.
         /// </returns>
-        public Single NextSingle()
-        {
-            return (Single)NextDouble();
-        }
+        public Single NextSingle() => (Single)NextDouble();
 
         /// <summary>
         /// Returns a pseudo-random number greater than or equal to zero, and either strictly
@@ -353,19 +334,13 @@ namespace EmnExtensions.MathHelpers
         /// this method returns a single-precision pseudo-random number greater than or equal to zero and
         /// strictly less than one.
         /// </returns>
-        public Single NextSingle(Boolean includeOne)
-        {
-            return (Single)NextDouble(includeOne);
-        }
+        public Single NextSingle(Boolean includeOne) => (Single)NextDouble(includeOne);
 
         /// <summary>
         /// Returns a pseudo-random number greater than 0.0 and less than 1.0.
         /// </summary>
         /// <returns>A pseudo-random number greater than 0.0 and less than 1.0.</returns>
-        public Single NextSinglePositive()
-        {
-            return (Single)NextDoublePositive();
-        }
+        public Single NextSinglePositive() => (Single)NextDoublePositive();
 
         /// <summary>
         /// Generates a new pseudo-random <see cref="UInt32"/>.
@@ -416,25 +391,13 @@ namespace EmnExtensions.MathHelpers
         const UInt32 TemperingMaskB = 0x9d2c5680;
         const UInt32 TemperingMaskC = 0xefc60000;
 
-        static UInt32 temperingShiftU(UInt32 y)
-        {
-            return (y >> 11);
-        }
+        static UInt32 temperingShiftU(UInt32 y) => (y >> 11);
 
-        static UInt32 temperingShiftS(UInt32 y)
-        {
-            return (y << 7);
-        }
+        static UInt32 temperingShiftS(UInt32 y) => (y << 7);
 
-        static UInt32 temperingShiftT(UInt32 y)
-        {
-            return (y << 15);
-        }
+        static UInt32 temperingShiftT(UInt32 y) => (y << 15);
 
-        static UInt32 temperingShiftL(UInt32 y)
-        {
-            return (y >> 18);
-        }
+        static UInt32 temperingShiftL(UInt32 y) => (y >> 18);
 
         readonly UInt32[] _mt = new UInt32[N]; /* the array for the state vector  */
         Int16 _mti;
@@ -472,8 +435,9 @@ namespace EmnExtensions.MathHelpers
                 i++;
                 j++;
                 if (i >= N) { _mt[0] = _mt[N - 1]; i = 1; }
-                if (j >= keyLength)
+                if (j >= keyLength) {
                     j = 0;
+                }
             }
 
             for (k = N - 1; k > 0; k--) {
@@ -520,11 +484,11 @@ namespace EmnExtensions.MathHelpers
         /// <summary>
         /// Generates a double in the half-open interval [0,1) just like NextDouble(), but slightly faster non-virtual.
         /// </summary>
-        public double NextDouble0To1() { return compute53BitRandom(0, InverseOnePlus53BitsOf1s); }
+        public double NextDouble0To1() => compute53BitRandom(0, InverseOnePlus53BitsOf1s);
 
         /// <summary>
         /// Generates a normally distributed double with mean 0 and variance 1.
         /// </summary>
-        public double NextNormal() { return RndHelper.MakeNormal(NextDouble0To1(), NextDouble0To1()); }
+        public double NextNormal() => RndHelper.MakeNormal(NextDouble0To1(), NextDouble0To1());
     }
 }

@@ -17,17 +17,21 @@ namespace EmnExtensions.Wpf.Plot
 
         static Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness = 1.5 }.GetAsFrozen();
 
-        public Brush Fill { get { return m_Fill; } set { if (m_Fill != value) { m_Fill = value; OnChange(GraphChange.Drawing); } } }
+        public Brush Fill { get => m_Fill; set { if (m_Fill != value) { m_Fill = value; OnChange(GraphChange.Drawing); } } }
         public Pen Pen
         {
-            get { return m_Pen; }
+            get => m_Pen;
             set {
                 if (m_Pen != value) {
-                    if (m_Pen != null && !m_Pen.IsFrozen)
+                    if (m_Pen != null && !m_Pen.IsFrozen) {
                         m_Pen.Changed -= m_Pen_Changed;
+                    }
+
                     m_Pen = value;
-                    if (m_Pen != null && !m_Pen.IsFrozen)
+                    if (m_Pen != null && !m_Pen.IsFrozen) {
                         m_Pen.Changed += m_Pen_Changed;
+                    }
+
                     OnChange(GraphChange.Drawing);
                     RecomputeBoundsIfAuto();
                 }
@@ -37,25 +41,34 @@ namespace EmnExtensions.Wpf.Plot
         /// <summary>
         /// Defaults to true.
         /// </summary>
-        public bool AutosizeBounds { get { return m_AutosizeBounds; } set { m_AutosizeBounds = value; RecomputeBoundsIfAuto(); } }
+        public bool AutosizeBounds { get => m_AutosizeBounds; set { m_AutosizeBounds = value; RecomputeBoundsIfAuto(); } }
 
         public Geometry Geometry
         {
-            get { return m_Geometry; }
+            get => m_Geometry;
             set {
-                if (m_Geometry != null && !m_Geometry.IsFrozen)
+                if (m_Geometry != null && !m_Geometry.IsFrozen) {
                     m_Geometry.Changed -= m_Geometry_Changed;
+                }
+
                 m_geomToAxis = value.Transform.Value;
                 m_Geometry = value;
-                if (m_Geometry != null && !m_Geometry.IsFrozen)
+                if (m_Geometry != null && !m_Geometry.IsFrozen) {
                     m_Geometry.Changed += m_Geometry_Changed;
+                }
+
                 RecomputeBoundsIfAuto();
                 OnChange(GraphChange.Drawing);
             }
         }
 
-        void m_Pen_Changed(object sender, EventArgs e) { RecomputeBoundsIfAuto(); }
-        void m_Geometry_Changed(object sender, EventArgs e) { if (!changingGeometry) RecomputeBoundsIfAuto(); }
+        void m_Pen_Changed(object sender, EventArgs e) => RecomputeBoundsIfAuto();
+        void m_Geometry_Changed(object sender, EventArgs e)
+        {
+            if (!changingGeometry) {
+                RecomputeBoundsIfAuto();
+            }
+        }
         bool changingGeometry = false;
 
         void RecomputeBoundsIfAuto()
@@ -78,9 +91,6 @@ namespace EmnExtensions.Wpf.Plot
             changingGeometry = false;
         }
 
-        public override void DrawGraph(DrawingContext context)
-        {
-            context.DrawGeometry(m_Fill, m_Pen, m_Geometry);
-        }
+        public override void DrawGraph(DrawingContext context) => context.DrawGeometry(m_Fill, m_Pen, m_Geometry);
     }
 }

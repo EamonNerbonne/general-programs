@@ -8,18 +8,18 @@ namespace EmnExtensions.Wpf.VizEngines
     {
         readonly Func<TIn, TOut> map;
         IVizEngine<TOut> Implementation { get; set; }
-        public void ChangeData(TIn newData) { Implementation.ChangeData(map(newData)); }
-        public Rect DataBounds { get { return Implementation.DataBounds; } }
-        public Thickness Margin { get { return Implementation.Margin; } }
-        public void DrawGraph(DrawingContext context) { Implementation.DrawGraph(context); }
-        public void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY) { Implementation.SetTransform(boundsToDisplay, displayClip, forDpiX, forDpiY); }
-        public void OnRenderOptionsChanged() { Implementation.OnRenderOptionsChanged(); }
-        public IPlotMetaData MetaData { get { return Implementation.MetaData; } }
-        public bool SupportsColor { get { return Implementation.SupportsColor; } }
-        public Drawing SampleDrawing { get { return Implementation == null ? null : Implementation.SampleDrawing; } }
+        public void ChangeData(TIn newData) => Implementation.ChangeData(map(newData));
+        public Rect DataBounds => Implementation.DataBounds;
+        public Thickness Margin => Implementation.Margin;
+        public void DrawGraph(DrawingContext context) => Implementation.DrawGraph(context);
+        public void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY) => Implementation.SetTransform(boundsToDisplay, displayClip, forDpiX, forDpiY);
+        public void OnRenderOptionsChanged() => Implementation.OnRenderOptionsChanged();
+        public IPlotMetaData MetaData => Implementation.MetaData;
+        public bool SupportsColor => Implementation.SupportsColor;
+        public Drawing SampleDrawing => Implementation == null ? null : Implementation.SampleDrawing;
 
         public VizMapped(IVizEngine<TOut> impl, Func<TIn, TOut> map) { this.map = map; Implementation = impl; }
 
-        IVizEngine<TOut> ITranformed<TOut>.Implementation { get { return Implementation; } }
+        IVizEngine<TOut> ITranformed<TOut>.Implementation => Implementation;
     }
 }

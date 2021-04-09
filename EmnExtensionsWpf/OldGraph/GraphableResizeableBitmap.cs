@@ -10,7 +10,7 @@ namespace EmnExtensions.Wpf.Plot
     {
 
         public GraphableResizeableBitmap() { BitmapScalingMode = BitmapScalingMode.Linear; }
-        public BitmapScalingMode BitmapScalingMode { get { return m_scalingMode; } set { m_scalingMode = value; if (m_drawing != null) RenderOptions.SetBitmapScalingMode(m_drawing, value); } }
+        public BitmapScalingMode BitmapScalingMode { get => m_scalingMode; set { m_scalingMode = value; if (m_drawing != null) { RenderOptions.SetBitmapScalingMode(m_drawing, value); } } }
         BitmapScalingMode m_scalingMode;
 
         const int EXTRA_RESIZE_PIX = 256;
@@ -29,17 +29,22 @@ namespace EmnExtensions.Wpf.Plot
 
         protected abstract Rect? OuterDataBound { get; }
 
-        static Rect SnapRect(Rect r, double multX, double multY) { return new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY)); }
+        static Rect SnapRect(Rect r, double multX, double multY) => new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY));
 
         public override void SetTransform(Matrix dataToDisplay, Rect displayClip)
         {
             if (dataToDisplay.IsIdentity) //TODO: is this a good test for no-show?
-                using (m_drawing.Open())
+{
+                using (m_drawing.Open()) {
                     return;
+                }
+            }
+
             var drawingClip = displayClip;
             var outerDataBound = OuterDataBound;
-            if (outerDataBound.HasValue)
+            if (outerDataBound.HasValue) {
                 drawingClip.Intersect(Rect.Transform(outerDataBound.Value, dataToDisplay));
+            }
 
             var snappedDrawingClip = SnapRect(drawingClip, 96.0 / m_dpiX, 96.0 / m_dpiY);
             var pW = (int)Math.Ceiling(snappedDrawingClip.Width * m_dpiX / 96.0);

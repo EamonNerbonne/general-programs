@@ -19,15 +19,15 @@ namespace EmnExtensions.Wpf.VizEngines
 
         public VizLineSegments(IPlotMetaData owner) { impl = new VizGeometry(owner) { AutosizeBounds = false }; }
 
-        protected override IVizEngine<StreamGeometry> Implementation { get { return impl; } }
+        protected override IVizEngine<StreamGeometry> Implementation => impl;
 
         double m_CoverageRatioY = 0.9999;
-        public double CoverageRatioY { get { return m_CoverageRatioY; } set { if (value != m_CoverageRatioY) { m_CoverageRatioY = value; RecomputeBounds(currentPoints); } } }
+        public double CoverageRatioY { get => m_CoverageRatioY; set { if (value != m_CoverageRatioY) { m_CoverageRatioY = value; RecomputeBounds(currentPoints); } } }
         double m_CoverageRatioX = 1.0;
-        public double CoverageRatioX { get { return m_CoverageRatioX; } set { if (value != m_CoverageRatioX) { m_CoverageRatioX = value; RecomputeBounds(currentPoints); } } }
+        public double CoverageRatioX { get => m_CoverageRatioX; set { if (value != m_CoverageRatioX) { m_CoverageRatioX = value; RecomputeBounds(currentPoints); } } }
 
         double m_CoverageRatioGrad = 2.0;
-        public double CoverageRatioGrad { get { return m_CoverageRatioGrad; } set { if (value != m_CoverageRatioGrad) { m_CoverageRatioGrad = value; RecomputeBounds(currentPoints); } } }
+        public double CoverageRatioGrad { get => m_CoverageRatioGrad; set { if (value != m_CoverageRatioGrad) { m_CoverageRatioGrad = value; RecomputeBounds(currentPoints); } } }
 
         public override void ChangeData(Point[] newData)
         {
@@ -37,7 +37,7 @@ namespace EmnExtensions.Wpf.VizEngines
             Implementation.ChangeData(geomCache);
         }
 
-        public DashStyle DashStyle { get { return impl.Pen.DashStyle; } set { impl.Pen = impl.Pen.AsFrozen(pen => pen.DashStyle = value); } }
+        public DashStyle DashStyle { get => impl.Pen.DashStyle; set => impl.Pen = impl.Pen.AsFrozen(pen => pen.DashStyle = value); }
 
         void RecomputeBounds(Point[] newData)
         {
@@ -49,6 +49,6 @@ namespace EmnExtensions.Wpf.VizEngines
             }
         }
         Rect m_InnerBounds;
-        public override Rect DataBounds { get { return m_InnerBounds; } }
+        public override Rect DataBounds => m_InnerBounds;
     }
 }

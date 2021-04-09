@@ -58,22 +58,17 @@ namespace EmnExtensions.Wpf
         }
 
 
-        protected override Size MeasureOverride(Size constraint)
-        {
-            return new Size(
+        protected override Size MeasureOverride(Size constraint) => new Size(
                 constraint.Width.IsFinite() ? constraint.Width : 150,
                 constraint.Height.IsFinite() ? constraint.Height : 150
                 );
-        }
         public event Action<GraphControl, Rect> GraphBoundsUpdated;
 
         Rect oldBounds = Rect.Empty;
         Rect graphBoundsPrivate = Rect.Empty;
         public Rect GraphBounds
         { //TODO dependency property?
-            get {
-                return graphBoundsPrivate;
-            }
+            get => graphBoundsPrivate;
             set {
                 graphBoundsPrivate = value;
                 UpdateBounds();
@@ -81,9 +76,9 @@ namespace EmnExtensions.Wpf
         }
 
         string xLabel;
-        public string XLabel { get { return xLabel; } set { xLabel = value; InvalidateVisual(); } }
+        public string XLabel { get => xLabel; set { xLabel = value; InvalidateVisual(); } }
         string yLabel;
-        public string YLabel { get { return yLabel; } set { yLabel = value; InvalidateVisual(); } }
+        public string YLabel { get => yLabel; set { yLabel = value; InvalidateVisual(); } }
 
         public void EnsurePointInBounds(Point p)
         {
@@ -95,8 +90,10 @@ namespace EmnExtensions.Wpf
         void UpdateBounds()
         {
             var curSize = new Size(ActualWidth, ActualHeight);
-            if (oldBounds == graphBoundsPrivate && curSize == lastDispSize)
+            if (oldBounds == graphBoundsPrivate && curSize == lastDispSize) {
                 return;
+            }
+
             lastDispSize = curSize;
 
             var translateThenScale = Matrix.Identity;
@@ -110,13 +107,15 @@ namespace EmnExtensions.Wpf
 
 
             InvalidateVisual();
-            if (oldBounds == graphBoundsPrivate)
+            if (oldBounds == graphBoundsPrivate) {
                 return;
+            }
+
             oldBounds = graphBoundsPrivate;
 
-            if (GraphBoundsUpdated != null)
+            if (GraphBoundsUpdated != null) {
                 GraphBoundsUpdated(this, graphBoundsPrivate);
-
+            }
         }
 
 
@@ -124,16 +123,15 @@ namespace EmnExtensions.Wpf
         public Brush GraphLineColor
         {
             set {
-                graphLinePen = new Pen(value, 1.5);
-                graphLinePen.StartLineCap = PenLineCap.Round;
-                graphLinePen.EndLineCap = PenLineCap.Round;
-                graphLinePen.LineJoin = PenLineJoin.Round;
+                graphLinePen = new Pen(value, 1.5) {
+                    StartLineCap = PenLineCap.Round,
+                    EndLineCap = PenLineCap.Round,
+                    LineJoin = PenLineJoin.Round
+                };
                 graphLinePen.Freeze();
                 InvalidateVisual();
             }
-            get {
-                return graphLinePen.Brush;
-            }
+            get => graphLinePen.Brush;
         }
 
         //List<Point> points;
@@ -152,8 +150,9 @@ namespace EmnExtensions.Wpf
                 var points = lineOfPoints.ToArray();
                 graphGeom2 = new PathGeometry();
                 foreach (var startPoint in points.Take(1)) {
-                    fig = new PathFigure();
-                    fig.StartPoint = startPoint;
+                    fig = new PathFigure {
+                        StartPoint = startPoint
+                    };
                     graphGeom2.Figures.Add(fig);
                     graphBoundsPrivate.Union(startPoint);
                 }
@@ -169,30 +168,35 @@ namespace EmnExtensions.Wpf
         public IEnumerable<Point> CurrentPoints
         {
             get {
-                if (fig == null)
+                if (fig == null) {
                     yield break;
+                }
+
                 yield return fig.StartPoint;
-                foreach (LineSegment lineTo in fig.Segments)
+                foreach (LineSegment lineTo in fig.Segments) {
                     yield return lineTo.Point;
+                }
             }
         }
 
         public void AddPoint(Point point)
         {
-            if (graphGeom2 == null)
+            if (graphGeom2 == null) {
                 NewLine(new[] { point });
-            else {
+            } else {
                 if (fig == null) {
-                    fig = new PathFigure();
-                    fig.StartPoint = point;
+                    fig = new PathFigure {
+                        StartPoint = point
+                    };
                     graphGeom2.Figures.Add(fig);
                 } else {
                     fig.Segments.Add(new LineSegment(point, true));
                 }
                 graphBoundsPrivate.Union(point);
                 InvalidateVisual();
-                if (GraphBoundsUpdated != null)
+                if (GraphBoundsUpdated != null) {
                     GraphBoundsUpdated(this, graphBoundsPrivate);
+                }
             }
         }
 
@@ -203,8 +207,10 @@ namespace EmnExtensions.Wpf
 
         protected override void OnRender(DrawingContext drawingContext)
         {
-            if (graphGeom2 == null)
+            if (graphGeom2 == null) {
                 return;
+            }
+
             UpdateBounds();
             drawingContext.PushClip(new RectangleGeometry(new Rect(0, 0, ActualWidth, ActualHeight)));
             drawingContext.DrawGeometry(null, graphLinePen, graphGeom2);

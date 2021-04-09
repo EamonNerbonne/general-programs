@@ -34,14 +34,8 @@ namespace EmnExtensions.MathHelpers
         }
 
 
-        public static float CentralMoment(IEnumerable<float> list, float average, int moment)
-        {
-            return (float)list.Average(x => Math.Pow(x - average, moment));
-        }
-        public static float Covariance(Statistics A, Statistics B)
-        {
-            return (float)(A.Seq.Cast<double>().ZipWith(B.Seq.Cast<double>(), (a, b) => (a - A.Mean) * (b - B.Mean)).Average() / Math.Sqrt(A.Var) / Math.Sqrt(B.Var));
-        }
+        public static float CentralMoment(IEnumerable<float> list, float average, int moment) => (float)list.Average(x => Math.Pow(x - average, moment));
+        public static float Covariance(Statistics A, Statistics B) => (float)(A.Seq.Cast<double>().ZipWith(B.Seq.Cast<double>(), (a, b) => (a - A.Mean) * (b - B.Mean)).Average() / Math.Sqrt(A.Var) / Math.Sqrt(B.Var));
         public float Mean, Var, Skew, Kurtosis;
         public int Count;
         public IEnumerable<float> Seq;
@@ -57,9 +51,6 @@ namespace EmnExtensions.MathHelpers
             Seq = seq;
         }
 
-        public override string ToString()
-        {
-            return string.Format(CultureInfo.InvariantCulture, "Mean = {0}, Var = {1}, Skew = {2}, Kurtosis = {3}, Count = {4}", Mean, Var, Skew, Kurtosis, Count);
-        }
+        public override string ToString() => string.Format(CultureInfo.InvariantCulture, "Mean = {0}, Var = {1}, Skew = {2}, Kurtosis = {3}, Count = {4}", Mean, Var, Skew, Kurtosis, Count);
     }
 }

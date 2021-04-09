@@ -31,11 +31,11 @@ namespace EmnExtensions
             {
                 isWorkerThread = true;
                 while (true) {
-                    if (!sem.Wait(owner.IdleAfterMilliseconds))
+                    if (!sem.Wait(owner.IdleAfterMilliseconds)) {
                         owner.TerminateThread();//idle for 10 seconds, terminate a thread.
-                    else if (!shouldExit)
+                    } else if (!shouldExit) {
                         owner.ProcessTask(this);//got signal, wasn't exit signal... go!
-                    else {//termination signal
+                    } else {//termination signal
                         sem.Dispose();
 #if DEBUG_TRACK_ITEMS
                         PrintStats(true);
@@ -44,7 +44,7 @@ namespace EmnExtensions
                     }
                 }
             }
-            public void WakeThread() { sem.Release(); }
+            public void WakeThread() => sem.Release();
             public void ExitThread() { shouldExit = true; sem.Release(); }
 #if DEBUG_TRACK_ITEMS
             public void PrintStats(bool exit=false) { Console.WriteLine((exit?"OnExit: ":"Current: ")+"Executed: "+ normalCount); }
@@ -53,9 +53,9 @@ namespace EmnExtensions
 
 #if FIFO_TASKS
         readonly ConcurrentQueue<Task> tasks = new ConcurrentQueue<Task>();
-        void AddTaskToQueue(Task task) { tasks.Enqueue(task); }
-        bool TryGetQueuedTask(out Task retval) { return tasks.TryDequeue(out retval); }
-        bool TasksAreQueued() { return tasks.Count > 0; }
+        void AddTaskToQueue(Task task) => tasks.Enqueue(task);
+        bool TryGetQueuedTask(out Task retval) => tasks.TryDequeue(out retval);
+        bool TasksAreQueued() => tasks.Count > 0;
 #else
         readonly ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
         void AddTaskToQueue(Task task) { tasks.Add(task); }
@@ -65,8 +65,8 @@ namespace EmnExtensions
 
 #if FIFO_THREADS
         readonly ConcurrentQueue<WorkerThread> threads = new ConcurrentQueue<WorkerThread>();
-        bool TryGetThread(out WorkerThread thread) { return threads.TryDequeue(out thread); }
-        void AddThread(WorkerThread thread) { threads.Enqueue(thread); }
+        bool TryGetThread(out WorkerThread thread) => threads.TryDequeue(out thread);
+        void AddThread(WorkerThread thread) => threads.Enqueue(thread);
 #else
         readonly ConcurrentBag<WorkerThread> threads = new ConcurrentBag<WorkerThread>();
         bool TryGetThread(out WorkerThread thread) { return threads.TryTake(out thread); }
@@ -86,19 +86,20 @@ namespace EmnExtensions
             IdleAfterMilliseconds = idleMilliseconds ?? 10000;
         }
 
-        public int WorkerCountEstimate { get { return currPar; } }
-        public int IdleWorkerCountEstimate { get { return threads.Count; } }
+        public int WorkerCountEstimate => currPar;
+        public int IdleWorkerCountEstimate => threads.Count;
 
         void WakeAnyThread()
         {
             WorkerThread idleThread;
-            if (TryGetThread(out idleThread))
+            if (TryGetThread(out idleThread)) {
                 idleThread.WakeThread();
-            else {
-                if (Interlocked.Increment(ref currPar) <= MaxParallel)
+            } else {
+                if (Interlocked.Increment(ref currPar) <= MaxParallel) {
                     new WorkerThread(this, Priority);
-                else
+                } else {
                     Interlocked.Decrement(ref currPar);
+                }
             }
         }
 
@@ -108,8 +109,9 @@ namespace EmnExtensions
             if (TryGetThread(out idleThread)) {
                 Interlocked.Decrement(ref currPar);
                 idleThread.ExitThread();
-                if (TasksAreQueued())
+                if (TasksAreQueued()) {
                     WakeAnyThread();//unlikely, but to guarrantee liveness.
+                }
             }
         }
 
@@ -122,7 +124,7 @@ namespace EmnExtensions
         }
 #endif
 
-        protected override IEnumerable<Task> GetScheduledTasks() { return tasks; }
+        protected override IEnumerable<Task> GetScheduledTasks() => tasks;
 
         protected override void QueueTask(Task task) { AddTaskToQueue(task); WakeAnyThread(); }
 
@@ -134,8 +136,9 @@ namespace EmnExtensions
                 Interlocked.Increment(ref inlined);
 #endif
                 return TryExecuteTask(task);
-            } else
+            } else {
                 return false;
+            }
         }
 
         // ReSharper disable UnusedParameter.Local
@@ -159,15 +162,16 @@ namespace EmnExtensions
             } finally {
                 AddThread(t);
                 //Y:now all threads *could* be halted leaving task added at X in limbo
-                if (TasksAreQueued())
+                if (TasksAreQueued()) {
                     WakeAnyThread();//...so we need to ensure liveness.
+                }
                 //if task is added @ Y or later, no limbo possible since thread was returned to pool.
             }
         }
 
-        public override int MaximumConcurrencyLevel { get { return MaxParallel; } }
+        public override int MaximumConcurrencyLevel => MaxParallel;
 
         static readonly LowPriorityTaskScheduler singleton = new LowPriorityTaskScheduler();
-        public static LowPriorityTaskScheduler DefaultLowPriorityScheduler { get { return singleton; } }
+        public static LowPriorityTaskScheduler DefaultLowPriorityScheduler => singleton;
     }
 }

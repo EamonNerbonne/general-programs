@@ -10,7 +10,7 @@ namespace EmnExtensions.Wpf.VizEngines
     {
         protected VizDynamicBitmap(IPlotMetaData owner) : base(owner) { BitmapScalingMode = BitmapScalingMode.Linear; }
 
-        public BitmapScalingMode BitmapScalingMode { get { return m_scalingMode; } set { m_scalingMode = value; if (m_drawing != null) RenderOptions.SetBitmapScalingMode(m_drawing, value); } }
+        public BitmapScalingMode BitmapScalingMode { get => m_scalingMode; set { m_scalingMode = value; if (m_drawing != null) { RenderOptions.SetBitmapScalingMode(m_drawing, value); } } }
         BitmapScalingMode m_scalingMode;
 
         //DrawingGroup painting = new DrawingGroup();
@@ -26,13 +26,15 @@ namespace EmnExtensions.Wpf.VizEngines
             context.DrawDrawing(m_drawing);
         }
 
-        static Rect SnapRect(Rect r, double multX, double multY) { return new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY)); }
+        static Rect SnapRect(Rect r, double multX, double multY) => new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY));
 
         public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip, double dpiX, double dpiY)
         {
-            if (displayClip.IsEmpty)
-                using (m_drawing.Open())
+            if (displayClip.IsEmpty) {
+                using (m_drawing.Open()) {
                     return;
+                }
+            }
 
             double scaleX = dpiX / 96.0, scaleY = dpiY / 96.0;
 
@@ -75,8 +77,10 @@ namespace EmnExtensions.Wpf.VizEngines
 
         static Rect ComputeRelevantDisplay(Rect clip, Rect? dataBounds, Matrix dataToDisplay)
         {
-            if (dataBounds.HasValue)
+            if (dataBounds.HasValue) {
                 clip.Intersect(Rect.Transform(dataBounds.Value, dataToDisplay));
+            }
+
             return clip;
         }
 
@@ -104,6 +108,6 @@ namespace EmnExtensions.Wpf.VizEngines
         //if you don't provide an OuterDataBound, the entire display clip will be available as a WriteableBitmap.
         protected abstract Rect? OuterDataBound { get; }
 
-        public override bool SupportsColor { get { return false; } }
+        public override bool SupportsColor => false;
     }
 }

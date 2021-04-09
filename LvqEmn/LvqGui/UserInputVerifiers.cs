@@ -14,6 +14,6 @@ namespace LvqGui
         public static bool IsDouble(string value) { double ignore; return Double.TryParse(value, out ignore); }
         public static bool IsDoublePositive(string value) { double ignore; return Double.TryParse(value, out ignore) && ignore > 0.0; }
         public static bool IsInt32Positive(string value) { int intVal; return Int32.TryParse(value, out intVal) && intVal > 0; }
-        public static void VerifyTextBox(TextBox textBox, Func<string, bool> isOK) { textBox.Background = isOK(textBox.Text) ? OK : BAD; }
+        public static void VerifyTextBox(TextBox textBox, Func<string, bool> isOK) => textBox.Background = isOK(textBox.Text) ? OK : BAD;
     }
 }

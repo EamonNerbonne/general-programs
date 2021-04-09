@@ -26,7 +26,7 @@ namespace EmnExtensions.Wpf.VizEngines
 
         public Brush Fill
         {
-            get { return m_Fill; }
+            get => m_Fill;
             set {
                 if (m_Fill != value) {
                     m_Fill = value;
@@ -37,14 +37,18 @@ namespace EmnExtensions.Wpf.VizEngines
 
         public Pen Pen
         {
-            get { return m_Pen; }
+            get => m_Pen;
             set {
                 if (m_Pen != value) {
-                    if (m_Pen != null && !m_Pen.IsFrozen)
+                    if (m_Pen != null && !m_Pen.IsFrozen) {
                         m_Pen.Changed -= m_Pen_Changed;
+                    }
+
                     m_Pen = value;
-                    if (m_Pen != null && !m_Pen.IsFrozen)
+                    if (m_Pen != null && !m_Pen.IsFrozen) {
                         m_Pen.Changed += m_Pen_Changed;
+                    }
+
                     m_Pen_Changed(null, null);
                 }
             }
@@ -53,25 +57,30 @@ namespace EmnExtensions.Wpf.VizEngines
         /// <summary>
         /// Defaults to true.
         /// </summary>
-        public bool AutosizeBounds { get { return m_AutosizeBounds; } set { m_AutosizeBounds = value; RecomputeBoundsIfAuto(); } }
+        public bool AutosizeBounds { get => m_AutosizeBounds; set { m_AutosizeBounds = value; RecomputeBoundsIfAuto(); } }
 
         protected override void OnDataChanged(Geometry oldData)
         {
-            if (Data == oldData)
+            if (Data == oldData) {
                 return;
-            if (oldData != null && !oldData.IsFrozen)
+            }
+
+            if (oldData != null && !oldData.IsFrozen) {
                 oldData.Changed -= m_Geometry_Changed;
+            }
 
-            if (Data == null)
+            if (Data == null) {
                 combinesGeom.Children.Clear();
-            else if (combinesGeom.Children.Count > 0 && combinesGeom.Children[0] != Data)
+            } else if (combinesGeom.Children.Count > 0 && combinesGeom.Children[0] != Data) {
                 combinesGeom.Children[0] = Data;
-            else
+            } else {
                 combinesGeom.Children.Add(Data);
+            }
 
-
-            if (Data != null && !Data.IsFrozen)
+            if (Data != null && !Data.IsFrozen) {
                 Data.Changed += m_Geometry_Changed;
+            }
+
             RecomputeBoundsIfAuto();
             TriggerChange(GraphChange.Drawing);
         }
@@ -81,18 +90,16 @@ namespace EmnExtensions.Wpf.VizEngines
             TriggerChange(GraphChange.Drawing);
             RecomputeMargin();
         }
-        void RecomputeMargin()
-        {//this will trigger OnChanged if neeeded.
-            SetMargin(new Thickness(Pen.Thickness / 2.0));
-        }
-        void m_Geometry_Changed(object sender, EventArgs e) { RecomputeBoundsIfAuto(); }
+        void RecomputeMargin() => SetMargin(new Thickness(Pen.Thickness / 2.0));
+        void m_Geometry_Changed(object sender, EventArgs e) => RecomputeBoundsIfAuto();
 
         void RecomputeBoundsIfAuto()
         {
-            if (m_AutosizeBounds)
+            if (m_AutosizeBounds) {
                 InvalidateDataBounds();//this will trigger OnChanged if neeeded.
+            }
         }
-        protected override Rect ComputeBounds() { return Data.Bounds; }
+        protected override Rect ComputeBounds() => Data.Bounds;
 
         public override void SetTransform(Matrix axisToDisplay, Rect displayClip, double forDpiX, double forDpiY)
         {
@@ -107,7 +114,7 @@ namespace EmnExtensions.Wpf.VizEngines
             context.Pop();
         }
 
-        public override void OnRenderOptionsChanged() { RecreatePen(); }
+        public override void OnRenderOptionsChanged() => RecreatePen();
 
         void RecreatePen()
         {
@@ -116,8 +123,9 @@ namespace EmnExtensions.Wpf.VizEngines
             var newColor = MetaData.RenderColor ?? currentColor;
             var newThickness = MetaData.RenderThickness ?? currentThickness;
             if (newThickness != currentThickness || newColor != currentColor) {
-                if (newColor != currentColor)
+                if (newColor != currentColor) {
                     TriggerChange(GraphChange.Labels);
+                }
 
                 var newPen = m_Pen.CloneCurrentValue();
                 newPen.Brush = Fill = new SolidColorBrush(newColor);
@@ -126,11 +134,11 @@ namespace EmnExtensions.Wpf.VizEngines
                 Pen = newPen;
             }
         }
-        public override bool SupportsColor { get { return true; } }
+        public override bool SupportsColor => true;
         bool _isFilled;
-        public bool IsFilled { get { return _isFilled; } set { if (_isFilled != value) { _isFilled = value; TriggerChange(GraphChange.Drawing); } } }
+        public bool IsFilled { get => _isFilled; set { if (_isFilled != value) { _isFilled = value; TriggerChange(GraphChange.Drawing); } } }
         bool _isStroked = true;
-        public bool IsStroked { get { return _isStroked; } set { if (_isStroked != value) { _isStroked = value; TriggerChange(GraphChange.Drawing); } } }
+        public bool IsStroked { get => _isStroked; set { if (_isStroked != value) { _isStroked = value; TriggerChange(GraphChange.Drawing); } } }
 
     }
 }

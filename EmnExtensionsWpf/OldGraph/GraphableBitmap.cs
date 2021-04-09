@@ -14,7 +14,7 @@ namespace EmnExtensions.Wpf.Plot
         /// </summary>
         public BitmapSource Bitmap
         {
-            get { return bmp; }
+            get => bmp;
             set {
                 if (bmp != value) {
 
@@ -27,13 +27,13 @@ namespace EmnExtensions.Wpf.Plot
 
         public Rect InnerDataBounds
         {
-            get { return Rect.Transform(DataBounds, GraphUtils.TransformShape(DrawingRect, InnerDrawingRect, false)); }
-            set { DataBounds = ComputeDataBounds(InnerDrawingRect, value, DrawingRect); }
+            get => Rect.Transform(DataBounds, GraphUtils.TransformShape(DrawingRect, InnerDrawingRect, false));
+            set => DataBounds = ComputeDataBounds(InnerDrawingRect, value, DrawingRect);
         }
 
-        protected override Rect DrawingRect { get { return new Rect(0, 0, bmp.Width, bmp.Height); } }
-        protected Rect InnerDrawingRect { get { return new Rect(0.5 * (bmp.Width / bmp.PixelWidth), 0.5 * (bmp.Height / bmp.PixelHeight), bmp.Width - bmp.Width / bmp.PixelWidth, bmp.Height - bmp.Height / bmp.PixelHeight); } }
+        protected override Rect DrawingRect => new Rect(0, 0, bmp.Width, bmp.Height);
+        protected Rect InnerDrawingRect => new Rect(0.5 * (bmp.Width / bmp.PixelWidth), 0.5 * (bmp.Height / bmp.PixelHeight), bmp.Width - bmp.Width / bmp.PixelWidth, bmp.Height - bmp.Height / bmp.PixelHeight);
 
-        protected override void DrawUntransformedIntoDrawingRect(DrawingContext context) { context.DrawImage(bmp, DrawingRect); }
+        protected override void DrawUntransformedIntoDrawingRect(DrawingContext context) => context.DrawImage(bmp, DrawingRect);
     }
 }

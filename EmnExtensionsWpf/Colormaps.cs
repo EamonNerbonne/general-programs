@@ -7,10 +7,14 @@ namespace EmnExtensions.Wpf
     {
         public static Color Greyscale(double value)
         {
-            if (value < 0)
+            if (value < 0) {
                 value = 0;
-            if (value > 1)
+            }
+
+            if (value > 1) {
                 value = 1;
+            }
+
             var scaled = (byte)(255.9999 * value);
             return Color.FromArgb(255, scaled, scaled, scaled);
         }
@@ -19,10 +23,14 @@ namespace EmnExtensions.Wpf
 
         public static Color Rainbow(double value)
         {
-            if (value < 0)
+            if (value < 0) {
                 value = 0;
-            if (value > 1)
+            }
+
+            if (value > 1) {
                 value = 1;
+            }
+
             value = (6 - 2 * dx) * value + dx;
             var c = Color.FromRgb((byte)(Math.Max(0.0f, (3 - Math.Abs(value - 4) - Math.Abs(value - 5)) / 2) * 255),
                                      (byte)(Math.Max(0.0f, (4 - Math.Abs(value - 2) - Math.Abs(value - 4)) / 2) * 255),
@@ -37,10 +45,14 @@ namespace EmnExtensions.Wpf
         }
         public static Color ScaledRainbow(double value)
         {
-            if (value < 0)
+            if (value < 0) {
                 value = 0;
-            if (value > 1)
+            }
+
+            if (value > 1) {
                 value = 1;
+            }
+
             const double rampMargin = 0.05;
             const double ramp1 = 0.29;
             const double ramp2 = 0.71;
@@ -50,13 +62,13 @@ namespace EmnExtensions.Wpf
                 S = Math.Min(1.0, (1 - value) / (1 - ramp2)),
                 L = Math.Min(value / ramp1, 1.0)
             };
-            if (value < hStart)
+            if (value < hStart) {
                 hsl.H = 0;
-            else if (value < hEnd)
+            } else if (value < hEnd) {
                 hsl.H = (value - hStart) / (hEnd - hStart) * 2.0 / 3.0;
-            else
+            } else {
                 hsl.H = 2.0 / 3.0;
-
+            }
 
             var c = hsl.ToRGB();
 
@@ -64,13 +76,9 @@ namespace EmnExtensions.Wpf
         }
 
 
-        public static Color BlueYellow(double value)
-        {
-            return Color.FromRgb((byte)((1 - value) * 255),
+        public static Color BlueYellow(double value) => Color.FromRgb((byte)((1 - value) * 255),
                          (byte)((1 - value) * 255),
                          (byte)(value * 255));
-
-        }
 
         public static Color BlueCyanWhite(double value)
         {

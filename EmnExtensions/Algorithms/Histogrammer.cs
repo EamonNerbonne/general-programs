@@ -14,11 +14,11 @@ namespace EmnExtensions.Algorithms
 
         double[] sortedData;
         int infCount;
-        public double MinVal { get { return sortedData[0]; } }
-        public double MaxVal { get { return sortedData[sortedData.Length - 1]; } }
+        public double MinVal => sortedData[0];
+        public double MaxVal => sortedData[sortedData.Length - 1];
         double? maximumDensity;
         int minBucketSize, maxResolution;
-        public double MaximumDensity { get { if (!maximumDensity.HasValue) GenerateHistogram().Count(); return maximumDensity.Value; } }
+        public double MaximumDensity { get { if (!maximumDensity.HasValue) { GenerateHistogram().Count(); } return maximumDensity.Value; } }
 
         public Histogrammer(IEnumerable<double> values, int minBucketSize, int maxResolution)
         {
@@ -32,10 +32,7 @@ namespace EmnExtensions.Algorithms
                 throw new ArgumentException("Too few points: bucket size: " + minBucketSize + "  bucket number:" + numBuckets);
             }
         }
-        public IEnumerable<Data> GenerateHistogram()
-        {
-            return GenerateHistogram(0.0, 1.0);
-        }
+        public IEnumerable<Data> GenerateHistogram() => GenerateHistogram(0.0, 1.0);
 
         public IEnumerable<Data> GenerateHistogram(double startPercentile, double endPercentile)
         {
@@ -54,8 +51,10 @@ namespace EmnExtensions.Algorithms
                     endIndex++;
                 } else {//ok my window is at least as big as necessary! 
                     var density = (endIndex - startIndex) / (sortedData[endIndex] - sortedData[startIndex]);
-                    if (density > maxDensity)
+                    if (density > maxDensity) {
                         maxDensity = density;
+                    }
+
                     yield return new Data {
                         point = curSum / (endIndex - startIndex),
                         density = density

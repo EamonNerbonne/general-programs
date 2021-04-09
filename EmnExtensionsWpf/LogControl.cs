@@ -24,10 +24,13 @@ namespace EmnExtensions.Wpf
                 Content = logger,
                 Background = Brushes.LightGray,
             };
-            if (height.HasValue)
+            if (height.HasValue) {
                 win.Height = height.Value;
-            if (width.HasValue)
+            }
+
+            if (width.HasValue) {
                 win.Width = width.Value;
+            }
 
             win.Show();
 
@@ -58,17 +61,14 @@ namespace EmnExtensions.Wpf
             var clearLogMenuItem = new MenuItem { Header = "Clear log" };
             clearLogMenuItem.Click += (s, e) => Reset();
 
-            this.ContextMenu = new ContextMenu { Items = { clearLogMenuItem } };
+            ContextMenu = new ContextMenu { Items = { clearLogMenuItem } };
         }
 
-        void Reset()
-        {
-            Document = new FlowDocument {
-                TextAlignment = TextAlignment.Left,
-                FontFamily = new FontFamily("Consolas"),
-                FontSize = 10.0
-            };
-        }
+        void Reset() => Document = new FlowDocument {
+            TextAlignment = TextAlignment.Left,
+            FontFamily = new FontFamily("Consolas"),
+            FontSize = 10.0
+        };
 
         bool wantsStdOut, wantsStdErr;
         void LogControl_Loaded(object sender, RoutedEventArgs e)
@@ -87,12 +87,9 @@ namespace EmnExtensions.Wpf
         bool redraw;
         TextWriter oldOut, oldError;
 
-        public void AppendLineThreadSafe(string line)
-        {
-            AppendThreadSafe(line + "\n");
-        }
+        public void AppendLineThreadSafe(string line) => AppendThreadSafe(line + "\n");
 
-        public TextWriter Writer { get { return logger; } }
+        public TextWriter Writer => logger;
 
         void Invalidate()
         {
@@ -139,9 +136,7 @@ namespace EmnExtensions.Wpf
         RestoringReadStream stdOutOverride;
         public bool ClaimStandardOut
         {
-            get {
-                return stdOutOverride != null;
-            }
+            get => stdOutOverride != null;
             set {
                 if (ClaimStandardOut != value) {
                     if (value) {
@@ -160,9 +155,7 @@ namespace EmnExtensions.Wpf
         RestoringReadStream stdErrOverride;
         public bool ClaimStandardError
         {
-            get {
-                return stdErrOverride != null;
-            }
+            get => stdErrOverride != null;
             set {
                 if (ClaimStandardError != value) {
                     if (value) {
@@ -178,19 +171,18 @@ namespace EmnExtensions.Wpf
             }
         }
 
-        static void RedirectNativeStream(LogControl toControl, RestoringReadStream fromNative, string name)
-        {
-            new Thread(() => {
-                using (var reader = new StreamReader(fromNative.ReadStream)) {
-                    var buffer = new char[4096];
-                    while (true) {
-                        var actuallyRead = reader.Read(buffer, 0, buffer.Length);
-                        if (actuallyRead <= 0)
-                            break;
-                        toControl.AppendThreadSafe(new string(buffer, 0, actuallyRead));
+        static void RedirectNativeStream(LogControl toControl, RestoringReadStream fromNative, string name) => new Thread(() => {
+            using (var reader = new StreamReader(fromNative.ReadStream)) {
+                var buffer = new char[4096];
+                while (true) {
+                    var actuallyRead = reader.Read(buffer, 0, buffer.Length);
+                    if (actuallyRead <= 0) {
+                        break;
                     }
+
+                    toControl.AppendThreadSafe(new string(buffer, 0, actuallyRead));
                 }
-            }) { IsBackground = true }.Start();
-        }
+            }
+        }) { IsBackground = true }.Start();
     }
 }

@@ -30,8 +30,9 @@ namespace EmnExtensions.Wpf.VizEngines
         void InvalidateBounds()
         {
             computedInnerBounds = null;
-            if (!MetaData.OverrideBounds.HasValue)
+            if (!MetaData.OverrideBounds.HasValue) {
                 MetaData.GraphChanged(GraphChange.Projection);
+            }
         }
         public int? OverridePointCountEstimate { get; set; }
 
@@ -41,8 +42,9 @@ namespace EmnExtensions.Wpf.VizEngines
             var pointCount = OverridePointCountEstimate ?? (currentData == null ? 0 : currentData.Length);
             var thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(pointCount);
             thickness *= lastAreaScale;
-            if (Math.Abs(impl.Pen.Thickness - thickness) < 0.1)
+            if (Math.Abs(impl.Pen.Thickness - thickness) < 0.1) {
                 return;
+            }
 
 #if PERMIT_SQUARE_CAPS
             var linecap = PenLineCap.Round;
@@ -69,10 +71,10 @@ namespace EmnExtensions.Wpf.VizEngines
         }
 
         double m_Coverage = 0.9999;
-        public double CoverageRatio { get { return m_Coverage; } set { m_Coverage = value; InvalidateBounds(); } }
+        public double CoverageRatio { get => m_Coverage; set { m_Coverage = value; InvalidateBounds(); } }
 
         double m_CoverageGradient = 5.0;
-        public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; InvalidateBounds(); } }
+        public double CoverageGradient { get => m_CoverageGradient; set { m_CoverageGradient = value; InvalidateBounds(); } }
 
         Rect RecomputeBounds()
         {
@@ -80,9 +82,9 @@ namespace EmnExtensions.Wpf.VizEngines
             VizPixelScatterHelpers.RecomputeBounds(currentData, CoverageRatio, CoverageRatio, CoverageGradient, out outerBounds, out innerBounds);
             return innerBounds;
         }
-        public override Rect DataBounds { get { return computedInnerBounds ?? (computedInnerBounds = RecomputeBounds()).Value; } }
+        public override Rect DataBounds => computedInnerBounds ?? (computedInnerBounds = RecomputeBounds()).Value;
 
-        protected override IVizEngine<StreamGeometry> Implementation { get { return impl; } }
+        protected override IVizEngine<StreamGeometry> Implementation => impl;
 
     }
 }

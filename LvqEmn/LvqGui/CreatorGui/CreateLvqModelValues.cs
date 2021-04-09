@@ -15,18 +15,19 @@ namespace LvqGui
         readonly LvqWindowValues owner;
 
         [NotInShorthand]
-        public LvqWindowValues Owner { get { return owner; } }
+        public LvqWindowValues Owner => owner;
 
         [NotInShorthand]
         public LvqDatasetCli ForDataset
         {
-            get { return _ForDataset; }
+            get => _ForDataset;
             set {
                 if (!Equals(_ForDataset, value)) {
                     _ForDataset = value;
                     _propertyChanged("ForDataset");
-                    if (value != null)
+                    if (value != null) {
                         Dimensionality = Math.Min(Dimensionality, value.Dimensions);
+                    }
                 }
             }
         }
@@ -34,29 +35,19 @@ namespace LvqGui
         LvqDatasetCli _ForDataset;
 
         [NotInShorthand]
-        public double EstCost
-        {
-            get {
-                return _ForDataset == null || PrototypesPerClass <= 0 ? double.NaN
+        public double EstCost => _ForDataset == null || PrototypesPerClass <= 0 ? double.NaN
                     : settings.EstimateCost(_ForDataset.ClassCount, _ForDataset.Dimensions);
-            }
-        }
 
         [NotInShorthand]
-        public double AnimEpochSuggestion
-        {
-            get {
-                return _ForDataset == null || PrototypesPerClass <= 0 ? double.NaN
+        public double AnimEpochSuggestion => _ForDataset == null || PrototypesPerClass <= 0 ? double.NaN
                     : 1000.0 * 1000.0 / ((settings.EstimateCost(_ForDataset.ClassCount, _ForDataset.Dimensions) + 0.5) * _ForDataset.PointCount(0));
-            }
-        }
 
 
         LvqModelSettingsCli settings;
 
         public LvqModelType ModelType
         {
-            get { return settings.ModelType; }
+            get => settings.ModelType;
             set {
                 if (!Equals(settings.ModelType, value)) {
                     //                    if (Dimensionality != 0 && value.IsFixedDimModel()) Dimensionality = 0;
@@ -68,12 +59,16 @@ namespace LvqGui
 
         public int Dimensionality
         {
-            get { return settings.Dimensionality; }
+            get => settings.Dimensionality;
             set {
-                if (value < 0 || (ForDataset != null && value > ForDataset.Dimensions))
+                if (value < 0 || (ForDataset != null && value > ForDataset.Dimensions)) {
                     throw new ArgumentException("Internal dimensionality must be 0 (auto) or between 1 and the dimensions of the data.");
-                if (settings.ModelType.IsFixedDimModel() && value != 0)
+                }
+
+                if (settings.ModelType.IsFixedDimModel() && value != 0) {
                     throw new ArgumentException("Fixed dimension models cannot specify custom dimensionality.");
+                }
+
                 if (!Equals(settings.Dimensionality, value)) {
                     settings.Dimensionality = value;
                     _propertyChanged("Dimensionality");
@@ -83,7 +78,7 @@ namespace LvqGui
 
         public int PrototypesPerClass
         {
-            get { return settings.PrototypesPerClass; }
+            get => settings.PrototypesPerClass;
             set {
                 if (!Equals(settings.PrototypesPerClass, value)) {
                     settings.PrototypesPerClass = value;
@@ -94,10 +89,12 @@ namespace LvqGui
 
         public int ParallelModels
         {
-            get { return settings.ParallelModels; }
+            get => settings.ParallelModels;
             set {
-                if (value < 1 || value > 100)
+                if (value < 1 || value > 100) {
                     throw new ArgumentException("# of models must be in range [1,100]");
+                }
+
                 if (!settings.ParallelModels.Equals(value)) {
                     settings.ParallelModels = value;
                     _propertyChanged("ParallelModels");
@@ -107,7 +104,7 @@ namespace LvqGui
 
         public int FoldOffset
         {
-            get { return settings.FoldOffset; }
+            get => settings.FoldOffset;
             set {
                 if (!settings.FoldOffset.Equals(value)) {
                     settings.FoldOffset = value;
@@ -118,7 +115,7 @@ namespace LvqGui
 
         public bool NoNnErrorRateTracking
         {
-            get { return settings.NoNnErrorRateTracking; }
+            get => settings.NoNnErrorRateTracking;
             set {
                 if (!settings.NoNnErrorRateTracking.Equals(value)) {
                     settings.NoNnErrorRateTracking = value;
@@ -129,7 +126,7 @@ namespace LvqGui
 
         public bool neiP
         {
-            get { return settings.neiP; }
+            get => settings.neiP;
             set {
                 if (!settings.neiP.Equals(value)) {
                     settings.neiP = value;
@@ -140,7 +137,7 @@ namespace LvqGui
 
         public bool scP
         {
-            get { return settings.scP; }
+            get => settings.scP;
             set {
                 if (!settings.scP.Equals(value)) {
                     settings.scP = value;
@@ -151,7 +148,7 @@ namespace LvqGui
 
         public bool noKP
         {
-            get { return settings.noKP; }
+            get => settings.noKP;
             set {
                 if (!settings.noKP.Equals(value)) {
                     settings.noKP = value;
@@ -162,7 +159,7 @@ namespace LvqGui
 
         public bool neiB
         {
-            get { return settings.neiB; }
+            get => settings.neiB;
             set {
                 if (!settings.neiB.Equals(value)) {
                     settings.neiB = value;
@@ -173,7 +170,7 @@ namespace LvqGui
 
         public bool LocallyNormalize
         {
-            get { return settings.LocallyNormalize; }
+            get => settings.LocallyNormalize;
             set {
                 if (!settings.LocallyNormalize.Equals(value)) {
                     settings.LocallyNormalize = value;
@@ -184,7 +181,7 @@ namespace LvqGui
 
         public bool Ppca
         {
-            get { return settings.Ppca; }
+            get => settings.Ppca;
             set {
                 if (!settings.Ppca.Equals(value)) {
                     settings.Ppca = value;
@@ -195,7 +192,7 @@ namespace LvqGui
 
         public bool RandomInitialBorders
         {
-            get { return settings.RandomInitialBorders; }
+            get => settings.RandomInitialBorders;
             set {
                 if (!settings.RandomInitialBorders.Equals(value)) {
                     settings.RandomInitialBorders = value;
@@ -206,7 +203,7 @@ namespace LvqGui
 
         public bool NGu
         {
-            get { return settings.NGu; }
+            get => settings.NGu;
             set {
                 if (!settings.NGu.Equals(value)) {
                     settings.NGu = value;
@@ -217,7 +214,7 @@ namespace LvqGui
 
         public bool NGi
         {
-            get { return settings.NGi; }
+            get => settings.NGi;
             set {
                 if (!Equals(settings.NGi, value)) {
                     settings.NGi = value;
@@ -228,7 +225,7 @@ namespace LvqGui
 
         public bool Popt
         {
-            get { return settings.Popt; }
+            get => settings.Popt;
             set {
                 if (!Equals(settings.Popt, value)) {
                     settings.Popt = value;
@@ -239,7 +236,7 @@ namespace LvqGui
 
         public bool Bcov
         {
-            get { return settings.Bcov; }
+            get => settings.Bcov;
             set {
                 if (!Equals(settings.Bcov, value)) {
                     settings.Bcov = value;
@@ -250,7 +247,7 @@ namespace LvqGui
 
         public bool LrRaw
         {
-            get { return settings.LrRaw; }
+            get => settings.LrRaw;
             set {
                 if (!Equals(settings.LrRaw, value)) {
                     settings.LrRaw = value;
@@ -261,7 +258,7 @@ namespace LvqGui
 
         public bool LrPp
         {
-            get { return settings.LrPp; }
+            get => settings.LrPp;
             set {
                 if (!Equals(settings.LrPp, value)) {
                     settings.LrPp = value;
@@ -272,7 +269,7 @@ namespace LvqGui
 
         public bool wGMu
         {
-            get { return settings.wGMu; }
+            get => settings.wGMu;
             set {
                 if (!settings.wGMu.Equals(value)) {
                     settings.wGMu = value;
@@ -283,7 +280,7 @@ namespace LvqGui
 
         public double LrScaleP
         {
-            get { return settings.LrScaleP; }
+            get => settings.LrScaleP;
             set {
                 if (!settings.LrScaleP.Equals(value)) {
                     settings.LrScaleP = value;
@@ -294,7 +291,7 @@ namespace LvqGui
 
         public double LrScaleB
         {
-            get { return settings.LrScaleB; }
+            get => settings.LrScaleB;
             set {
                 if (!settings.LrScaleB.Equals(value)) {
                     settings.LrScaleB = value;
@@ -305,7 +302,7 @@ namespace LvqGui
 
         public double LR0
         {
-            get { return settings.LR0; }
+            get => settings.LR0;
             set {
                 if (!settings.LR0.Equals(value)) {
                     settings.LR0 = value;
@@ -316,7 +313,7 @@ namespace LvqGui
 
         public double LrScaleBad
         {
-            get { return settings.LrScaleBad; }
+            get => settings.LrScaleBad;
             set {
                 if (!settings.LrScaleBad.Equals(value)) {
                     settings.LrScaleBad = value;
@@ -327,7 +324,7 @@ namespace LvqGui
 
         public double decay
         {
-            get { return settings.decay; }
+            get => settings.decay;
             set {
                 if (!settings.decay.Equals(value)) {
                     settings.decay = value;
@@ -338,7 +335,7 @@ namespace LvqGui
 
         public double iterScaleFactor
         {
-            get { return settings.iterScaleFactor; }
+            get => settings.iterScaleFactor;
             set {
                 if (!settings.iterScaleFactor.Equals(value)) {
                     settings.iterScaleFactor = value;
@@ -349,7 +346,7 @@ namespace LvqGui
 
         public double MuOffset
         {
-            get { return settings.MuOffset; }
+            get => settings.MuOffset;
             set {
                 if (!settings.MuOffset.Equals(value)) {
                     settings.MuOffset = value;
@@ -360,7 +357,7 @@ namespace LvqGui
 
         public bool SlowK
         {
-            get { return settings.SlowK; }
+            get => settings.SlowK;
             set {
                 if (!settings.SlowK.Equals(value)) {
                     settings.SlowK = value;
@@ -371,7 +368,7 @@ namespace LvqGui
 
         public uint ParamsSeed
         {
-            get { return settings.ParamsSeed; }
+            get => settings.ParamsSeed;
             set {
                 if (!Equals(settings.ParamsSeed, value)) {
                     settings.ParamsSeed = value;
@@ -382,7 +379,7 @@ namespace LvqGui
 
         public uint InstanceSeed
         {
-            get { return settings.InstanceSeed; }
+            get => settings.InstanceSeed;
             set {
                 if (!settings.InstanceSeed.Equals(value)) {
                     settings.InstanceSeed = value;
@@ -451,30 +448,31 @@ namespace LvqGui
 
         public override string Shorthand
         {
-            get {
-                return settings.ToShorthand()
+            get => settings.ToShorthand()
                     + (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
-            }
             set {
                 settings = ParseShorthand(value);
-                foreach (var group in shR.GetGroupNames())
-                    if (!string.IsNullOrEmpty(group))
+                foreach (var group in shR.GetGroupNames()) {
+                    if (!string.IsNullOrEmpty(group)) {
                         _propertyChanged(group.TrimEnd('_'));
+                    }
+                }
             }
         }
 
-        public override string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
+        public override string ShorthandErrors => ShorthandHelper.VerifyShorthand(this, shR);
 
         public static LvqModelSettingsCli ParseShorthand(string shorthand)
         {
             var maybeParsed = ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand);
-            if (maybeParsed.HasValue)
+            if (maybeParsed.HasValue) {
                 return maybeParsed.Value;
-            else
+            } else {
                 throw new ArgumentException("Can't parse: " + shorthand);
+            }
         }
 
-        public static LvqModelSettingsCli? TryParseShorthand(string shorthand) { return ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand).AsNullableStruct<LvqModelSettingsCli>(); }
+        public static LvqModelSettingsCli? TryParseShorthand(string shorthand) => ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand).AsNullableStruct<LvqModelSettingsCli>();
 
         public CreateLvqModelValues(LvqWindowValues owner)
         {
@@ -483,19 +481,20 @@ namespace LvqGui
             //this.ReseedBoth();
         }
 
-        public Task ConfirmCreation() { return CreateSingleModel(owner, ForDataset, settings.Canonicalize()); }
+        public Task ConfirmCreation() => CreateSingleModel(owner, ForDataset, settings.Canonicalize());
 
         static Task CreateSingleModel(LvqWindowValues owner, LvqDatasetCli dataset, LvqModelSettingsCli settingsCopy)
         {
             var whenDone = new TaskCompletionSource<object>();
             Task.Factory
                 .StartNew(() => {
-                    if (settingsCopy.LR0 == 0.0 && settingsCopy.LrScaleP == 0.0 && settingsCopy.LrScaleB == 0.0)
+                    if (settingsCopy.LR0 == 0.0 && settingsCopy.LrScaleP == 0.0 && settingsCopy.LrScaleB == 0.0) {
                         settingsCopy = LrGuesser.ChooseReasonableLr(settingsCopy);
+                    }
 
-                    if (settingsCopy.LR0 == 0.0)
+                    if (settingsCopy.LR0 == 0.0) {
                         Console.WriteLine("Cannot create model with 0 LR!");
-                    else {
+                    } else {
                         var newModel = new LvqMultiModel(dataset, settingsCopy);
                         Console.WriteLine("Created: " + newModel.ModelLabel);
                         owner.Dispatcher.BeginInvoke(owner.LvqModels.Add, newModel).Completed += (s, e) => whenDone.SetResult(null);
@@ -510,12 +509,12 @@ namespace LvqGui
             "OptimizeAllButtonText", "EstCost", "AnimEpochSuggestion"
         };
 
-        protected override IEnumerable<string> GloballyDependantProps { get { return base.GloballyDependantProps.Concat(depProps); } }
+        protected override IEnumerable<string> GloballyDependantProps => base.GloballyDependantProps.Concat(depProps);
 
     }
 
     static class LvqModelTypeHelpers
     {
-        public static bool IsFixedDimModel(this LvqModelType modelType) { return LvqModelSettingsCli.IsFixedDimensionalityModel(modelType); }
+        public static bool IsFixedDimModel(this LvqModelType modelType) => LvqModelSettingsCli.IsFixedDimensionalityModel(modelType);
     }
 }

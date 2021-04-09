@@ -12,7 +12,7 @@ namespace EmnExtensions.Wpf
             rnd = rnd ?? RndHelper.ThreadLocalRandom;
             var offset = rnd.NextDouble();
             var colors = Enumerable.Range(0, N).Select(i => ColorSimple.FromColor(new HSL { H = (i + offset) / N, S = 0.8, L = 0.9 }.ToRGB())).ToArray();
-            if (colors.Length > 1)
+            if (colors.Length > 1) {
                 for (var iter = 0; iter < 10 + 10000 / (N * N); iter++) {
                     var lr = 1.0 / Math.Sqrt(iter * N * N + 1000);
                     for (var i = 0; i < colors.Length; i++) {
@@ -20,28 +20,30 @@ namespace EmnExtensions.Wpf
                         //colors[i].RepelFrom(ColorSimple.MaxValue, 0.1 * lr);
                         //colors[i].RepelFrom(ColorSimple.LightGreenYellow, 0.05*lr);
                         colors[i].RepelFrom(ColorSimple.Random(rnd), lr * lr);
-                        for (var j = 0; j < colors.Length; j++)
-                            if (i != j)
+                        for (var j = 0; j < colors.Length; j++) {
+                            if (i != j) {
                                 colors[i].RepelFrom(colors[j], lr);
+                            }
+                        }
                     }
-                    for (var i = 0; i < colors.Length; i++)
+                    for (var i = 0; i < colors.Length; i++) {
                         colors[i].LimitBrightness(0.1, 0.7);
+                    }
+
                     var min = colors.Aggregate(ColorSimple.MinValue, ColorSimple.Min);
                     var max = colors.Aggregate(ColorSimple.MaxValue, ColorSimple.Max);
-                    for (var i = 0; i < colors.Length; i++)
+                    for (var i = 0; i < colors.Length; i++) {
                         colors[i].ScaleBack(min, max);
+                    }
                 }
-
+            }
 
             return colors.Select(c => c.ToWindowsColor()).ToArray();
         }
 
         struct ColorSimple
         {
-            public static ColorSimple Random(MersenneTwister rnd)
-            {
-                return new ColorSimple { R = rnd.NextDouble0To1(), G = rnd.NextDouble0To1(), B = rnd.NextDouble0To1() };
-            }
+            public static ColorSimple Random(MersenneTwister rnd) => new ColorSimple { R = rnd.NextDouble0To1(), G = rnd.NextDouble0To1(), B = rnd.NextDouble0To1() };
             double R, G, B;
 
 
@@ -77,47 +79,32 @@ namespace EmnExtensions.Wpf
 
 
 
-            public Color ToWindowsColor()
-            {
-                return Color.FromRgb((byte)(255 * R + 0.5), (byte)(255 * G + 0.5), (byte)(255 * B + 0.5));
-            }
+            public Color ToWindowsColor() => Color.FromRgb((byte)(255 * R + 0.5), (byte)(255 * G + 0.5), (byte)(255 * B + 0.5));
 
-            public static ColorSimple Min(ColorSimple a, ColorSimple b)
-            {
-                return new ColorSimple { R = Math.Min(a.R, b.R), G = Math.Min(a.G, b.G), B = Math.Min(a.B, b.B) };
-            }
+            public static ColorSimple Min(ColorSimple a, ColorSimple b) => new ColorSimple { R = Math.Min(a.R, b.R), G = Math.Min(a.G, b.G), B = Math.Min(a.B, b.B) };
 
-            public static ColorSimple Max(ColorSimple a, ColorSimple b)
-            {
-                return new ColorSimple { R = Math.Max(a.R, b.R), G = Math.Max(a.G, b.G), B = Math.Max(a.B, b.B) };
-            }
+            public static ColorSimple Max(ColorSimple a, ColorSimple b) => new ColorSimple { R = Math.Max(a.R, b.R), G = Math.Max(a.G, b.G), B = Math.Max(a.B, b.B) };
 
-            public static ColorSimple MaxValue { get { return new ColorSimple { R = 1.0, G = 1.0, B = 1.0 }; } }
-            public static ColorSimple MinValue { get { return new ColorSimple { R = 0.0, G = 0.0, B = 0.0 }; } }
+            public static ColorSimple MaxValue => new ColorSimple { R = 1.0, G = 1.0, B = 1.0 };
+            public static ColorSimple MinValue => new ColorSimple { R = 0.0, G = 0.0, B = 0.0 };
 
-            public static ColorSimple LightGreenYellow { get { return new ColorSimple { R = 0.9, G = 1, B = 0.7 }; } }
+            public static ColorSimple LightGreenYellow => new ColorSimple { R = 0.9, G = 1, B = 0.7 };
 
 
-            public double SqrDistTo(ColorSimple other) { return (sqr(R - other.R) + sqr(G - other.G) + sqr(B - other.B)) / 3.0 - 0.5 * HueEmphasis * sqr(Sum - other.Sum); }
-            double Sum { get { return 0.35 * R + 0.5 * G + 0.15 * B; } }
+            public double SqrDistTo(ColorSimple other) => (sqr(R - other.R) + sqr(G - other.G) + sqr(B - other.B)) / 3.0 - 0.5 * HueEmphasis * sqr(Sum - other.Sum);
+            double Sum => 0.35 * R + 0.5 * G + 0.15 * B;
 
-            static double sqr(double x) { return x * x; }
-            static double scaled(double val, double min, double max)
-            {
-                return max <= min || max < 0.99 && min > 0.01
+            static double sqr(double x) => x * x;
+            static double scaled(double val, double min, double max) => max <= min || max < 0.99 && min > 0.01
                     ? val
                     : 0.01 + 0.98 * (val - min) / (max - min);
-            }
             const double HueEmphasis = 0.5;
 
-            internal static ColorSimple FromColor(Color color)
-            {
-                return new ColorSimple {
-                    R = color.ScR,
-                    G = color.ScG,
-                    B = color.ScB,
-                };
-            }
+            internal static ColorSimple FromColor(Color color) => new ColorSimple {
+                R = color.ScR,
+                G = color.ScG,
+                B = color.ScB,
+            };
         }
     }
 }

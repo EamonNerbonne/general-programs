@@ -10,9 +10,9 @@ namespace EmnExtensions.Wpf
         double _h;
         double _s;
         double _l;
-        public double H { get { return _h; } set { _h = value % 1.0; } }
-        public double S { get { return _s; } set { _s = value > 1.0 ? 1.0 : value < 0.0 ? 0.0 : value; } }
-        public double L { get { return _l; } set { _l = value > 1.0 ? 1.0 : value < 0.0 ? 0.0 : value; } }
+        public double H { get => _h; set => _h = value % 1.0; }
+        public double S { get => _s; set => _s = value > 1.0 ? 1.0 : value < 0.0 ? 0.0 : value; }
+        public double L { get => _l; set => _l = value > 1.0 ? 1.0 : value < 0.0 ? 0.0 : value; }
 
         public HSL(Color c)
         {
@@ -78,15 +78,14 @@ namespace EmnExtensions.Wpf
                 var Mid = RoundToByte(-(H6 - 5.0) * q + Max);
                 return Color.FromRgb(Max, Min, Mid);
             } else //???? should never happen.
+{
                 return Color.FromRgb(0, 0, 0);
+            }
         }
 
-        static byte RoundToByte(double d) { return (byte)(d + 0.5); }
+        static byte RoundToByte(double d) => (byte)(d + 0.5);
 
-        public static Color Desaturize(Color c, double saturation)
-        {
-            return new HSL(c) { S = saturation }.ToRGB();
-        }
+        public static Color Desaturize(Color c, double saturation) => new HSL(c) { S = saturation }.ToRGB();
 
         public static Color HueShift(Color c, double shift)
         {

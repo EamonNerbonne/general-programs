@@ -12,14 +12,11 @@ namespace LvqGui
         public readonly LearningRates LR;
         public readonly ErrorRates Errors;
         public readonly double cumLearningRate;
-        public int CompareTo(LrAndError other) { return Errors.CompareTo(other.Errors); }
-        public override string ToString() { return LR + " @ " + Errors; }
-        public string ToStorageString()
-        {
-            return LR.Lr0.ToString("g4").PadRight(9) + "p" + LR.LrP.ToString("g4").PadRight(9) + "b" + LR.LrB.ToString("g4").PadRight(9) + ": "
+        public int CompareTo(LrAndError other) => Errors.CompareTo(other.Errors);
+        public override string ToString() => LR + " @ " + Errors;
+        public string ToStorageString() => LR.Lr0.ToString("g4").PadRight(9) + "p" + LR.LrP.ToString("g4").PadRight(9) + "b" + LR.LrB.ToString("g4").PadRight(9) + ": "
                                 + Errors + "[" + cumLearningRate + "]";
-        }
-        public int CompareTo(object obj) { return CompareTo((LrAndError)obj); }
+        public int CompareTo(object obj) => CompareTo((LrAndError)obj);
 
         public LrAndError(LvqModelSettingsCli settings, LvqMultiModel.Statistic stats, int nnIdx)
         {
@@ -48,11 +45,8 @@ namespace LvqGui
                  double.Parse(errsThenCumulLr0[3].Trim(' ', '[', ']'))
             );
         }
-        static double ClosestMatch(IEnumerable<double> haystack, double needle)
-        {
-            return haystack.Aggregate(new { Err = double.PositiveInfinity, Val = needle },
+        static double ClosestMatch(IEnumerable<double> haystack, double needle) => haystack.Aggregate(new { Err = double.PositiveInfinity, Val = needle },
                 (best, option) => Math.Abs(option - needle) < best.Err ? new { Err = Math.Abs(option - needle), Val = option } : best).Val;
-        }
     }
     public struct ErrorRates : IComparable<ErrorRates>, IComparable
     {
@@ -76,22 +70,19 @@ namespace LvqGui
             nnStderr = nnIdx == -1 ? double.NaN : stats.StandardError[nnIdx];
         }
 
-        public double CanonicalError { get { return training * 0.9 + (nn.IsFinite() ? test * 0.05 + nn * 0.05 : test * 0.1); } }
-        public override string ToString()
-        {
-            return Statistics.GetFormatted(training, trainingStderr, 1) + "; " +
+        public double CanonicalError => training * 0.9 + (nn.IsFinite() ? test * 0.05 + nn * 0.05 : test * 0.1);
+        public override string ToString() => Statistics.GetFormatted(training, trainingStderr, 1) + "; " +
                 Statistics.GetFormatted(test, testStderr, 1) + "; " +
                 Statistics.GetFormatted(nn, nnStderr, 1) + "; ";
-        }
 
-        public int CompareTo(ErrorRates other) { return CanonicalError.CompareTo(other.CanonicalError); }
+        public int CompareTo(ErrorRates other) => CanonicalError.CompareTo(other.CanonicalError);
 
-        public int CompareTo(object obj) { return CompareTo((ErrorRates)obj); }
+        public int CompareTo(object obj) => CompareTo((ErrorRates)obj);
     }
     public struct LearningRates
     {
         public readonly double Lr0, LrP, LrB;
-        public override string ToString() { return Lr0 + " p" + LrP + " b" + LrB; }
+        public override string ToString() => Lr0 + " p" + LrP + " b" + LrB;
         public LearningRates(double lr0, double lrP, double lrB) { Lr0 = lr0; LrP = lrP; LrB = lrB; }
         public LearningRates(LvqModelSettingsCli settings)
         {

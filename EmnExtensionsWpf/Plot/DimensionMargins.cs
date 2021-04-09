@@ -31,20 +31,25 @@ namespace EmnExtensions.Wpf
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {
             var strval = value as string;
-            if (strval == null)
+            if (strval == null) {
                 return null;
+            }
+
             var parameters = (from segment in strval.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                               select segment.ParseAsDouble()
                              ).ToArray();
-            if (parameters.Length < 1 || parameters.Length > 2 || parameters.Contains(null))
+            if (parameters.Length < 1 || parameters.Length > 2 || parameters.Contains(null)) {
                 return null;
+            }
 
             return new DimensionMargins { AtStart = parameters[0].Value, AtEnd = parameters[parameters.Length - 1].Value };
         }
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
         {
-            if (destinationType != typeof(string) || !(value is DimensionMargins))
+            if (destinationType != typeof(string) || !(value is DimensionMargins)) {
                 return null;
+            }
+
             var dim = (DimensionMargins)value;
             return dim.AtEnd == dim.AtStart ? dim.AtStart.ToString(culture) : dim.AtStart.ToString(culture) + "," + dim.AtEnd.ToString(culture);
         }

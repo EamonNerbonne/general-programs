@@ -11,12 +11,12 @@ namespace EmnExtensions.Wpf.VizEngines
         Rect m_OuterDataBounds = Rect.Empty;
         uint[] m_image;
 
-        protected override Rect? OuterDataBound { get { return m_OuterDataBounds; } }
+        protected override Rect? OuterDataBound => m_OuterDataBounds;
         double m_CoverageRatio = 0.9999;
-        public double CoverageRatio { get { return m_CoverageRatio; } set { if (value != m_CoverageRatio) { m_CoverageRatio = value; InvalidateDataBounds(); } } }
+        public double CoverageRatio { get => m_CoverageRatio; set { if (value != m_CoverageRatio) { m_CoverageRatio = value; InvalidateDataBounds(); } } }
 
         double m_CoverageGradient = 5.0;
-        public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; InvalidateDataBounds(); } }
+        public double CoverageGradient { get => m_CoverageGradient; set { m_CoverageGradient = value; InvalidateDataBounds(); } }
 
         public int? OverridePointCountEstimate { get; set; }
 
@@ -27,8 +27,9 @@ namespace EmnExtensions.Wpf.VizEngines
         {
             Trace.WriteLine("UpdateBitmap");
 
-            if (dataToBitmap.IsIdentity)
+            if (dataToBitmap.IsIdentity) {
                 return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
+            }
 
             var thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data == null ? 0 : Data.Length));
             var thicknessTranslation = DecodeThickness(thickness);
@@ -45,8 +46,9 @@ namespace EmnExtensions.Wpf.VizEngines
             var alpha = thicknessOfSquare * thicknessOfSquare;
 
             var useDiamondPoints = alpha > 1.0;
-            if (useDiamondPoints)
+            if (useDiamondPoints) {
                 alpha = Math.Min(1.0, alpha / 5.0);
+            }
 
             return new Tuple<double, bool>(alpha, useDiamondPoints);
         }
@@ -56,19 +58,22 @@ namespace EmnExtensions.Wpf.VizEngines
         {
             MakeVisibleRegionEmpty(pW, pH);
 
-            if (useDiamondPoints)
+            if (useDiamondPoints) {
                 MakeDiamondPoint2dHistogram(pW, pH, dataToBitmap);
-            else
+            } else {
                 MakeSinglePoint2dHistogram(pW, pH, dataToBitmap);
+            }
         }
 
         void MakeVisibleRegionEmpty(int pW, int pH)
         {
-            if (m_image == null || m_image.Length < pW * pH)
+            if (m_image == null || m_image.Length < pW * pH) {
                 m_image = new uint[pW * pH];
-            else
-                for (var i = 0; i < pW * pH; i++)
+            } else {
+                for (var i = 0; i < pW * pH; i++) {
                     m_image[i] = 0;
+                }
+            }
         }
 
         void MakeDiamondPoint2dHistogram(int pW, int pH, Matrix dataToBitmap)
@@ -93,8 +98,9 @@ namespace EmnExtensions.Wpf.VizEngines
                 var displaypoint = dataToBitmap.Transform(point);
                 var x = (int)(displaypoint.X);
                 var y = (int)(displaypoint.Y);
-                if (x >= 0 && x < pW && y >= 0 && y < pH)
+                if (x >= 0 && x < pW && y >= 0 && y < pH) {
                     m_image[x + pW * y]++;
+                }
             }
         }
 
@@ -106,19 +112,17 @@ namespace EmnExtensions.Wpf.VizEngines
             var alphaLookup = PregenerateAlphaLookup(alpha, m_image, numPixels, pointColor.ScA);
             var nativeColorWithoutAlpha = pointColor.ToNativeColor() & 0x00ffffff;
 
-            for (var pxI = 0; pxI < numPixels; pxI++)
+            for (var pxI = 0; pxI < numPixels; pxI++) {
                 m_image[pxI] = nativeColorWithoutAlpha | alphaLookup[m_image[pxI]];
+            }
         }
 
-        void CopyImageRegionToWriteableBitmap(int pW, int pH)
-        {
-            m_bmp.WritePixels(
+        void CopyImageRegionToWriteableBitmap(int pW, int pH) => m_bmp.WritePixels(
                 sourceRect: new Int32Rect(0, 0, pW, pH),
                 sourceBuffer: m_image,
                 sourceBufferStride: pW * sizeof(uint),
                 destinationX: 0,
                 destinationY: 0);
-        }
 
         static uint[] PregenerateAlphaLookup(double alpha, uint[] image, int numPixels, double overallAlpha)
         {
@@ -140,9 +144,12 @@ namespace EmnExtensions.Wpf.VizEngines
         static uint ValueOfMax(uint[] m_image, int start, int end)
         {
             uint maxCount = 0;
-            for (var i = start; i < end; i++)
-                if (m_image[i] > maxCount)
+            for (var i = start; i < end; i++) {
+                if (m_image[i] > maxCount) {
                     maxCount = m_image[i];
+                }
+            }
+
             return maxCount;
         }
         #endregion
@@ -154,16 +161,10 @@ namespace EmnExtensions.Wpf.VizEngines
             TriggerChange(GraphChange.Projection); //because we need to relayout the points in the plot
         }
 
-        protected override Rect ComputeBounds()
-        {
-            return VizPixelScatterHelpers.ComputeInnerBoundsByRatio(Data, CoverageRatio, CoverageRatio, CoverageGradient, m_OuterDataBounds);
-        }
+        protected override Rect ComputeBounds() => VizPixelScatterHelpers.ComputeInnerBoundsByRatio(Data, CoverageRatio, CoverageRatio, CoverageGradient, m_OuterDataBounds);
 
-        public override void OnRenderOptionsChanged()
-        {
-            TriggerChange(GraphChange.Projection); // because we need to relayout the points in the plot.
-        }
+        public override void OnRenderOptionsChanged() => TriggerChange(GraphChange.Projection); // because we need to relayout the points in the plot.
 
-        public override bool SupportsColor { get { return true; } }
+        public override bool SupportsColor => true;
     }
 }

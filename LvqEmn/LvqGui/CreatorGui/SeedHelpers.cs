@@ -11,7 +11,7 @@ namespace LvqGui
     public static class IHasSeedExtensions
     {
         public static void ReseedBoth(this IHasSeed seededObj) { seededObj.ReseedParam(); seededObj.ReseedInst(); }
-        public static void ReseedParam(this IHasSeed seededObj) { seededObj.ParamsSeed = RndHelper.MakeSecureUInt(); }
-        public static void ReseedInst(this IHasSeed seededObj) { seededObj.InstanceSeed = RndHelper.MakeSecureUInt(); }
+        public static void ReseedParam(this IHasSeed seededObj) => seededObj.ParamsSeed = RndHelper.MakeSecureUInt();
+        public static void ReseedInst(this IHasSeed seededObj) => seededObj.InstanceSeed = RndHelper.MakeSecureUInt();
     }
 }

@@ -15,7 +15,7 @@ namespace EmnExtensions.Wpf.VizEngines
             public UintColor(Color c) { R = c.R; G = c.G; B = c.B; }
             public static UintColor operator +(UintColor a, UintColor b) { var result = default(UintColor); result.R = a.R + b.R; result.G = a.G + b.G; result.B = a.B + b.B; return result; }
             public void Increment(UintColor other) { R += other.R; G += other.G; B += other.B; }
-            public uint RawDiv(uint divisor) { return divisor == 0 ? 0u : (R / divisor << 16) + (G / divisor << 8) + (B / divisor); }
+            public uint RawDiv(uint divisor) => divisor == 0 ? 0u : (R / divisor << 16) + (G / divisor << 8) + (B / divisor);
         }
         Rect m_OuterDataBounds = Rect.Empty;
         uint[] m_image;
@@ -23,16 +23,16 @@ namespace EmnExtensions.Wpf.VizEngines
 
         public VizPointCloudBitmap(IPlotMetaData metadata) : base(metadata) { }
 
-        protected override Rect? OuterDataBound { get { return m_OuterDataBounds; } }
+        protected override Rect? OuterDataBound => m_OuterDataBounds;
         double m_CoverageRatio = 0.9999;
-        public double CoverageRatio { get { return m_CoverageRatio; } set { if (value != m_CoverageRatio) { m_CoverageRatio = value; InvalidateDataBounds(); } } }
+        public double CoverageRatio { get => m_CoverageRatio; set { if (value != m_CoverageRatio) { m_CoverageRatio = value; InvalidateDataBounds(); } } }
 
         double m_CoverageGradient = 5.0;
-        public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; InvalidateDataBounds(); } }
+        public double CoverageGradient { get => m_CoverageGradient; set { m_CoverageGradient = value; InvalidateDataBounds(); } }
 
         Color[] m_ClassColors;
         UintColor[] m_MappedColors;
-        public Color[] ClassColors { get { return m_ClassColors; } set { m_ClassColors = value; RecomputeColors(); } }
+        public Color[] ClassColors { get => m_ClassColors; set { m_ClassColors = value; RecomputeColors(); } }
 
         void RecomputeColors()
         {
@@ -46,8 +46,9 @@ namespace EmnExtensions.Wpf.VizEngines
         {
             Trace.WriteLine("UpdateBitmap");
 
-            if (dataToBitmap.IsIdentity || m_ClassColors == null || Data == null || Data.Length == 0)
+            if (dataToBitmap.IsIdentity || m_ClassColors == null || Data == null || Data.Length == 0) {
                 return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
+            }
 
             var thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data == null ? 0 : Data.Length));
             //Console.WriteLine(thickness + " * " + Math.Sqrt(viewAreaSize / 90000.0));
@@ -65,24 +66,25 @@ namespace EmnExtensions.Wpf.VizEngines
             //thicknessOfSquare 1.0 is equivalent to a 1x1 opaque pixel square.
             var alpha = thicknessOfSquare * thicknessOfSquare;
 
-            if (alpha <= 1.0)
+            if (alpha <= 1.0) {
                 return Tuple.Create(alpha, 0);
-            else if (alpha <= 1.2)
+            } else if (alpha <= 1.2) {
                 return Tuple.Create(1.0, 0);
-            else if (alpha <= 2.5)
+            } else if (alpha <= 2.5) {
                 return Tuple.Create(alpha / 6.0, 1);
-            else if (alpha <= 5.0)
+            } else if (alpha <= 5.0) {
                 return Tuple.Create(alpha / 5.0, 2);
-            else if (alpha <= 6.0)
+            } else if (alpha <= 6.0) {
                 return Tuple.Create(1.0, 2);
-            else if (alpha <= 10.0)
+            } else if (alpha <= 10.0) {
                 return Tuple.Create(alpha / 10.0, 3);
-            else if (alpha <= 12.0)
+            } else if (alpha <= 12.0) {
                 return Tuple.Create(1.0, 3);
-            else if (alpha <= 21.0)
+            } else if (alpha <= 21.0) {
                 return Tuple.Create(alpha / 21.0, 4);
-            else
+            } else {
                 return Tuple.Create(1.0, 4);
+            }
         }
 
         #region UpdateBitmap Helpers
@@ -90,16 +92,17 @@ namespace EmnExtensions.Wpf.VizEngines
         {
             MakeVisibleRegionEmpty(pW, pH);
 
-            if (addpixelMode == 0)
+            if (addpixelMode == 0) {
                 MakeSinglePoint2dHistogram(pW, pH, dataToBitmap);
-            else if (addpixelMode == 1)
+            } else if (addpixelMode == 1) {
                 MakeSoftDiamondPoint2dHistogram(pW, pH, dataToBitmap);
-            else if (addpixelMode == 2)
+            } else if (addpixelMode == 2) {
                 MakeDiamondPoint2dHistogram(pW, pH, dataToBitmap);
-            else if (addpixelMode == 3)
+            } else if (addpixelMode == 3) {
                 MakeSquarePoint2dHistogram(pW, pH, dataToBitmap);
-            else if (addpixelMode == 4)
+            } else if (addpixelMode == 4) {
                 Make21Point2dHistogram(pW, pH, dataToBitmap);
+            }
         }
 
         void MakeVisibleRegionEmpty(int pW, int pH)
@@ -108,10 +111,13 @@ namespace EmnExtensions.Wpf.VizEngines
                 m_image = new uint[pW * pH];
                 m_accumulator = new UintColor[pW * pH];
             } else {
-                for (var i = 0; i < pW * pH; i++)
+                for (var i = 0; i < pW * pH; i++) {
                     m_image[i] = 0;
-                for (var i = 0; i < pW * pH; i++)
+                }
+
+                for (var i = 0; i < pW * pH; i++) {
                     m_accumulator[i] = default(UintColor);
+                }
             }
         }
 
@@ -300,9 +306,12 @@ namespace EmnExtensions.Wpf.VizEngines
         static uint ValueOfMax(uint[] m_image, int start, int end)
         {
             uint maxCount = 0;
-            for (var i = start; i < end; i++)
-                if (m_image[i] > maxCount)
+            for (var i = start; i < end; i++) {
+                if (m_image[i] > maxCount) {
                     maxCount = m_image[i];
+                }
+            }
+
             return maxCount;
         }
         #endregion
@@ -315,16 +324,10 @@ namespace EmnExtensions.Wpf.VizEngines
             TriggerChange(GraphChange.Projection); //because we need to relayout the points in the plot
         }
 
-        protected override Rect ComputeBounds()
-        {
-            return m_OuterDataBounds.IsEmpty ? m_OuterDataBounds : VizPixelScatterHelpers.ComputeInnerBoundsByRatio(Data.Select(lp => lp.point).ToArray(), CoverageRatio, CoverageRatio, CoverageGradient, m_OuterDataBounds);
-        }
+        protected override Rect ComputeBounds() => m_OuterDataBounds.IsEmpty ? m_OuterDataBounds : VizPixelScatterHelpers.ComputeInnerBoundsByRatio(Data.Select(lp => lp.point).ToArray(), CoverageRatio, CoverageRatio, CoverageGradient, m_OuterDataBounds);
 
-        public override void OnRenderOptionsChanged()
-        {
-            TriggerChange(GraphChange.Projection); // because we need to relayout the points in the plot.
-        }
+        public override void OnRenderOptionsChanged() => TriggerChange(GraphChange.Projection); // because we need to relayout the points in the plot.
 
-        public override bool SupportsColor { get { return false; } }
+        public override bool SupportsColor => false;
     }
 }

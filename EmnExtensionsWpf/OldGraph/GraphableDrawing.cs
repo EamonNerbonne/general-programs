@@ -17,7 +17,7 @@ namespace EmnExtensions.Wpf.Plot
             }
         }
 
-        public override sealed void DrawGraph(DrawingContext context)
+        public sealed override void DrawGraph(DrawingContext context)
         {
             context.PushTransform(m_drawingToDisplay);
             try {
@@ -27,10 +27,7 @@ namespace EmnExtensions.Wpf.Plot
             }
         }
 
-        public override sealed void SetTransform(Matrix dataToDisplay, Rect displayClip)
-        {
-            m_drawingToDisplay.Matrix = GraphUtils.TransformShape(DrawingRect, DataBounds, false) * dataToDisplay;
-        }
+        public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip) => m_drawingToDisplay.Matrix = GraphUtils.TransformShape(DrawingRect, DataBounds, false) * dataToDisplay;
         protected abstract void DrawUntransformedIntoDrawingRect(DrawingContext context);
         protected abstract Rect DrawingRect { get; }
     }

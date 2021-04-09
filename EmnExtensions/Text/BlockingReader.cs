@@ -16,8 +16,10 @@ namespace EmnExtensions.Text
 
         public override int Read()
         {
-            if (!hasPeeked)
+            if (!hasPeeked) {
                 return reader.Read();
+            }
+
             hasPeeked = false;
             return peekChar;
         }
@@ -33,14 +35,21 @@ namespace EmnExtensions.Text
 
         public override int Read(char[] buffer, int index, int count)
         {
-            if (buffer == null)
+            if (buffer == null) {
                 throw new ArgumentNullException("buffer");
-            if (index < 0)
+            }
+
+            if (index < 0) {
                 throw new ArgumentOutOfRangeException("index");
-            if (count < 0)
+            }
+
+            if (count < 0) {
                 throw new ArgumentOutOfRangeException("count");
-            if ((buffer.Length - index) < count)
+            }
+
+            if ((buffer.Length - index) < count) {
                 throw new ArgumentException("Buffer too small");
+            }
 
             var peekCharsRead = 0;
             if (hasPeeked) {
@@ -57,8 +66,9 @@ namespace EmnExtensions.Text
         protected override void Dispose(bool disposing)
         {
             try {
-                if (disposing)
+                if (disposing) {
                     reader.Dispose();
+                }
             } finally {
                 base.Dispose(disposing);
             }

@@ -11,7 +11,7 @@ namespace EmnExtensions.Algorithms
             public float distance;
 
 
-            public int CompareTo(DistanceTo other) { return distance.CompareTo(other.distance); }
+            public int CompareTo(DistanceTo other) => distance.CompareTo(other.distance);
         }
 
         public static void FindShortestPath(Func<int, IEnumerable<DistanceTo>> graph, int nodeCount, IEnumerable<int> startNodes, out float[] distance, out int[] comeFrom)
@@ -32,21 +32,26 @@ namespace EmnExtensions.Algorithms
                 comeFrom[startNode] = startNode;
                 noStartNodes = false;
             }
-            if (noStartNodes)
+            if (noStartNodes) {
                 throw new ArgumentException("startNodes must contain at least one node");
+            }
+
             DistanceTo current;
             while (toProcess.RemoveTop(out current)) {
                 nodeIndex[current.targetNode] = -2;//i.e. processed
                 foreach (var outEdge in graph(current.targetNode)) {
-                    if (nodeIndex[outEdge.targetNode] == -2)
+                    if (nodeIndex[outEdge.targetNode] == -2) {
                         continue; //this edge is already processed.
-                    else {//OK, next goes to outEdge...
+                    } else {//OK, next goes to outEdge...
                         var newLength = current.distance + outEdge.distance;
                         if (newLength < distance[outEdge.targetNode]) {
                             distance[outEdge.targetNode] = newLength;
                             comeFrom[outEdge.targetNode] = current.targetNode;
                             if (nodeIndex[outEdge.targetNode] != -1) //we need to remove it first
+{
                                 toProcess.Delete(nodeIndex[outEdge.targetNode]);
+                            }
+
                             toProcess.Add(new DistanceTo { distance = newLength, targetNode = outEdge.targetNode });
                         }
                     }

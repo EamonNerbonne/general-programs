@@ -1,4 +1,4 @@
-﻿// ReSharper disable PossibleNullReferenceException
+// ReSharper disable PossibleNullReferenceException
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 // ReSharper disable UnusedMember.Global
 
@@ -23,10 +23,7 @@ namespace LvqGui
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        void raisePropertyChanged(string prop)
-        {
-            PropertyChanged(this, new PropertyChangedEventArgs(prop));
-        }
+        void raisePropertyChanged(string prop) => PropertyChanged(this, new PropertyChangedEventArgs(prop));
 
         protected void _propertyChanged(string propertyName)
         {
@@ -95,10 +92,7 @@ namespace LvqGui
 
     static class ShorthandHelper
     {
-        public static void ParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand)
-        {
-            Create(shorthandObj).ParseShorthand(defaults, shR, newShorthand);
-        }
+        public static void ParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) => Create(shorthandObj).ParseShorthand(defaults, shR, newShorthand);
 
         //        public static bool TryParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
         //public static string VerifyShorthand(T shorthandObj, Regex shR) { IHasShorthand

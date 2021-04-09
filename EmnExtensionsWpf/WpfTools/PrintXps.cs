@@ -99,8 +99,9 @@ namespace EmnExtensions.Wpf
                 if (el.Parent is UIElement) {
                     ((UIElement)el.Parent).InvalidateArrange();
                     ((UIElement)el.Parent).UpdateLayout();
-                } else
+                } else {
                     el.UpdateLayout();
+                }
             }
         }
     }

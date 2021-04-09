@@ -49,11 +49,13 @@ namespace LvqGui
                     .ContinueWith(
                         t => {
 
-                            using (sw)
-                                if (t.Status == TaskStatus.RanToCompletion)
+                            using (sw) {
+                                if (t.Status == TaskStatus.RanToCompletion) {
                                     SaveLogFor(settings, sw.ToString());
-                                else
+                                } else {
                                     AttemptToUnclaimSettings(settings, sink);
+                                }
+                            }
                         }, cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler
                     );
             } else {
@@ -64,17 +66,11 @@ namespace LvqGui
         }
 
 
-        public static string ShortnameFor(long iters, LvqModelSettingsCli settings)
-        {
-            return LvqMultiModel.ItersPrefix(iters) + "-" + settings.ToShorthand();
-        }
+        public static string ShortnameFor(long iters, LvqModelSettingsCli settings) => LvqMultiModel.ItersPrefix(iters) + "-" + settings.ToShorthand();
 
 
 
-        public string ShortnameFor(LvqModelSettingsCli settings)
-        {
-            return ShortnameFor(_itersToRun, settings);
-        }
+        public string ShortnameFor(LvqModelSettingsCli settings) => ShortnameFor(_itersToRun, settings);
         //{-8.46,0.42,-1.11,-1.49,1.51,0.79}
         static readonly double[,,] heurEffects = //proto,type,heur
             {
@@ -165,12 +161,8 @@ namespace LvqGui
                  select settings).ToArray();
 
 
-        IEnumerable<LvqModelSettingsCli> AllLrTestingSettings()
-        {
-            return
-                from settings in AllLrTestingSettingsNoOffset
-                select WithSeedFromOffset(settings, offset);
-        }
+        IEnumerable<LvqModelSettingsCli> AllLrTestingSettings() => from settings in AllLrTestingSettingsNoOffset
+                                                                   select WithSeedFromOffset(settings, offset);
 
 
 
@@ -198,8 +190,9 @@ namespace LvqGui
             return Task.Factory.ContinueWhenAll(errorRates,
                 tasks => {
                     var lrAndErrors = tasks.Select(t => t.Result).ToArray();
-                    foreach (var lrErr in lrAndErrors.OrderBy(lrErr => lrErr.Errors.CanonicalError))
+                    foreach (var lrErr in lrAndErrors.OrderBy(lrErr => lrErr.Errors.CanonicalError)) {
                         sink.Write("\n" + lrErr.ToStorageString());
+                    }
 
                     sink.WriteLine();
                 }, cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
@@ -209,8 +202,9 @@ namespace LvqGui
         {
             //start*exp(ln(end/start) *  i/(steps-1) )
             var lnScale = Math.Log(end / start);
-            for (var i = 0; i < steps; i++)
+            for (var i = 0; i < steps; i++) {
                 yield return start * Math.Exp(lnScale * ((double)i / (steps - 1)));
+            }
         }
 
         Task<LrAndError> ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings, CancellationToken cancel)
@@ -245,16 +239,18 @@ namespace LvqGui
         bool AttemptToClaimSettings(LvqModelSettingsCli settings, TextWriter sink)
         {
             var saveFile = GetLogfilepath(settings).First();
-            lock (fsSync)
+            lock (fsSync) {
                 if (saveFile.Exists) {
                     if (saveFile.Length > 0) {
                         //Console.WriteLine("already done:" + DatasetLabel + "\\" + ShortnameFor(settings));
-                        if (sink != null)
+                        if (sink != null) {
                             sink.WriteLine("already done!");
+                        }
                     } else {
                         //Console.WriteLine("already started:" + DatasetLabel + "\\" + ShortnameFor(settings));
-                        if (sink != null)
+                        if (sink != null) {
                             sink.WriteLine("already started!");
+                        }
                     }
                     return true;
                 } else {
@@ -263,24 +259,28 @@ namespace LvqGui
                     Console.WriteLine("Now starting:" + DatasetLabel + "\\" + ShortnameFor(settings) + " (" + DateTime.Now + ")");
                     return false;
                 }
+            }
         }
 
         bool AttemptToUnclaimSettings(LvqModelSettingsCli settings, TextWriter sink)
         {
             var saveFile = GetLogfilepath(settings).First();
-            lock (fsSync)
+            lock (fsSync) {
                 if (saveFile.Exists) {
                     if (saveFile.Length > 0) {
                         var message = "Won't cancel completed results:" + DatasetLabel + "\\" + ShortnameFor(settings);
                         Console.WriteLine(message);
-                        if (sink != null)
+                        if (sink != null) {
                             sink.WriteLine(message);
+                        }
+
                         return false;
                     } else {
                         var message = "Cancelling:" + DatasetLabel + "\\" + ShortnameFor(settings);
                         Console.WriteLine(message);
-                        if (sink != null)
+                        if (sink != null) {
                             sink.WriteLine(message);
+                        }
 
                         saveFile.Delete();
                         return true;
@@ -288,19 +288,22 @@ namespace LvqGui
                 } else {
                     var message = "Already cancelled??? " + DatasetLabel + "\\" + ShortnameFor(settings);
                     Console.WriteLine(message);
-                    if (sink != null)
+                    if (sink != null) {
                         sink.WriteLine(message);
+                    }
+
                     return false;
                 }
+            }
         }
 
 
 
         Task Run(LvqModelSettingsCli settings, StringWriter sw, TextWriter extraSink, CancellationToken cancel)
         {
-            if (extraSink == null)
+            if (extraSink == null) {
                 return Run(settings, TextWriter.Synchronized(sw), cancel);
-            else {
+            } else {
                 var effWriter = new ForkingTextWriter(new[] { sw, extraSink }, false);
                 return Run(settings, TextWriter.Synchronized(effWriter), cancel)
                     .ContinueWith(_ => effWriter.Dispose(),
@@ -322,7 +325,7 @@ namespace LvqGui
             }, TaskContinuationOptions.ExecuteSynchronously);
         }
 
-        string DatasetLabel { get { return _dataset != null ? _dataset.DatasetLabel : "base"; } }
+        string DatasetLabel => _dataset != null ? _dataset.DatasetLabel : "base";
 
         void SaveLogFor(LvqModelSettingsCli settings, string logcontents)
         {
@@ -331,14 +334,10 @@ namespace LvqGui
             File.WriteAllText(logfilepath.FullName, logcontents);
         }
 
-        IEnumerable<FileInfo> GetLogfilepath(LvqModelSettingsCli settings)
-        {
-            return
-                new[] { SettingsFile(settings) }.Concat(
+        IEnumerable<FileInfo> GetLogfilepath(LvqModelSettingsCli settings) => new[] { SettingsFile(settings) }.Concat(
                 Enumerable.Range(1, 1000)
                 .Select(i => ShortnameFor(settings) + " (" + i + ")" + ".txt")
                 .Select(filename => new FileInfo(Path.Combine(LrGuesser.resultsDir.FullName, DatasetLabel + "\\" + filename))));
-        }
 
         FileInfo SettingsFile(LvqModelSettingsCli settings)
         {
@@ -351,14 +350,15 @@ namespace LvqGui
 
         static DirectoryInfo ResultsDatasetDir(LvqDatasetCli dataset)
         {
-            if (dataset == null)
+            if (dataset == null) {
                 return LrGuesser.resultsDir.CreateSubdirectory("base");
-            else
+            } else {
                 return new DirectoryInfo(LrGuesser.resultsDir.FullName + "\\" + dataset.DatasetLabel);
+            }
         }
 
 
-        public static IEnumerable<LvqModelType> ModelTypes { get { return new[] { LvqModelType.Ggm, LvqModelType.G2m, LvqModelType.Gm }; } }//  (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
+        public static IEnumerable<LvqModelType> ModelTypes => new[] { LvqModelType.Ggm, LvqModelType.G2m, LvqModelType.Gm }; //  (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
         public static IEnumerable<int> PrototypesPerClassOpts { get { yield return 5; yield return 1; } }
         static IEnumerable<LvqDatasetCli> Datasets()
         {
@@ -376,14 +376,9 @@ namespace LvqGui
         }
         static LvqDatasetCli[] m_basedatasets;
 
-        static LvqDatasetCli[] basedatasets
-        {
-            get {
-                return m_basedatasets ?? (m_basedatasets = Datasets().ToArray());
-            }
-        }
+        static LvqDatasetCli[] basedatasets => m_basedatasets ?? (m_basedatasets = Datasets().ToArray());
 
 
-        public static LvqModelSettingsCli WithSeedFromOffset(LvqModelSettingsCli settings, uint offset) { return settings.WithSeeds(1 + 2 * offset, 2 * offset); }
+        public static LvqModelSettingsCli WithSeedFromOffset(LvqModelSettingsCli settings, uint offset) => settings.WithSeeds(1 + 2 * offset, 2 * offset);
     }
 }

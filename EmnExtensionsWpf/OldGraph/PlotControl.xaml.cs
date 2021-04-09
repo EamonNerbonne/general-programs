@@ -19,7 +19,7 @@ namespace EmnExtensions.Wpf.Plot
         bool needRecomputeBounds = false;
         bool showGridLines = false;
         ObservableCollection<GraphableData> graphs = new ObservableCollection<GraphableData>();
-        public ObservableCollection<GraphableData> Graphs { get { return graphs; } }
+        public ObservableCollection<GraphableData> Graphs => graphs;
         Dictionary<TickedAxisLocation, TickedAxis> axes;
         public PlotControl()
         {
@@ -38,22 +38,28 @@ namespace EmnExtensions.Wpf.Plot
 
         void RegisterChanged(IEnumerable<GraphableData> newGraphs)
         {
-            foreach (var newgraph in newGraphs)
+            foreach (var newgraph in newGraphs) {
                 newgraph.Changed += new Action<GraphableData, GraphChange>(graphChanged);
+            }
         }
 
         void UnregisterChanged(IEnumerable<GraphableData> oldGraphs)
         {
-            foreach (var oldgraph in oldGraphs)
+            foreach (var oldgraph in oldGraphs) {
                 oldgraph.Changed -= new Action<GraphableData, GraphChange>(graphChanged);
+            }
         }
 
         void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (e.OldItems != null)
+            if (e.OldItems != null) {
                 UnregisterChanged(e.OldItems.Cast<GraphableData>());
-            if (e.NewItems != null)
+            }
+
+            if (e.NewItems != null) {
                 RegisterChanged(e.NewItems.Cast<GraphableData>());
+            }
+
             RequireRedisplay();
         }
 
@@ -77,11 +83,17 @@ namespace EmnExtensions.Wpf.Plot
             }
         }
 
-        private IEnumerable<TickedAxis> Axes { get { return new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop }; } }
+        private IEnumerable<TickedAxis> Axes => new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop };
 
         public bool? AttemptBorderTicks
         {
-            set { if (value.HasValue) foreach (var axis in Axes) axis.AttemptBorderTicks = value.Value; }
+            set {
+                if (value.HasValue) {
+                    foreach (var axis in Axes) {
+                        axis.AttemptBorderTicks = value.Value;
+                    }
+                }
+            }
             get {
                 var vals = Axes.Select(axis => axis.AttemptBorderTicks).Distinct().ToArray();
                 return vals.Length != 1 ? (bool?)null : vals[0];
@@ -98,9 +110,9 @@ namespace EmnExtensions.Wpf.Plot
                 yield return TickedAxisLocation.AboveGraph | TickedAxisLocation.RightOfGraph;
             }
         }
-        private static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) { return isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds); }
-        private static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) { return isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins); }
-        private static TickedAxisLocation ChooseProjection(GraphableData graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner); }
+        private static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) => isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds);
+        private static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) => isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins);
+        private static TickedAxisLocation ChooseProjection(GraphableData graph) => ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner);
         #endregion
 
         private void RecomputeBounds()
@@ -128,26 +140,35 @@ namespace EmnExtensions.Wpf.Plot
         private void RedrawGraphs(TickedAxisLocation gridLineAxes)
         {
             Trace.WriteLine("Redrawing Graphs");
-            using (var drawingContext = dg.Open())
+            using (var drawingContext = dg.Open()) {
                 RedrawScene(drawingContext, gridLineAxes);
+            }
+
             needRedrawGraphs = false;
         }
-        public bool ShowGridLines { get { return showGridLines; } set { if (showGridLines != value) { showGridLines = value; needRedrawGraphs = true; InvalidateVisual(); } } }
+        public bool ShowGridLines { get => showGridLines; set { if (showGridLines != value) { showGridLines = value; needRedrawGraphs = true; InvalidateVisual(); } } }
 
         private void RedrawScene(DrawingContext drawingContext, TickedAxisLocation gridLineAxes)
         {
-            if (showGridLines)
-                foreach (var axis in Axes)
-                    if ((axis.AxisPos & gridLineAxes) != 0)
+            if (showGridLines) {
+                foreach (var axis in Axes) {
+                    if ((axis.AxisPos & gridLineAxes) != 0) {
                         drawingContext.DrawDrawing(axis.GridLines);
-            foreach (var graph in graphs.AsEnumerable().Reverse())
+                    }
+                }
+            }
+
+            foreach (var graph in graphs.AsEnumerable().Reverse()) {
                 graph.DrawGraph(drawingContext);
+            }
         }
 
         protected override Size MeasureOverride(Size constraint)
         {
-            if (needRecomputeBounds)
+            if (needRecomputeBounds) {
                 RecomputeBounds();
+            }
+
             return base.MeasureOverride(constraint);
         }
 
@@ -187,10 +208,13 @@ namespace EmnExtensions.Wpf.Plot
                 var bounds = new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
                 graph.SetTransform(trans.Transform, bounds);
             }
-            foreach (var axis in Axes)
+            foreach (var axis in Axes) {
                 axis.SetGridLineExtent(RenderSize);
-            if (needRedrawGraphs)
+            }
+
+            if (needRedrawGraphs) {
                 RedrawGraphs(relevantAxes);
+            }
             //    drawingContext.DrawDrawing(dg);
             base.OnRender(drawingContext);
         }

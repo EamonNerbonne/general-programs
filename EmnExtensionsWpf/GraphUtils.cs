@@ -11,13 +11,10 @@ namespace EmnExtensions.Wpf
 {
     public static class GraphUtils
     {
-        public static Color BlendWith(this Color a, Color b)
-        {
-            return Color.FromArgb((byte)(a.A + b.A + 1 >> 1), (byte)(a.R + b.R + 1 >> 1), (byte)(a.G + b.G + 1 >> 1), (byte)(a.B + b.B + 1 >> 1));
-        }
+        public static Color BlendWith(this Color a, Color b) => Color.FromArgb((byte)(a.A + b.A + 1 >> 1), (byte)(a.R + b.R + 1 >> 1), (byte)(a.G + b.G + 1 >> 1), (byte)(a.B + b.B + 1 >> 1));
 
 
-        public static bool IsFiniteNonEmpty(this Rect rect) { return rect.Width.IsFinite() && rect.Height.IsFinite() && rect.Height * rect.Width > 0; }
+        public static bool IsFiniteNonEmpty(this Rect rect) => rect.Width.IsFinite() && rect.Height.IsFinite() && rect.Height * rect.Width > 0;
 
         public static PathGeometry LineWithErrorBars(Point[] lineOfPoints, double[] ErrBars)
         {
@@ -73,8 +70,9 @@ namespace EmnExtensions.Wpf
 
         public static StreamGeometry LineScaled(Point[] lineOfPoints)
         {
-            if (lineOfPoints == null || lineOfPoints.Length == 0)
+            if (lineOfPoints == null || lineOfPoints.Length == 0) {
                 return null;
+            }
 
             var dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(lineOfPoints);
             const double maxSafe = Int32.MaxValue / 2.0;
@@ -89,23 +87,29 @@ namespace EmnExtensions.Wpf
         {
             var geom = new StreamGeometry();
             var wasOK = false;
-            using (var context = geom.Open())
-                foreach (var point in lineOfPoints)
-                    if (!IsOK(point))
+            using (var context = geom.Open()) {
+                foreach (var point in lineOfPoints) {
+                    if (!IsOK(point)) {
                         wasOK = makeFillable;
-                    else if (wasOK)
+                    } else if (wasOK) {
                         context.LineTo(point, true, true);
-                    else { context.BeginFigure(point, makeFillable, makeFillable); wasOK = true; }
-            if (withTransform != null)
+                    } else { context.BeginFigure(point, makeFillable, makeFillable); wasOK = true; }
+                }
+            }
+
+            if (withTransform != null) {
                 geom.Transform = withTransform;
+            }
+
             geom.Freeze();//can't freeze since that breaks transform changes.
             return geom;
         }
 
         public static StreamGeometry RangeScaled(Point[] upper, Point[] lower)
         {
-            if (upper == null || upper.Length == 0 || lower == null || lower.Length == 0)
+            if (upper == null || upper.Length == 0 || lower == null || lower.Length == 0) {
                 return null;
+            }
 
             var dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(upper);
             dataBounds.Union(VizPixelScatterHelpers.ComputeOuterBounds(lower));
@@ -123,14 +127,16 @@ namespace EmnExtensions.Wpf
         public static StreamGeometry PointCloud(IEnumerable<Point> setOfPoints)
         {
             var geom = new StreamGeometry();
-            if (setOfPoints != null)
-                using (var context = geom.Open())
-                    foreach (var point in setOfPoints)
+            if (setOfPoints != null) {
+                using (var context = geom.Open()) {
+                    foreach (var point in setOfPoints) {
                         if (IsOK(point)) {
                             context.BeginFigure(point, false, false);
                             context.LineTo(point, true, false);
                         }
-
+                    }
+                }
+            }
 
             geom.Freeze();//can't freeze since that breaks transform changes.
             return geom;
@@ -211,17 +217,17 @@ namespace EmnExtensions.Wpf
 
         public static IEnumerable<Point> PathFigurePoints(PathFigure fig)
         {
-            if (fig == null)
+            if (fig == null) {
                 yield break;
+            }
+
             yield return fig.StartPoint;
-            foreach (LineSegment lineTo in fig.Segments)
+            foreach (LineSegment lineTo in fig.Segments) {
                 yield return lineTo.Point;
+            }
         }
 
-        public static void AddPoint(PathFigure fig, Point point)
-        {
-            fig.Segments.Add(new LineSegment(point, true));
-        }
+        public static void AddPoint(PathFigure fig, Point point) => fig.Segments.Add(new LineSegment(point, true));
 
         /// <summary>
         /// Extends the line made by the last figure in the geometry to the given point.  
@@ -243,14 +249,8 @@ namespace EmnExtensions.Wpf
             }
         }
 
-        public static Rect ExpandRect(this Rect src, Thickness withMargin)
-        {
-            return new Rect(src.X - withMargin.Left, src.Y - withMargin.Top, src.Width + withMargin.Left + withMargin.Right, src.Height + withMargin.Top + withMargin.Bottom);
-        }
-        public static Rect ShrinkRect(this Rect src, Thickness withMargin)
-        {
-            return new Rect(src.X + withMargin.Left, src.Y + withMargin.Top, src.Width - withMargin.Left - withMargin.Right, src.Height - withMargin.Top - withMargin.Bottom);
-        }
+        public static Rect ExpandRect(this Rect src, Thickness withMargin) => new Rect(src.X - withMargin.Left, src.Y - withMargin.Top, src.Width + withMargin.Left + withMargin.Right, src.Height + withMargin.Top + withMargin.Bottom);
+        public static Rect ShrinkRect(this Rect src, Thickness withMargin) => new Rect(src.X + withMargin.Left, src.Y + withMargin.Top, src.Width - withMargin.Left - withMargin.Right, src.Height - withMargin.Top - withMargin.Bottom);
 
         public static Matrix TransformShape(Rect fromPosition, Rect toPosition, bool flipVertical)
         {
@@ -260,40 +260,44 @@ namespace EmnExtensions.Wpf
             //now we scale the graph to the appropriate dimensions
             translateThenScale.Scale(toPosition.Width / fromPosition.Width, toPosition.Height / fromPosition.Height);
             //then we flip the graph vertically around the viewport middle since in our graph positive is up, not down.
-            if (flipVertical)
+            if (flipVertical) {
                 translateThenScale.ScaleAt(1.0, -1.0, 0.0, toPosition.Height / 2.0);
+            }
             //now we push the graph to the right spot, which will usually simply be 0,0.
             translateThenScale.Translate(toPosition.X, toPosition.Y);
 
             return translateThenScale;
         }
 
-        static bool IsOK(Point p) { return p.X.IsFinite() && p.Y.IsFinite(); }
+        static bool IsOK(Point p) => p.X.IsFinite() && p.Y.IsFinite();
 
         public static BitmapSource MakeGreyBitmap(byte[,] image)
         {
             int w = image.GetLength(1), h = image.GetLength(0);
             var inlinearray = new byte[w * h];
             var i = 0;
-            for (var y = 0; y < h; y++)
-                for (var x = 0; x < w; x++)
+            for (var y = 0; y < h; y++) {
+                for (var x = 0; x < w; x++) {
                     inlinearray[i++] = image[y, x];
+                }
+            }
+
             return BitmapSource.Create(w, h, 96.0, 96.0, PixelFormats.Gray8, null, inlinearray, w);
         }
 
-        public static uint ToNativeColor(this Color colorstruct)
-        {
-            return ((uint)colorstruct.A << 24) | ((uint)colorstruct.R << 16) | ((uint)colorstruct.G << 8) | colorstruct.B;
-        }
+        public static uint ToNativeColor(this Color colorstruct) => ((uint)colorstruct.A << 24) | ((uint)colorstruct.R << 16) | ((uint)colorstruct.G << 8) | colorstruct.B;
 
         public static BitmapSource MakeColormappedBitmap<T>(T[,] image, Func<T, Color> colormap, int sampleFactor = 1)
         {
             int w = image.GetLength(1) * sampleFactor, h = image.GetLength(0) * sampleFactor;
             var inlinearray = new uint[w * h];
             var i = 0;
-            for (var y = 0; y < h; y++)
-                for (var x = 0; x < w; x++)
+            for (var y = 0; y < h; y++) {
+                for (var x = 0; x < w; x++) {
                     inlinearray[i++] = ToNativeColor(colormap(image[y / sampleFactor, x / sampleFactor]));
+                }
+            }
+
             return BitmapSource.Create(w, h, 96.0, 96.0, PixelFormats.Bgra32, null, inlinearray, w * 4);
         }
 

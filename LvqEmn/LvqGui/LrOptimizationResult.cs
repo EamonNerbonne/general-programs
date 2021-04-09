@@ -36,8 +36,10 @@ namespace LvqGui
         public IEnumerable<LrAndError> GetLrs()
         {
             var fileLines = File.ReadAllLines(resultsFile.FullName);
-            if (fileLines.Length < 2)
+            if (fileLines.Length < 2) {
                 return Enumerable.Empty<LrAndError>();
+            }
+
             var lr0range = ExtractLrs(fileLines.First(line => line.StartsWith("lr0range:")));
             var lrPrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrPrange:")));
             var lrBrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrBrange:")));
@@ -48,39 +50,32 @@ namespace LvqGui
 
 
         static readonly char[] comma = new[] { ',' };
-        static double[] ExtractLrs(string line)
-        {
-            return line.SubstringAfterFirst("{").SubstringUntil("}").Split(comma).Select(double.Parse).ToArray();
-        }
+        static double[] ExtractLrs(string line) => line.SubstringAfterFirst("{").SubstringUntil("}").Split(comma).Select(double.Parse).ToArray();
 
 
-        public static IEnumerable<LrOptimizationResult> FromDataset(LvqDatasetCli dataset, string settingsStr)
-        {
-            return
-                from creator in MaybeGetCreator(dataset)
-                from parsedResults in FromDataset(creator, settingsStr)
-                select parsedResults;
-        }
+        public static IEnumerable<LrOptimizationResult> FromDataset(LvqDatasetCli dataset, string settingsStr) => from creator in MaybeGetCreator(dataset)
+                                                                                                                  from parsedResults in FromDataset(creator, settingsStr)
+                                                                                                                  select parsedResults;
 
-        public static IEnumerable<LrOptimizationResult> FromDataset(IDatasetCreator dataset, string settingsStr = null)
-        {
-            return
-                from datasetResultsDir in GetDatasetResultDir(dataset)
-                from resultFile in datasetResultsDir.GetFiles("*" + (settingsStr == null ? "" : settingsStr + "*") + ".txt")
-                where resultFile.Length > 0
-                let parsedResults = ProcFile(resultFile)
-                where parsedResults != null
-                select parsedResults;
-        }
+        public static IEnumerable<LrOptimizationResult> FromDataset(IDatasetCreator dataset, string settingsStr = null) => from datasetResultsDir in GetDatasetResultDir(dataset)
+                                                                                                                           from resultFile in datasetResultsDir.GetFiles("*" + (settingsStr == null ? "" : settingsStr + "*") + ".txt")
+                                                                                                                           where resultFile.Length > 0
+                                                                                                                           let parsedResults = ProcFile(resultFile)
+                                                                                                                           where parsedResults != null
+                                                                                                                           select parsedResults;
 
 
         public static LrOptimizationResult ProcFile(FileInfo resultFile)
         {
-            if (resultFile.Length == 0)
+            if (resultFile.Length == 0) {
                 return null;
+            }
+
             var itersAndSettings = LrGuesser.ExtractItersAndSettings(resultFile.Name);
-            if (!itersAndSettings.Item1)
+            if (!itersAndSettings.Item1) {
                 return null;
+            }
+
             return new LrOptimizationResult(resultFile, itersAndSettings.Item2, itersAndSettings.Item3);
         }
 
@@ -103,20 +98,19 @@ namespace LvqGui
 
         static IEnumerable<IDatasetCreator> MaybeGetCreator(LvqDatasetCli dataset)
         {
-            if (dataset == null)
+            if (dataset == null) {
                 return Enumerable.Empty<IDatasetCreator>();
+            }
+
             return Enumerable.Repeat(CreateDataset.CreateFactory(dataset.DatasetLabel), 1);
         }
-        static IEnumerable<DirectoryInfo> GetDatasetResultDir(IDatasetCreator basicExample)
-        {
-            return from dir in LrGuesser.resultsDir.GetDirectories()
-                   where basicExample != null
-                   let dirSplitName = CreateDataset.CreateFactory(dir.Name)
-                   where dirSplitName != null && dirSplitName.GetType() == basicExample.GetType() && basicExample.LrTrainingShorthand() == dirSplitName.LrTrainingShorthand()
-                   orderby dirSplitName.HasTestfile() == basicExample.HasTestfile() descending
-                   , dirSplitName.Folds == basicExample.Folds descending
-                   , dirSplitName.InstanceSeed == basicExample.InstanceSeed descending
-                   select dir;
-        }
+        static IEnumerable<DirectoryInfo> GetDatasetResultDir(IDatasetCreator basicExample) => from dir in LrGuesser.resultsDir.GetDirectories()
+                                                                                               where basicExample != null
+                                                                                               let dirSplitName = CreateDataset.CreateFactory(dir.Name)
+                                                                                               where dirSplitName != null && dirSplitName.GetType() == basicExample.GetType() && basicExample.LrTrainingShorthand() == dirSplitName.LrTrainingShorthand()
+                                                                                               orderby dirSplitName.HasTestfile() == basicExample.HasTestfile() descending
+                                                                                               , dirSplitName.Folds == basicExample.Folds descending
+                                                                                               , dirSplitName.InstanceSeed == basicExample.InstanceSeed descending
+                                                                                               select dir;
     }
 }
