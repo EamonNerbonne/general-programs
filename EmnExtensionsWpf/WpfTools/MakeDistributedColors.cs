@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Windows.Media;
 using EmnExtensions.MathHelpers;
@@ -89,6 +89,7 @@ namespace EmnExtensions.Wpf
             public static ColorSimple MaxValue => new ColorSimple { R = 1.0, G = 1.0, B = 1.0 };
             public static ColorSimple MinValue => new ColorSimple { R = 0.0, G = 0.0, B = 0.0 };
 
+            // ReSharper disable once UnusedMember.Local
             public static ColorSimple LightGreenYellow => new ColorSimple { R = 0.9, G = 1, B = 0.7 };
 
 

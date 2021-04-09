@@ -546,7 +546,7 @@ namespace LvqGui
 
         static Rect ComputeProjectionBounds(CliLvqLabelledPoint[] cliLvqLabelledPoint)
         {
-            VizPixelScatterHelpers.RecomputeBounds(ToPointArray(cliLvqLabelledPoint), 0.95, 0.95, 10.0, out var outer, out var inner);
+            VizPixelScatterHelpers.RecomputeBounds(ToPointArray(cliLvqLabelledPoint), 0.95, 0.95, 10.0, out _, out var inner);
             //            inner.Union(VizPixelScatterHelpers.ComputeOuterBounds(prototypePositions.ToArray()));
             return inner;
         }

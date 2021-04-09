@@ -76,7 +76,7 @@ namespace EmnExtensions.Wpf.VizEngines
 
         void RecomputeBounds(Point[] newData)
         {
-            VizPixelScatterHelpers.RecomputeBounds(newData, CoverageRatioX, CoverageRatioY, CoverageRatioGrad, out var outerBounds, out var innerBounds);
+            VizPixelScatterHelpers.RecomputeBounds(newData, CoverageRatioX, CoverageRatioY, CoverageRatioGrad, out _, out var innerBounds);
             if (innerBounds != m_InnerBounds) {
                 m_InnerBounds = innerBounds;
                 MetaData.GraphChanged(GraphChange.Projection);

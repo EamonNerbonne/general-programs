@@ -105,7 +105,7 @@ namespace LvqGui
         {
             get {
                 if (SelectedDataset == null) {
-                    return new object[0] { };
+                    return Array.Empty<object>();
                 }
 
                 return SelectedDataset.ClassColors.Zip(SelectedDataset.ClassNames, (col, name) => new { ClassLabel = name, ClassColor = (SolidColorBrush)new SolidColorBrush(col).GetAsFrozen() }).ToArray();

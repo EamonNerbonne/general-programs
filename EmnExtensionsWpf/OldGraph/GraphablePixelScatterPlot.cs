@@ -225,9 +225,8 @@ namespace EmnExtensions.Wpf.Plot
             }
 
             var nativeColor = PointColor.ToNativeColor() & 0x00ffffff;
-            var transparency = 1.0 - PointColor.ScA;
             for (var pxI = 0; pxI < pW * pH; pxI++) {
-                image[pxI] = nativeColor | alphaLookup[image[pxI]]; // ((uint)((1.0 - Math.Pow(transparency, image[pxI])) * 255.5) << 24);
+                image[pxI] = nativeColor | alphaLookup[image[pxI]];
             }
 
             if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH) {

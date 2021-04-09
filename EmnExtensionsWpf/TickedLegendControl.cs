@@ -60,7 +60,9 @@ namespace EmnExtensions.Wpf
                 if (watchedGraph != null) {
                     try {
                         watchedGraph.GraphBoundsUpdated -= OnGraphBoundsUpdated;
-                    } catch { } //who cares if it doesn't work
+                    } catch {
+                        //who cares if it doesn't work
+                    }
                 }
 
                 watchedGraph = value;
@@ -333,6 +335,7 @@ namespace EmnExtensions.Wpf
         /// This value aims to have around 10 subdivisions total, slightly more when the actual number of slots is fewer than requested
         /// and slightly less when the actual number of slots greater than requested.
         /// </param>
+        /// <param name="orderOfMagnitude">the order of magnitude of the slot size</param>
         public static void CalcTickPositions(
             double minVal,
             double maxVal,

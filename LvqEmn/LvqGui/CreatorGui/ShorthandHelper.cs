@@ -244,7 +244,6 @@ namespace LvqGui
         {
             public static readonly Dictionary<string, int> propIndex;
             public static readonly PropertyDef[] properties;
-            public static readonly string[] Names;
 
             public static int GetIndex(string name)
             {
@@ -270,7 +269,6 @@ namespace LvqGui
                     .Select((mi, i) => new PropertyDef(mi.Name, mi.Type, i))
                     .ToArray(); //select new PropertyDef(property.Name, property.PropertyType)
                 propIndex = properties.Select((p, i) => new { p, i }).ToDictionary(pi => pi.p.Name, pi => pi.i);
-                Names = propIndex.Keys.ToArray();
             }
         }
 

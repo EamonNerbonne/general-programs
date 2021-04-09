@@ -94,7 +94,7 @@ namespace EmnExtensions.Wpf.VizEngines
 
         Rect RecomputeBounds()
         {
-            VizPixelScatterHelpers.RecomputeBounds(currentData, CoverageRatio, CoverageRatio, CoverageGradient, out var outerBounds, out var innerBounds);
+            VizPixelScatterHelpers.RecomputeBounds(currentData, CoverageRatio, CoverageRatio, CoverageGradient, out _, out var innerBounds);
             return innerBounds;
         }
 

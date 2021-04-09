@@ -19,13 +19,11 @@ namespace EmnExtensions.Wpf.Plot
         bool showGridLines;
         public ObservableCollection<GraphableData> Graphs { get; } = new();
 
-        Dictionary<TickedAxisLocation, TickedAxis> axes;
 
         public PlotControl()
         {
             Graphs.CollectionChanged += graphs_CollectionChanged;
             InitializeComponent();
-            axes = new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop }.ToDictionary(axis => axis.AxisPos);
             RenderOptions.SetBitmapScalingMode(dg, BitmapScalingMode.Linear);
             Background = new DrawingBrush(dg) {
                 Stretch = Stretch.None, //No stretch since we want the ticked axis to determine stretch

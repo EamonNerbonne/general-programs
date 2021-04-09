@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -28,7 +28,8 @@ namespace LvqGui
             if (model.IsProjectionModel) {
                 prototypeClouds = MakePerClassScatterGraph(dataset, 0.3f, Math.Min(model.SubModels.First().PrototypeLabels.Length, 3), 1)
                     .Select((graph, i) => graph.Map((LvqMultiModel.ModelProjectionAndImage proj) => proj.PrototypesByLabel[i])).ToArray();
-                foreach (IPlotMetaDataWriteable metadata in prototypeClouds.Select(viz => viz.MetaData)) {
+                foreach (var plotMetaData in prototypeClouds.Select(viz => viz.MetaData)) {
+                    var metadata = (IPlotMetaDataWriteable)plotMetaData;
                     metadata.OverrideBounds = Rect.Empty;
                 }
 

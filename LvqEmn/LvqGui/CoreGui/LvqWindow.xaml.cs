@@ -157,7 +157,7 @@ namespace LvqGui
 
         public Task SaveAllGraphs()
         {
-            var selectedModel = Values.TrainingControlValues.SelectedLvqModel;
+            _ = Values.TrainingControlValues.SelectedLvqModel;
             var allmodels = Values.TrainingControlValues.MatchingLvqModels.ToArray();
             var graphSettings = new { Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowTestEmbedding, Values.TrainingControlValues.ShowTestErrorRates };
             var lvqInnerPlotContainer = new LvqStatPlotsContainer(ClosingToken, true);
@@ -175,8 +175,8 @@ namespace LvqGui
                         .Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
                         .Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.MeanAndStderr, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding, graphSettings.ShowTestErrorRates))
                         .Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
-                        .ContinueWith(_ => {
-                                Interlocked.Increment(ref counter);
+                        .ContinueWith(previousTask => {
+                                _ = Interlocked.Increment(ref counter);
                                 Console.WriteLine(counter + "/" + allmodels.Length);
                             }
                         )

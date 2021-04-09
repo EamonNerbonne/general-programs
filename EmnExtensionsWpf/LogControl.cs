@@ -1,4 +1,4 @@
-﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMember.Global
 
 using System;
 using System.IO;
@@ -39,6 +39,7 @@ namespace EmnExtensions.Wpf
         }
 
         //TODO: this doesn't yet work.
+        // ReSharper disable once UnusedMember.Local
         static Tuple<Window, LogControl> ShowNewLogWindow_NewDispatcher(string windowTitle = null, double? width = null, double? height = null)
         {
             var disp = WpfTools.StartNewDispatcher();
