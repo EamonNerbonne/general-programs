@@ -15,7 +15,7 @@ namespace EmnExtensions.Algorithms
         readonly double[] sortedData;
         int infCount;
         public double MinVal => sortedData[0];
-        public double MaxVal => sortedData[sortedData.Length - 1];
+        public double MaxVal => sortedData[^1];
         double? maximumDensity;
         readonly int minBucketSize;
         readonly int maxResolution;

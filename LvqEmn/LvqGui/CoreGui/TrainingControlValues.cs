@@ -422,7 +422,7 @@ namespace LvqGui
         {
             var trainingStats = model.TrainingStats;
             if (trainingStats.Length >= 2) {
-                var lastStat = trainingStats[trainingStats.Length - 1];
+                var lastStat = trainingStats[^1];
                 Console.WriteLine("Avg cpu seconds per iter: {0}{1}",
                     lastStat.Value[LvqTrainingStatCli.ElapsedSecondsI] / lastStat.Value[LvqTrainingStatCli.TrainingIterationI],
                     lastStat.StandardError != null

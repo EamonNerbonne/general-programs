@@ -281,7 +281,7 @@ namespace LvqGui
                 from dataline in lines
                 select commasplit ? dataline.Split(dimSep) : dataline.Split(spaceSep, StringSplitOptions.RemoveEmptyEntries);
 
-            var lastColClass = splitLines.Take(10).All(splitLine => Regex.IsMatch(splitLine[splitLine.Length - 1], @"^[a-zA-Z]\w*$"));
+            var lastColClass = splitLines.Take(10).All(splitLine => Regex.IsMatch(splitLine[^1], @"^[a-zA-Z]\w*$"));
             var firstColClass = !lastColClass && splitLines.Take(10).All(splitLine => Regex.IsMatch(splitLine[0], @"^[a-zA-Z]\w*$"));
 
 

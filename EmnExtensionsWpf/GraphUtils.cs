@@ -250,7 +250,7 @@ namespace EmnExtensions.Wpf
         public static void AddPoint(PathGeometry toGeom, Point point)
         {
             var figs = toGeom.Figures;
-            var lastFig = figs.Count > 0 ? figs[figs.Count - 1] : null;
+            var lastFig = figs.Count > 0 ? figs[^1] : null;
             if (lastFig == null) {
                 lastFig = new PathFigure {
                     StartPoint = point

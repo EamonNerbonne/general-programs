@@ -42,7 +42,7 @@ namespace EmnExtensions.Wpf
                 return null;
             }
 
-            return new DimensionMargins { AtStart = parameters[0].Value, AtEnd = parameters[parameters.Length - 1].Value };
+            return new DimensionMargins { AtStart = parameters[0].Value, AtEnd = parameters[^1].Value };
         }
 
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)

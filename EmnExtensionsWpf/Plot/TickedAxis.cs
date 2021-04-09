@@ -872,7 +872,7 @@ namespace EmnExtensions.Wpf
             var endAt = overallLength - (oppFirst ? Thickness : oppositeThickness);
 
             var tickIdxToDisp = MapBounds(new DimensionBounds { Start = 0, End = m_ticks.Length - 1 },
-                    new DimensionBounds { Start = m_ticks[0].Value, End = m_ticks[m_ticks.Length - 1].Value }
+                    new DimensionBounds { Start = m_ticks[0].Value, End = m_ticks[^1].Value }
                 )
                 * DataToDisplayAlongXTransform;
 
@@ -962,7 +962,7 @@ namespace EmnExtensions.Wpf
             }
 
             var upto = allTicks.Count;
-            if (minReqTickCount == 0 && (!attemptBorderTicks || allTicks[allTicks.Count - 1].Value - range.Max > 0.2 * range.Length)) {
+            if (minReqTickCount == 0 && (!attemptBorderTicks || allTicks[^1].Value - range.Max > 0.2 * range.Length)) {
                 for (var i = allTicks.Count - 1; i >= 0 && !range.EncompassesValue(allTicks[i].Value); i--) {
                     if (allTicks[i].Rank <= 2) {
                         upto = i + 1; //found SubPrime after range!

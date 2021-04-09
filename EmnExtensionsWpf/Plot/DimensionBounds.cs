@@ -113,7 +113,7 @@ namespace EmnExtensions.Wpf
                 return null;
             }
 
-            return new DimensionBounds { Start = parameters[0].Value, End = parameters[parameters.Length - 1].Value };
+            return new DimensionBounds { Start = parameters[0].Value, End = parameters[^1].Value };
         }
 
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
