@@ -6,74 +6,74 @@ using System.Windows;
 using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.VizEngines {
-	public class VizPixelScatterGeom : VizTransformed<Point[], StreamGeometry>, IVizPixelScatter {
-		readonly VizGeometry impl;
-		Point[] currentData;
-		Rect? computedInnerBounds;
-		StreamGeometry transformedData;
-		public override void ChangeData(Point[] newData) {
-			currentData = newData;
-			transformedData = GraphUtils.PointCloud(newData);
-			impl.ChangeData(transformedData);
+    public class VizPixelScatterGeom : VizTransformed<Point[], StreamGeometry>, IVizPixelScatter {
+        readonly VizGeometry impl;
+        Point[] currentData;
+        Rect? computedInnerBounds;
+        StreamGeometry transformedData;
+        public override void ChangeData(Point[] newData) {
+            currentData = newData;
+            transformedData = GraphUtils.PointCloud(newData);
+            impl.ChangeData(transformedData);
 
-			InvalidateBounds();
-			
-		}
-		public VizPixelScatterGeom(IPlotMetaData metadata) {
-			 impl = new VizGeometry(metadata) { AutosizeBounds = false };
-		}
+            InvalidateBounds();
+            
+        }
+        public VizPixelScatterGeom(IPlotMetaData metadata) {
+             impl = new VizGeometry(metadata) { AutosizeBounds = false };
+        }
 
-		void InvalidateBounds() {
-			computedInnerBounds = null;
-			if (!MetaData.OverrideBounds.HasValue)
-				MetaData.GraphChanged(GraphChange.Projection);
-		}
-		public int? OverridePointCountEstimate { get; set; }
+        void InvalidateBounds() {
+            computedInnerBounds = null;
+            if (!MetaData.OverrideBounds.HasValue)
+                MetaData.GraphChanged(GraphChange.Projection);
+        }
+        public int? OverridePointCountEstimate { get; set; }
 
-		double lastAreaScale = 1.0;
-		void SetPenSize() {
-			int pointCount = OverridePointCountEstimate ?? (currentData == null ? 0 : currentData.Length);
-			double thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(pointCount);
-			thickness *= lastAreaScale;
-			if (Math.Abs(impl.Pen.Thickness - thickness) < 0.1) return;
+        double lastAreaScale = 1.0;
+        void SetPenSize() {
+            int pointCount = OverridePointCountEstimate ?? (currentData == null ? 0 : currentData.Length);
+            double thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(pointCount);
+            thickness *= lastAreaScale;
+            if (Math.Abs(impl.Pen.Thickness - thickness) < 0.1) return;
 
 #if PERMIT_SQUARE_CAPS
-			var linecap = PenLineCap.Round;
-			if (thickness <= 3) { 
-				linecap = PenLineCap.Square;
-				thickness *= VizPixelScatterHelpers.SquareSidePerThickness;
-			}
+            var linecap = PenLineCap.Round;
+            if (thickness <= 3) { 
+                linecap = PenLineCap.Square;
+                thickness *= VizPixelScatterHelpers.SquareSidePerThickness;
+            }
 #else
-			const PenLineCap linecap = PenLineCap.Round;
+            const PenLineCap linecap = PenLineCap.Round;
 #endif
-			Pen penCopy = impl.Pen.CloneCurrentValue();
-			penCopy.EndLineCap = linecap;
-			penCopy.StartLineCap = linecap;
-			penCopy.Thickness = thickness;
-			penCopy.Freeze();
-			impl.Pen = penCopy;
-		}
+            Pen penCopy = impl.Pen.CloneCurrentValue();
+            penCopy.EndLineCap = linecap;
+            penCopy.StartLineCap = linecap;
+            penCopy.Thickness = thickness;
+            penCopy.Freeze();
+            impl.Pen = penCopy;
+        }
 
-		public override void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY) {
-			lastAreaScale=Math.Sqrt(displayClip.Width*displayClip.Height / 90000.0);
-			SetPenSize();
-			base.SetTransform(boundsToDisplay, displayClip, forDpiX, forDpiY);
-		}
+        public override void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY) {
+            lastAreaScale=Math.Sqrt(displayClip.Width*displayClip.Height / 90000.0);
+            SetPenSize();
+            base.SetTransform(boundsToDisplay, displayClip, forDpiX, forDpiY);
+        }
 
-		double m_Coverage = 0.9999;
-		public double CoverageRatio { get { return m_Coverage; } set { m_Coverage = value; InvalidateBounds(); } }
+        double m_Coverage = 0.9999;
+        public double CoverageRatio { get { return m_Coverage; } set { m_Coverage = value; InvalidateBounds(); } }
 
-		double m_CoverageGradient = 5.0;
-		public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; InvalidateBounds(); } }
+        double m_CoverageGradient = 5.0;
+        public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; InvalidateBounds(); } }
 
-		Rect RecomputeBounds() {
-			Rect innerBounds, outerBounds;
-			VizPixelScatterHelpers.RecomputeBounds(currentData, CoverageRatio, CoverageRatio, CoverageGradient, out outerBounds, out innerBounds);
-			return innerBounds;
-		}
-		public override Rect DataBounds { get { return computedInnerBounds ?? (computedInnerBounds = RecomputeBounds()).Value; } }
+        Rect RecomputeBounds() {
+            Rect innerBounds, outerBounds;
+            VizPixelScatterHelpers.RecomputeBounds(currentData, CoverageRatio, CoverageRatio, CoverageGradient, out outerBounds, out innerBounds);
+            return innerBounds;
+        }
+        public override Rect DataBounds { get { return computedInnerBounds ?? (computedInnerBounds = RecomputeBounds()).Value; } }
 
-		protected override IVizEngine<StreamGeometry> Implementation { get { return impl; } }
+        protected override IVizEngine<StreamGeometry> Implementation { get { return impl; } }
 
-	}
+    }
 }

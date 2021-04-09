@@ -12,26 +12,26 @@ namespace EmnExtensions.MathHelpers
     /// </summary>
     public class Statistics
     {
-		public static string GetFormatted(double mean, double stderr, double extraprecision = 0, bool suppressStderr=false) {
-			string numF, errF;
-			if (stderr == 0 || double.IsNaN(stderr) || double.IsInfinity(stderr)) {
-				numF = "g";
-				errF = stderr == 0?"~ 0":"";
-			} else if (Math.Abs(mean) > 0 && Math.Abs(Math.Log10(Math.Abs(mean))) < 5) {
-				//use fixed-point:
-				int errOOM = Math.Max(0, (int)(1.5 - Math.Log10(stderr) + extraprecision));
-				numF = "f" + errOOM;
-				errF = " ~ {1:f" + errOOM + "}";
-			} else {
-				double digitEstimate = Math.Abs(mean) <= stderr 
-								? 1.0
-								: (Math.Log10(Math.Abs(mean) / stderr) + 1.5);
-				int digits = (int)(digitEstimate + extraprecision);
-				numF = "g" + digits;
-				errF = " ~ {1:g2}";
-			}
-			return string.Format("{0:" + numF + "}" + (suppressStderr?"":errF), mean, stderr);
-		}
+        public static string GetFormatted(double mean, double stderr, double extraprecision = 0, bool suppressStderr=false) {
+            string numF, errF;
+            if (stderr == 0 || double.IsNaN(stderr) || double.IsInfinity(stderr)) {
+                numF = "g";
+                errF = stderr == 0?"~ 0":"";
+            } else if (Math.Abs(mean) > 0 && Math.Abs(Math.Log10(Math.Abs(mean))) < 5) {
+                //use fixed-point:
+                int errOOM = Math.Max(0, (int)(1.5 - Math.Log10(stderr) + extraprecision));
+                numF = "f" + errOOM;
+                errF = " ~ {1:f" + errOOM + "}";
+            } else {
+                double digitEstimate = Math.Abs(mean) <= stderr 
+                                ? 1.0
+                                : (Math.Log10(Math.Abs(mean) / stderr) + 1.5);
+                int digits = (int)(digitEstimate + extraprecision);
+                numF = "g" + digits;
+                errF = " ~ {1:g2}";
+            }
+            return string.Format("{0:" + numF + "}" + (suppressStderr?"":errF), mean, stderr);
+        }
 
 
         public static float CentralMoment(IEnumerable<float> list, float average, int moment) {

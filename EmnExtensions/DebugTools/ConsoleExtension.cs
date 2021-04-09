@@ -15,8 +15,8 @@ namespace EmnExtensions.DebugTools {
             return obj;
         }
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-		public static T PrintProperties<T>(this T obj, string name) {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
+        public static T PrintProperties<T>(this T obj, string name) {
 
             Console.WriteLine("Properties of '" + name + "' typed " + typeof(T).FullName + ":");
             if (obj == null) {

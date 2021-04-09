@@ -72,9 +72,9 @@ EIGEN_DONT_INLINE void cov6(const Matrix<Scalar,Size,Dynamic,StorageOrder>& data
   for(int i=0; i<data.cols(); ++i)
   {
     tmp = data.col(i) - data.col(0);
-	for(int j=0;j<cov.cols();++j)
-		for(int k=j;k<cov.cols();++k) 
-			cov.coeffRef(k,j) += tmp.coeff(j) *tmp.coeff(k);
+    for(int j=0;j<cov.cols();++j)
+        for(int k=j;k<cov.cols();++k) 
+            cov.coeffRef(k,j) += tmp.coeff(j) *tmp.coeff(k);
   }
 }
 
@@ -82,12 +82,12 @@ EIGEN_DONT_INLINE void cov6(const Matrix<Scalar,Size,Dynamic,StorageOrder>& data
 #pragma warning (disable: 4127)
 #endif
 #define BENCHOUT(tries,repeats,code) \
-	do { \
-		BenchTimer BENCHOUT_timer; \
-		BENCH(BENCHOUT_timer, tries, repeats, code); \
-		std::cout<<BENCHOUT_timer.best()<<"s, "; \
-		break; \
-	} while(true)
+    do { \
+        BenchTimer BENCHOUT_timer; \
+        BENCH(BENCHOUT_timer, tries, repeats, code); \
+        std::cout<<BENCHOUT_timer.best()<<"s, "; \
+        break; \
+    } while(true)
 
 template<typename Scalar,int Size, int StorageOrder>
 void benchcov(int n, int size = Size)

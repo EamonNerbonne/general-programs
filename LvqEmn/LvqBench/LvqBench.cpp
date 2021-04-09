@@ -20,37 +20,37 @@ int file_size(const char* sFileName)
 
 int main(int , char*argv []){ 
 #ifdef _MSC_VER
-	_controlfp(_DN_FLUSH, _MCW_DN); 
+    _controlfp(_DN_FLUSH, _MCW_DN); 
 #endif
-	using std::cout;
-	cout<<"LvqBench";
+    using std::cout;
+    cout<<"LvqBench";
 #ifdef EIGEN_DONT_VECTORIZE
-	cout<< "NV";
+    cout<< "NV";
 #else
-	cout<< "V";
+    cout<< "V";
 #endif
 #ifndef NDEBUG
-	cout<< "[DEBUG]";
+    cout<< "[DEBUG]";
 #endif
 #ifdef _MSC_VER
-	cout << " on MSC";
+    cout << " on MSC";
 #else
 #ifdef __GNUC__
-	cout << " on GCC";
+    cout << " on GCC";
 #else
-	cout << " on ???";
+    cout << " on ???";
 #endif
 #endif
-	cout<<": ";
-	std::cerr<<" ("<<sizeof(G2mLvqModel) <<") ";
-	std::cerr<<" ("<<sizeof(GmLvqModel) <<") ";
-	std::cerr<<" ("<<sizeof(LgmLvqModel) <<") ";
-	Eigen::BenchTimer t;
-	t.start();
-	EasyLvqTest();
-	t.stop();
-	cout<<"; "<< file_size(argv[0])/1024 <<"KB\n";
-	std::cerr<<"Total time:"<<t.value()<<"s\n";
+    cout<<": ";
+    std::cerr<<" ("<<sizeof(G2mLvqModel) <<") ";
+    std::cerr<<" ("<<sizeof(GmLvqModel) <<") ";
+    std::cerr<<" ("<<sizeof(LgmLvqModel) <<") ";
+    Eigen::BenchTimer t;
+    t.start();
+    EasyLvqTest();
+    t.stop();
+    cout<<"; "<< file_size(argv[0])/1024 <<"KB\n";
+    std::cerr<<"Total time:"<<t.value()<<"s\n";
 
-	return 0;
+    return 0;
 }

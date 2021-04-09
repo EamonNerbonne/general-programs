@@ -24,31 +24,31 @@ int file_size(const char* sFileName)
 
 
 int main(int , char*argv []){ 
-	//std::vector<Vector2d, Eigen::aligned_allocator<Vector2d>> stlvec;
-	cout<<"EigenBench";
+    //std::vector<Vector2d, Eigen::aligned_allocator<Vector2d>> stlvec;
+    cout<<"EigenBench";
 #ifdef EIGEN_DONT_VECTORIZE
-	cout<< "NV";
+    cout<< "NV";
 #else
-	cout<< "V";
+    cout<< "V";
 #endif
 #ifndef NDEBUG
-	cout<< "[DEBUG]";
+    cout<< "[DEBUG]";
 #endif
 #ifdef _MSC_VER
-	cout << " on MSC";
+    cout << " on MSC";
 #else
 #ifdef __GNUC__
-	cout << " on GCC";
+    cout << " on GCC";
 #else
-	cout << " on ???";
+    cout << " on ???";
 #endif
 #endif
-	cout<<": ";
-	docovbench();
+    cout<<": ";
+    docovbench();
 
-	cout << file_size(argv[0])/1024 <<"KB\n"; //resizeTest() <<"s; "
+    cout << file_size(argv[0])/1024 <<"KB\n"; //resizeTest() <<"s; "
 
-	return 0;
+    return 0;
 }
 
 */
