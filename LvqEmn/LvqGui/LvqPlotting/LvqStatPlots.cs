@@ -104,13 +104,11 @@ namespace LvqGui.LvqPlotting
             );
 
         IVizEngine<LvqMultiModel.ModelProjectionAndImage> MakeClassBoundaryGraph() => PlotHelpers.CreateBitmapDelegate<LvqMultiModel.ModelProjectionAndImage>(UpdateClassBoundaries, new PlotMetaData { ZIndex = -1, OverrideBounds = Rect.Empty });
-
-        Tuple<int, int> lastWidthHeight;
-        Tuple<int, int> LastWidthHeight => lastWidthHeight;
+        Tuple<int, int> LastWidthHeight { get; set; }
 
         void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqMultiModel.ModelProjectionAndImage lastProjection)
         {
-            lastWidthHeight = Tuple.Create(width, height);
+            LastWidthHeight = Tuple.Create(width, height);
             var hideBoundaries = classBoundaries.MetaData.Hidden;
 
             if (!hideBoundaries) {

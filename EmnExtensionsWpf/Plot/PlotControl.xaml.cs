@@ -24,13 +24,12 @@ namespace EmnExtensions.Wpf.Plot
     public sealed partial class PlotControl : IPlotContainer
     {
         bool needRedrawGraphs;
-        readonly ObservableCollection<IVizEngine> graphs = new ObservableCollection<IVizEngine>();
-        IEnumerable<IVizEngine> visibleGraphs => graphs.Where(g => !g.MetaData.Hidden);
-        public ObservableCollection<IVizEngine> Graphs => graphs;
+        IEnumerable<IVizEngine> visibleGraphs => Graphs.Where(g => !g.MetaData.Hidden);
+        public ObservableCollection<IVizEngine> Graphs { get; } = new ObservableCollection<IVizEngine>();
 
         public IEnumerable<IVizEngine> GraphsEnumerable
         {
-            get => graphs;
+            get => Graphs;
             set {
                 Graphs.Clear();
                 foreach (var plot in value) {
@@ -53,7 +52,7 @@ namespace EmnExtensions.Wpf.Plot
 
         public PlotControl()
         {
-            graphs.CollectionChanged += graphs_CollectionChanged;
+            Graphs.CollectionChanged += graphs_CollectionChanged;
             lock (syncType) {
                 InitializeComponent(); //Apparently InitializeComponent isn't thread safe.
             }

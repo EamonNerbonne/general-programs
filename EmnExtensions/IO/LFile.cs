@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,15 +11,13 @@ namespace EmnExtensions.IO
     {
         protected static readonly Assembly mscorlib = Assembly.GetAssembly(typeof(File));
         protected static T mkFn<T>(MethodInfo mi) => (T)(object)Delegate.CreateDelegate(typeof(T), mi);
-
-        readonly string fullname;
-        public string FullName => fullname;
-        protected string RawPath => fullname;
+        public string FullName { get; }
+        protected string RawPath => FullName;
 
         internal LPathEntry(string path, bool addTrailingSlash)
         {
             var rawpath = path;
-            fullname = addTrailingSlash && !rawpath.EndsWith(Path.DirectorySeparatorChar.ToString()) ? rawpath + Path.DirectorySeparatorChar : rawpath;
+            FullName = addTrailingSlash && !rawpath.EndsWith(Path.DirectorySeparatorChar.ToString()) ? rawpath + Path.DirectorySeparatorChar : rawpath;
         }
 
         public override string ToString() => FullName;

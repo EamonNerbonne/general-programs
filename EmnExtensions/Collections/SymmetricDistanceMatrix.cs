@@ -75,7 +75,6 @@ namespace EmnExtensions.Collections
         /// <summary>
         /// It is an error to access the diagonal which must be 0!
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1023:IndexersShouldNotBeMultidimensional")]
         public T this[int i, int j]
         {
             get => distances[calcOffset(i, j)];

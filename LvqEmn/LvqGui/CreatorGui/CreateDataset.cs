@@ -23,13 +23,7 @@ namespace LvqGui.CreatorGui
         public bool ExtendDataByCorrelation { get; set; }
         public bool NormalizeDimensions { get; set; }
         public bool NormalizeByScaling { get; set; }
-        int _Folds = 10;
-
-        public int Folds
-        {
-            get => _Folds;
-            set => _Folds = value;
-        }
+        public int Folds { get; set; } = 10;
 
         IDatasetCreator IDatasetCreator.Clone() => Clone();
         protected abstract string RegexText { get; }

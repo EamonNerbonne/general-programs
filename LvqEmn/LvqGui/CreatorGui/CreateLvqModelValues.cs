@@ -14,10 +14,8 @@ namespace LvqGui.CreatorGui
 {
     public sealed class CreateLvqModelValues : HasShorthandBase, IHasSeed
     {
-        readonly LvqWindowValues owner;
-
         [NotInShorthand]
-        public LvqWindowValues Owner => owner;
+        public LvqWindowValues Owner { get; }
 
         [NotInShorthand]
         public LvqDatasetCli ForDataset
@@ -481,12 +479,12 @@ namespace LvqGui.CreatorGui
 
         public CreateLvqModelValues(LvqWindowValues owner)
         {
-            this.owner = owner;
+            this.Owner = owner;
             settings = new LvqModelSettingsCli();
             //this.ReseedBoth();
         }
 
-        public Task ConfirmCreation() => CreateSingleModel(owner, ForDataset, settings.Canonicalize());
+        public Task ConfirmCreation() => CreateSingleModel(Owner, ForDataset, settings.Canonicalize());
 
         static Task CreateSingleModel(LvqWindowValues owner, LvqDatasetCli dataset, LvqModelSettingsCli settingsCopy)
         {

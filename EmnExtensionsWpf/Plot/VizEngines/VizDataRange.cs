@@ -14,15 +14,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
     public sealed class VizDataRange : VizTransformed<Tuple<Point[], Point[]>, StreamGeometry>, IVizDataRange
     {
-        readonly IVizEngine<StreamGeometry> impl;
-
         StreamGeometry geomCache;
         Tuple<Point[], Point[]> currentPoints;
 
-        public VizDataRange(IPlotMetaData owner) => impl = new VizGeometry(owner) { AutosizeBounds = false, IsStroked = false, IsFilled = true };
+        public VizDataRange(IPlotMetaData owner) => Implementation = new VizGeometry(owner) { AutosizeBounds = false, IsStroked = false, IsFilled = true };
 
-        protected override IVizEngine<StreamGeometry> Implementation => impl;
-
+        protected override IVizEngine<StreamGeometry> Implementation { get; }
         double m_CoverageRatioY = 0.9999;
 
         public double CoverageRatioY

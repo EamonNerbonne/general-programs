@@ -19,9 +19,7 @@ namespace LvqGui.CoreGui
 {
     public sealed class TrainingControlValues : INotifyPropertyChanged
     {
-        readonly LvqWindowValues owner;
-        public LvqWindowValues Owner => owner;
-
+        public LvqWindowValues Owner { get; }
         public event PropertyChangedEventHandler PropertyChanged;
         public event Action SelectedModelUpdatedInBackgroundThread;
 
@@ -232,7 +230,7 @@ namespace LvqGui.CoreGui
 
         public TrainingControlValues(LvqWindowValues owner)
         {
-            this.owner = owner;
+            this.Owner = owner;
             EpochsPerClick = 400;
             EpochsPerAnimation = 25;
             _ShowBoundaries = true;
@@ -324,7 +322,7 @@ namespace LvqGui.CoreGui
                     }
 
                     var newIdx = model.GetBestSubModelIdx();
-                    owner.Dispatcher.BeginInvoke(() => {
+                    Owner.Dispatcher.BeginInvoke(() => {
                             if (SelectedLvqModel == model) {
                                 SubModelIndex = newIdx;
                             } else {
@@ -340,7 +338,7 @@ namespace LvqGui.CoreGui
         {
             var uptoIters = ItersToTrainUpto;
             var allModels = Owner.LvqModels.ToArray();
-            Parallel.ForEach(Partitioner.Create(allModels, true), new ParallelOptions { MaxDegreeOfParallelism = 3, CancellationToken = owner.WindowClosingToken }, model => {
+            Parallel.ForEach(Partitioner.Create(allModels, true), new ParallelOptions { MaxDegreeOfParallelism = 3, CancellationToken = Owner.WindowClosingToken }, model => {
                     var dataset = model.InitSet;
                     TrainSelectedModel((_dataset, _model) => {
                             using (new DTimer("Training up to " + uptoIters + " iters")) {
@@ -348,7 +346,7 @@ namespace LvqGui.CoreGui
                             }
 
                             var newIdx = _model.GetBestSubModelIdx();
-                            owner.Dispatcher.BeginInvoke(() => {
+                            Owner.Dispatcher.BeginInvoke(() => {
                                     if (SelectedLvqModel == _model) {
                                         SubModelIndex = newIdx;
                                     } else {
@@ -374,7 +372,7 @@ namespace LvqGui.CoreGui
                 while (_AnimateTraining && !token.IsCancellationRequested && !Owner.WindowClosingToken.IsCancellationRequested) {
                     var epochsToTrainFor = EpochsPerAnimation;
                     if (selectedDataset == null || selectedModel == null || epochsToTrainFor < 1) {
-                        owner.Dispatcher.BeginInvoke(() => { AnimateTraining = false; });
+                        Owner.Dispatcher.BeginInvoke(() => { AnimateTraining = false; });
                         break;
                     }
 

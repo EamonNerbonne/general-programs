@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -7,13 +7,13 @@ namespace EmnExtensions.MathHelpers
 {
     public struct MeanVarDistrib
     {
-        readonly double weightSum, sX, meanX;
+        readonly double sX;
 
         MeanVarDistrib(double _weightSum, double _sX, double _meanX)
         {
-            meanX = _meanX;
+            Mean = _meanX;
             sX = _sX;
-            weightSum = _weightSum;
+            Weight = _weightSum;
         }
 
         public static MeanVarDistrib Init(double val, double weight = 1.0) => new MeanVarDistrib(weight, 0.0, val); //equivalent to adding to an empty distribution.
@@ -24,27 +24,26 @@ namespace EmnExtensions.MathHelpers
                 return this; //ignore zero-weight stuff...
             }
 
-            var newWeightSum = weightSum + weight;
+            var newWeightSum = Weight + weight;
             var mScale = weight / newWeightSum;
-            var sScale = weightSum * weight / newWeightSum;
-            return new MeanVarDistrib(newWeightSum, sX + (val - meanX) * (val - meanX) * sScale, meanX + (val - meanX) * mScale);
+            var sScale = Weight * weight / newWeightSum;
+            return new MeanVarDistrib(newWeightSum, sX + (val - Mean) * (val - Mean) * sScale, Mean + (val - Mean) * mScale);
         }
 
         public MeanVarDistrib Add(MeanVarDistrib other)
         {
-            var newWeightSum = weightSum + other.weightSum;
-            var mScale = other.weightSum / newWeightSum;
-            var sScale = weightSum * other.weightSum / newWeightSum;
-            return new MeanVarDistrib(newWeightSum, sX + other.sX + (other.meanX - meanX) * (other.meanX - meanX) * sScale, meanX + (other.meanX - meanX) * mScale);
+            var newWeightSum = Weight + other.Weight;
+            var mScale = other.Weight / newWeightSum;
+            var sScale = Weight * other.Weight / newWeightSum;
+            return new MeanVarDistrib(newWeightSum, sX + other.sX + (other.Mean - Mean) * (other.Mean - Mean) * sScale, Mean + (other.Mean - Mean) * mScale);
         }
 
-        public double Mean => meanX;
-        public double Var => sX / weightSum;
+        public double Mean { get; }
+        public double Var => sX / Weight;
         public double StdDev => Math.Sqrt(Var);
-        public double SampleVar => sX / (weightSum - 1.0);
+        public double SampleVar => sX / (Weight - 1.0);
         public double SampleStdDev => Math.Sqrt(SampleVar);
-        public double Weight => weightSum;
-
+        public double Weight { get; }
         public static MeanVarDistrib Of(IEnumerable<double> vals) => vals.Aggregate(new MeanVarDistrib(), (mv, v) => mv.Add(v));
 
         public override string ToString() => Mean.ToString(CultureInfo.InvariantCulture) + " +/- " + StdDev.ToString(CultureInfo.InvariantCulture);

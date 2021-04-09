@@ -80,16 +80,13 @@ namespace EmnExtensions
         bool TryGetThread(out WorkerThread thread) { return threads.TryTake(out thread); }
         void AddThread(WorkerThread thread) { threads.Add(thread); }
 #endif
-
-
-        readonly int MaxParallel;
         readonly ThreadPriority Priority;
         readonly int IdleAfterMilliseconds;
         int currPar;
 
         public LowPriorityTaskScheduler(int? maxParallelism = null, ThreadPriority priority = ThreadPriority.Lowest, int? idleMilliseconds = null)
         {
-            MaxParallel = maxParallelism ?? Environment.ProcessorCount * 2;
+            MaximumConcurrencyLevel = maxParallelism ?? Environment.ProcessorCount * 2;
             Priority = priority;
             IdleAfterMilliseconds = idleMilliseconds ?? 10000;
         }
@@ -102,7 +99,7 @@ namespace EmnExtensions
             if (TryGetThread(out var idleThread)) {
                 idleThread.WakeThread();
             } else {
-                if (Interlocked.Increment(ref currPar) <= MaxParallel) {
+                if (Interlocked.Increment(ref currPar) <= MaximumConcurrencyLevel) {
                     _ = new WorkerThread(this, Priority);
                 } else {
                     _= Interlocked.Decrement(ref currPar);
@@ -178,9 +175,7 @@ namespace EmnExtensions
             }
         }
 
-        public override int MaximumConcurrencyLevel => MaxParallel;
-
-        static readonly LowPriorityTaskScheduler singleton = new LowPriorityTaskScheduler();
-        public static LowPriorityTaskScheduler DefaultLowPriorityScheduler => singleton;
+        public override int MaximumConcurrencyLevel { get; }
+        public static LowPriorityTaskScheduler DefaultLowPriorityScheduler { get; } = new LowPriorityTaskScheduler();
     }
 }

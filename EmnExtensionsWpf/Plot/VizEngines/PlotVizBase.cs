@@ -13,12 +13,10 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
                 throw new ArgumentNullException(nameof(owner));
             }
 
-            m_owner = owner;
+            MetaData = owner;
         }
 
-        readonly IPlotMetaData m_owner;
-        public IPlotMetaData MetaData => m_owner;
-
+        public IPlotMetaData MetaData { get; }
         Rect? m_DataBounds;
         public Rect DataBounds => m_DataBounds ?? (m_DataBounds = ComputeBounds()).Value;
 
