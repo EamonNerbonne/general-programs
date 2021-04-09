@@ -40,34 +40,10 @@
 #include <numeric>
 
 
-//#define NO_BOOST
-#ifndef NO_BOOST
-#include <boost/random/variate_generator.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_real.hpp>
-#include <boost/random/normal_distribution.hpp>
-typedef boost::mt19937 mtGen;
-typedef boost::normal_distribution<> normDistrib;
-typedef boost::variate_generator<mtGen&, normDistrib > normDistribGen;
-typedef	boost::uniform_real<> uniformDistrib;
-typedef boost::variate_generator<mtGen&, uniformDistrib > uniformDistribGen;
-#else 
-#ifdef __GNUC__
-#include <tr1/random>
-typedef std::tr1::mt19937 mtGen;
-typedef std::tr1::normal_distribution<> normDistrib;
-typedef std::tr1::variate_generator<mtGen&, normDistrib > normDistribGen;
-typedef	std::tr1::uniform_real<> uniformDistrib;
-typedef std::tr1::variate_generator<mtGen&, uniformDistrib > uniformDistribGen;
-#else
 #include <random>
 typedef std::mt19937 mtGen;
 typedef std::normal_distribution<> normDistrib;
-typedef std::variate_generator<mtGen&, normDistrib > normDistribGen;
 typedef	std::uniform_real<> uniformDistrib;
-typedef std::variate_generator<mtGen&, uniformDistrib > uniformDistribGen;
-#endif
-#endif
 #ifdef _MSC_VER
 #pragma warning( pop)
 #pragma warning (disable: 4514)
@@ -581,7 +557,7 @@ static void TrainModel(mtGen & shuffleRand, Matrix_NN const & points, VectorXi c
 	for(size_t i=0;i<(size_t)points.cols();++i)
 		shuffledOrder[i]=(int)i;
 	for(int epoch=0; epoch<epochs; ++epoch) {
-		random_shuffle(shuffledOrder.begin(), shuffledOrder.end(), [&](ptrdiff_t options) { return shuffleRand()%options;});
+		shuffle(shuffledOrder.begin(), shuffledOrder.end(), shuffleRand);
 		for(size_t tI=0; tI<shuffledOrder.size(); ++tI) {
 			int pointIndex = shuffledOrder[tI];
 			int pointClass = labels(pointIndex);
@@ -621,7 +597,7 @@ static void TestModel(mtGen & shuffleRand, Matrix_NN const & points, VectorXi co
 //randomizes all values of the matrix; each is independently drawn from a normal distribution with provided mean and sigma (=stddev).
 template<typename T> static void randomMatrixInit(mtGen & rng, Eigen::MatrixBase< T>& mat, LVQFLOAT mean, LVQFLOAT sigma) {
 	normDistrib distrib(mean,sigma);
-	normDistribGen rndGen(rng, distrib);
+	auto rndGen = std::bind(distrib, rng);
 	
 	for(int j=0; j<mat.cols(); j++)
 		for(int i=0; i<mat.rows(); i++)
@@ -651,7 +627,8 @@ template <typename T> static T randomUnscalingMatrix(mtGen & rngParams, int dims
 
 template <typename T> static T randomScalingMatrix(mtGen & rngParams, int dims,LVQFLOAT detScalePower ) {
 	uniformDistrib distrib;
-	uniformDistribGen rndGen(rngParams, distrib);
+	auto rndGen = std::bind(distrib, rngParams);
+
 	T P = randomUnscalingMatrix<T>(rngParams, dims);
 	P*=(LVQFLOAT)exp(rndGen()*2.0*detScalePower-detScalePower);
 	return P;
