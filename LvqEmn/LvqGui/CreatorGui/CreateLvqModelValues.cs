@@ -479,7 +479,7 @@ namespace LvqGui.CreatorGui
 
         public CreateLvqModelValues(LvqWindowValues owner)
         {
-            this.Owner = owner;
+            Owner = owner;
             settings = new LvqModelSettingsCli();
             //this.ReseedBoth();
         }
@@ -489,7 +489,7 @@ namespace LvqGui.CreatorGui
         static Task CreateSingleModel(LvqWindowValues owner, LvqDatasetCli dataset, LvqModelSettingsCli settingsCopy)
         {
             var whenDone = new TaskCompletionSource<object>();
-            Task.Factory
+            _=Task.Factory
                 .StartNew(() => {
                         if (settingsCopy.LR0 == 0.0 && settingsCopy.LrScaleP == 0.0 && settingsCopy.LrScaleB == 0.0) {
                             settingsCopy = LrGuesser.ChooseReasonableLr(settingsCopy);

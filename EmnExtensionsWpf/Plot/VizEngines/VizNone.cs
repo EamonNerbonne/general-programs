@@ -11,7 +11,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         public void DrawGraph(DrawingContext context) { }
         public void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY) { }
         public void ChangeData(object data) { }
-        public IPlotMetaData MetaData { get; private set; }
+        public IPlotMetaData MetaData { get; }
         public void OnRenderOptionsChanged() { }
         public bool SupportsColor => false;
         public virtual Drawing SampleDrawing => null;

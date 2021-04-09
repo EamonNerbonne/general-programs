@@ -7,7 +7,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
     public sealed class VizMapped<TIn, TOut> : IVizEngine<TIn>, ITranformed<TOut>
     {
         readonly Func<TIn, TOut> map;
-        IVizEngine<TOut> Implementation { get; set; }
+        IVizEngine<TOut> Implementation { get; }
         public void ChangeData(TIn newData) => Implementation.ChangeData(map(newData));
         public Rect DataBounds => Implementation.DataBounds;
         public Thickness Margin => Implementation.Margin;

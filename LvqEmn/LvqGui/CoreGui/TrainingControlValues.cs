@@ -230,7 +230,7 @@ namespace LvqGui.CoreGui
 
         public TrainingControlValues(LvqWindowValues owner)
         {
-            this.Owner = owner;
+            Owner = owner;
             EpochsPerClick = 400;
             EpochsPerAnimation = 25;
             _ShowBoundaries = true;

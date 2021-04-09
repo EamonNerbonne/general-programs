@@ -8,7 +8,7 @@ namespace EmnExtensions.Wpf.OldGraph
 {
     public abstract class GraphableResizeableBitmap : GraphableData
     {
-        public GraphableResizeableBitmap() => BitmapScalingMode = BitmapScalingMode.Linear;
+        protected GraphableResizeableBitmap() => BitmapScalingMode = BitmapScalingMode.Linear;
 
         public BitmapScalingMode BitmapScalingMode
         {

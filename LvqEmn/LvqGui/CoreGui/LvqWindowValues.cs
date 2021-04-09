@@ -21,17 +21,15 @@ namespace LvqGui.CoreGui
 
         void _propertyChanged(string propertyName)
         {
-            if (PropertyChanged != null) {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new(propertyName));
         }
 
         //public AppSettingsValues AppSettingsValues { get; private set; }
-        public CreateGaussianCloudsDatasetValues CreateGaussianCloudsDatasetValues { get; private set; }
-        public CreateStarDatasetValues CreateStarDatasetValues { get; private set; }
-        public CreateLvqModelValues CreateLvqModelValues { get; private set; }
-        public TrainingControlValues TrainingControlValues { get; private set; }
-        public LoadDatasetValues LoadDatasetValues { get; private set; }
+        public CreateGaussianCloudsDatasetValues CreateGaussianCloudsDatasetValues { get; }
+        public CreateStarDatasetValues CreateStarDatasetValues { get; }
+        public CreateLvqModelValues CreateLvqModelValues { get; }
+        public TrainingControlValues TrainingControlValues { get; }
+        public LoadDatasetValues LoadDatasetValues { get; }
 
         public bool ExtendDataByCorrelation
         {
@@ -73,8 +71,8 @@ namespace LvqGui.CoreGui
         bool _NormalizeByScaling;
 
 
-        public ObservableCollection<LvqDatasetCli> Datasets { get; private set; }
-        public ObservableCollection<LvqMultiModel> LvqModels { get; private set; }
+        public ObservableCollection<LvqDatasetCli> Datasets { get; }
+        public ObservableCollection<LvqMultiModel> LvqModels { get; }
 
         public CancellationToken WindowClosingToken => win.ClosingToken;
         public Dispatcher Dispatcher => win.Dispatcher;
@@ -82,20 +80,16 @@ namespace LvqGui.CoreGui
 
         public LvqWindowValues(LvqWindow win)
         {
-            if (win == null) {
-                throw new ArgumentNullException(nameof(win));
-            }
-
-            this.win = win;
-            Datasets = new ObservableCollection<LvqDatasetCli>();
-            LvqModels = new ObservableCollection<LvqMultiModel>();
+            this.win = win ?? throw new ArgumentNullException(nameof(win));
+            Datasets = new();
+            LvqModels = new();
 
             //AppSettingsValues = new AppSettingsValues(this);
-            CreateGaussianCloudsDatasetValues = new CreateGaussianCloudsDatasetValues(this);
-            CreateStarDatasetValues = new CreateStarDatasetValues(this);
-            CreateLvqModelValues = new CreateLvqModelValues(this);
-            TrainingControlValues = new TrainingControlValues(this);
-            LoadDatasetValues = new LoadDatasetValues(this);
+            CreateGaussianCloudsDatasetValues = new(this);
+            CreateStarDatasetValues = new(this);
+            CreateLvqModelValues = new(this);
+            TrainingControlValues = new(this);
+            LoadDatasetValues = new(this);
 
             Datasets.CollectionChanged += Datasets_CollectionChanged;
             LvqModels.CollectionChanged += LvqModels_CollectionChanged;
@@ -137,7 +131,7 @@ namespace LvqGui.CoreGui
             }
         }
 
-        readonly Dictionary<LvqModelCli, LvqMultiModel> modelGroupLookup = new Dictionary<LvqModelCli, LvqMultiModel>();
+        readonly Dictionary<LvqModelCli, LvqMultiModel> modelGroupLookup = new();
 
         public LvqMultiModel ResolveModel(LvqModelCli lastModel)
         {

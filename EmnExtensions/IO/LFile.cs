@@ -17,7 +17,7 @@ namespace EmnExtensions.IO
         internal LPathEntry(string path, bool addTrailingSlash)
         {
             var rawpath = path;
-            FullName = addTrailingSlash && !rawpath.EndsWith(Path.DirectorySeparatorChar.ToString()) ? rawpath + Path.DirectorySeparatorChar : rawpath;
+            FullName = addTrailingSlash && !rawpath.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal) ? rawpath + Path.DirectorySeparatorChar : rawpath;
         }
 
         public override string ToString() => FullName;
@@ -151,7 +151,7 @@ namespace EmnExtensions.IO
                 var fullname = FullName;
                 var lastSlash = fullname.LastIndexOf(Path.DirectorySeparatorChar, fullname.Length - 2);
                 var name = fullname.Substring(lastSlash + 1, fullname.Length - lastSlash - 2);
-                return name.EndsWith(":") && lastSlash == -1
+                return name.EndsWith(":", StringComparison.Ordinal) && lastSlash == -1
                     ? name + Path.DirectorySeparatorChar
                     : name;
             }

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -25,7 +25,7 @@ namespace EmnExtensions
     /// </summary>
     public static class WinProcessUtil
     {
-        public static ProcessExecutionResult ExecuteProcessSynchronously(string filename, string arguments, string input, ProcessStartOptions startOptions = default(ProcessStartOptions))
+        public static ProcessExecutionResult ExecuteProcessSynchronously(string filename, string arguments, string input, ProcessStartOptions startOptions = new())
         {
             var processStartInfo = new ProcessStartInfo {
                 CreateNoWindow = true, //don't need UI.

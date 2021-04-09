@@ -374,13 +374,13 @@ namespace EmnExtensions.Wpf.Plot
             }
         }
 
-        void RecomputeTickLabels(double pixelsPerDip)
+        void RecomputeTickLabels()
         {
             if (m_tickLabels == null) {
                 m_tickLabels =
                 (
                     from tick in TicksNeedingLabels
-                    select Tuple.Create(tick, MakeText(tick.Value, pixelsPerDip))
+                    select Tuple.Create(tick, MakeText(tick.Value))
                 ).ToArray();
                 InvalidateRender();
             }
@@ -416,7 +416,7 @@ namespace EmnExtensions.Wpf.Plot
 
                 var canBeNegative = TicksNeedingLabels.Any(tick => tick.Value < 0.0);
                 var excessMagnitude = m_dataOrderOfMagnitude == 0 ? ComputedDataOrderOfMagnitude() : 0;
-                var textSample = MakeText(8.88888888888888888 * Math.Pow(10.0, excessMagnitude) * (canBeNegative ? -1 : 1), pixelsPerDip);
+                var textSample = MakeText(8.88888888888888888 * Math.Pow(10.0, excessMagnitude) * (canBeNegative ? -1 : 1));
                 return new Size(textSample.Width, textSample.Height);
             }
         }
@@ -514,7 +514,7 @@ namespace EmnExtensions.Wpf.Plot
                 }
 
                 //ticks are likely good now, so we compute labels...
-                RecomputeTickLabels(pixelsPerDip); //we now have ticks and labels, yay!
+                RecomputeTickLabels(); //we now have ticks and labels, yay!
 
                 var constraintAxisAlignedWidth = CondTranspose(constraint).Width;
                 m_bestGuessCurrentSize = CondTranspose(ComputeSize(constraintAxisAlignedWidth));
@@ -575,7 +575,7 @@ namespace EmnExtensions.Wpf.Plot
                 }
 
                 //ticks are likely good now, so we compute labels...
-                RecomputeTickLabels(pixelsPerDip); //we now have ticks and labels, yay!
+                RecomputeTickLabels(); //we now have ticks and labels, yay!
 
                 var constraintAxisAlignedWidth = CondTranspose(constraint).Width;
                 m_bestGuessCurrentSize = CondTranspose(ComputeSize(constraintAxisAlignedWidth));
@@ -888,7 +888,7 @@ namespace EmnExtensions.Wpf.Plot
             m_gridLineAlignTransform.Matrix = transform;
         }
 
-        FormattedText MakeText(double val, double pixelsPerDip)
+        FormattedText MakeText(double val)
         {
             var numericValueString = (val * Math.Pow(10.0, -m_dataOrderOfMagnitude)).ToString("f" + Math.Max(0, m_dataOrderOfMagnitude - m_slotOrderOfMagnitude));
             return new FormattedText(numericValueString, m_cachedCulture, FlowDirection.LeftToRight, m_typeface, FontSize, Brushes.Black, pixelsPerDip);

@@ -9,11 +9,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
     {
         protected PlotVizBase(IPlotMetaData owner)
         {
-            if (owner == null) {
-                throw new ArgumentNullException(nameof(owner));
-            }
-
-            MetaData = owner;
+            MetaData = owner ?? throw new ArgumentNullException(nameof(owner));
         }
 
         public IPlotMetaData MetaData { get; }
