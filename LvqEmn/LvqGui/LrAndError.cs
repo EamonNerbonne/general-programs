@@ -14,8 +14,10 @@ namespace LvqGui
         public readonly double cumLearningRate;
         public int CompareTo(LrAndError other) => Errors.CompareTo(other.Errors);
         public override string ToString() => LR + " @ " + Errors;
+
         public string ToStorageString() => LR.Lr0.ToString("g4").PadRight(9) + "p" + LR.LrP.ToString("g4").PadRight(9) + "b" + LR.LrB.ToString("g4").PadRight(9) + ": "
-                                + Errors + "[" + cumLearningRate + "]";
+            + Errors + "[" + cumLearningRate + "]";
+
         public int CompareTo(object obj) => CompareTo((LrAndError)obj);
 
         public LrAndError(LvqModelSettingsCli settings, LvqMultiModel.Statistic stats, int nnIdx)
@@ -24,7 +26,8 @@ namespace LvqGui
             Errors = new ErrorRates(stats, nnIdx);
             cumLearningRate = stats.Value[LvqTrainingStatCli.CumLearningRateI];
         }
-        private LrAndError(LearningRates lr, ErrorRates errors, double cumulativeLr)
+
+        LrAndError(LearningRates lr, ErrorRates errors, double cumulativeLr)
         {
             LR = lr;
             Errors = errors;
@@ -40,17 +43,21 @@ namespace LvqGui
 
             var errs = errsThenCumulLr0.Take(3).Select(errStr => errStr.Split('~').Select(double.Parse).ToArray()).Select(errval => Tuple.Create(errval[0], errval.Skip(1).FirstOrDefault())).ToArray();
             return new LrAndError(
-                 new LearningRates(ClosestMatch(lr0range, lrs[0]), ClosestMatch(lrPrange, lrs[1]), ClosestMatch(lrBrange, lrs[2])),
-                 new ErrorRates(errs[0].Item1, errs[0].Item2, errs[1].Item1, errs[1].Item2, errs[2].Item1, errs[2].Item2),
-                 double.Parse(errsThenCumulLr0[3].Trim(' ', '[', ']'))
+                new LearningRates(ClosestMatch(lr0range, lrs[0]), ClosestMatch(lrPrange, lrs[1]), ClosestMatch(lrBrange, lrs[2])),
+                new ErrorRates(errs[0].Item1, errs[0].Item2, errs[1].Item1, errs[1].Item2, errs[2].Item1, errs[2].Item2),
+                double.Parse(errsThenCumulLr0[3].Trim(' ', '[', ']'))
             );
         }
+
         static double ClosestMatch(IEnumerable<double> haystack, double needle) => haystack.Aggregate(new { Err = double.PositiveInfinity, Val = needle },
-                (best, option) => Math.Abs(option - needle) < best.Err ? new { Err = Math.Abs(option - needle), Val = option } : best).Val;
+            (best, option) => Math.Abs(option - needle) < best.Err ? new { Err = Math.Abs(option - needle), Val = option } : best
+        ).Val;
     }
+
     public struct ErrorRates : IComparable<ErrorRates>, IComparable
     {
         public readonly double training, trainingStderr, test, testStderr, nn, nnStderr;
+
         public ErrorRates(double training, double trainingStderr, double test, double testStderr, double nn, double nnStderr)
         {
             this.training = training;
@@ -60,6 +67,7 @@ namespace LvqGui
             this.nn = nn;
             this.nnStderr = nnStderr;
         }
+
         public ErrorRates(LvqMultiModel.Statistic stats, int nnIdx)
         {
             training = stats.Value[LvqTrainingStatCli.TrainingErrorI];
@@ -71,19 +79,28 @@ namespace LvqGui
         }
 
         public double CanonicalError => training * 0.9 + (nn.IsFinite() ? test * 0.05 + nn * 0.05 : test * 0.1);
+
         public override string ToString() => Statistics.GetFormatted(training, trainingStderr, 1) + "; " +
-                Statistics.GetFormatted(test, testStderr, 1) + "; " +
-                Statistics.GetFormatted(nn, nnStderr, 1) + "; ";
+            Statistics.GetFormatted(test, testStderr, 1) + "; " +
+            Statistics.GetFormatted(nn, nnStderr, 1) + "; ";
 
         public int CompareTo(ErrorRates other) => CanonicalError.CompareTo(other.CanonicalError);
 
         public int CompareTo(object obj) => CompareTo((ErrorRates)obj);
     }
+
     public struct LearningRates
     {
         public readonly double Lr0, LrP, LrB;
         public override string ToString() => Lr0 + " p" + LrP + " b" + LrB;
-        public LearningRates(double lr0, double lrP, double lrB) { Lr0 = lr0; LrP = lrP; LrB = lrB; }
+
+        public LearningRates(double lr0, double lrP, double lrB)
+        {
+            Lr0 = lr0;
+            LrP = lrP;
+            LrB = lrB;
+        }
+
         public LearningRates(LvqModelSettingsCli settings)
         {
             Lr0 = settings.LR0;

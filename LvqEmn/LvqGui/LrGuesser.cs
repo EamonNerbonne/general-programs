@@ -26,30 +26,30 @@ namespace LvqGui
                 where modeltype == settings.ModelType || settings.ModelType == LvqModelType.Lpq && resSettings.ModelType == LvqModelType.Lgm
                 where (settings.PrototypesPerClass == 1) == (resSettings.PrototypesPerClass == 1)
                 select resSettings
-                ).ToArray();
+            ).ToArray();
             var myshorthand = settings.WithCanonicalizedDefaults().ToShorthand();
 
             if (options.Any()) {
                 var bestResults = options.MinBy(resSettings => myshorthand.LevenshteinDistance(resSettings.WithCanonicalizedDefaults().ToShorthand())).First();
                 return settings.WithLrAndDecay(bestResults.LR0, bestResults.LrScaleP, bestResults.LrScaleB, bestResults.decay, bestResults.iterScaleFactor)
                     ;
-            } else {
-                return settings.ModelType == LvqModelType.Gm ? settings.WithLr(0.002, 2.0, 0.0)
-                    : settings.ModelType == LvqModelType.Ggm ? settings.WithLr(0.03, 0.05, 4.0)
-                        : settings.ModelType == LvqModelType.Fgm ? settings.WithLr(0.03, 0.05, 4.0)
-                            : settings.WithLr(0.01, 0.4, 0.006);
             }
+
+            return settings.ModelType == LvqModelType.Gm ? settings.WithLr(0.002, 2.0, 0.0)
+                : settings.ModelType == LvqModelType.Ggm ? settings.WithLr(0.03, 0.05, 4.0)
+                : settings.ModelType == LvqModelType.Fgm ? settings.WithLr(0.03, 0.05, 4.0)
+                : settings.WithLr(0.01, 0.4, 0.006);
         }
 
 
         public static IEnumerable<Tuple<LvqModelSettingsCli, double>> UniformResults() => from line in File.ReadAllLines(resultsDir.FullName + "\\uniform-results.txt")
-                                                                                          let settingsOrNull = CreateLvqModelValues.TryParseShorthand(line.SubstringUntil(" "))
-                                                                                          where settingsOrNull.HasValue
-                                                                                          let settings = settingsOrNull.Value
-                                                                                          let geomean = Double.Parse(line.SubstringAfterFirst("GeoMean: ").SubstringUntil(";").SubstringUntil("~"))
-                                                                                          group Tuple.Create(settings, geomean) by settings.WithCanonicalizedDefaults() into settingsGroup
-                                                                                          select settingsGroup.MinBy(tuple => tuple.Item2).First()
-                ;
+            let settingsOrNull = CreateLvqModelValues.TryParseShorthand(line.SubstringUntil(" "))
+            where settingsOrNull.HasValue
+            let settings = settingsOrNull.Value
+            let geomean = double.Parse(line.SubstringAfterFirst("GeoMean: ").SubstringUntil(";").SubstringUntil("~"))
+            group Tuple.Create(settings, geomean) by settings.WithCanonicalizedDefaults()
+            into settingsGroup
+            select settingsGroup.MinBy(tuple => tuple.Item2).First();
 
         static readonly Regex resultsFilenameRegex = new Regex(@"^(?<iters>[0-9]?e[0-9]+)\-(?<shorthand>[^ ]*?)\.txt$");
 
@@ -65,6 +65,5 @@ namespace LvqGui
             var modelSettings = CreateLvqModelValues.ParseShorthand(shorthand);
             return Tuple.Create(true, iters, modelSettings);
         }
-
     }
 }

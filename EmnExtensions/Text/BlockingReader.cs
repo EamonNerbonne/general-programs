@@ -12,7 +12,7 @@ namespace EmnExtensions.Text
         int peekChar;
         readonly TextReader reader;
 
-        public BlockingReader(TextReader reader) { this.reader = reader; }
+        public BlockingReader(TextReader reader) => this.reader = reader;
 
         public override int Read()
         {
@@ -30,6 +30,7 @@ namespace EmnExtensions.Text
                 peekChar = reader.Read();
                 hasPeeked = true;
             }
+
             return peekChar;
         }
 

@@ -17,6 +17,7 @@ namespace LvqGui
     {
         readonly CancellationTokenSource cts = new CancellationTokenSource();
         public CancellationToken ClosingToken => cts.Token;
+
         public LvqWindow()
         {
             using (var proc = Process.GetCurrentProcess()) {
@@ -45,6 +46,7 @@ namespace LvqGui
                 lvqPlotContainer.Dispose();
                 lvqPlotContainer = null;
             }
+
             LvqMultiModel.WaitForTraining();
             var windowValues = (LvqWindowValues)DataContext;
             windowValues.LvqModels.Clear();
@@ -55,21 +57,23 @@ namespace LvqGui
 
         // ReSharper disable UnusedMember.Local
         void DoBenchmark() => ThreadPool.QueueUserWorkItem(o => {
-            var values = ((LvqWindowValues)o);
-            values.CreateStarDatasetValues.ParamsSeed = 1337;
-            values.CreateStarDatasetValues.InstanceSeed = 37;
+                var values = ((LvqWindowValues)o);
+                values.CreateStarDatasetValues.ParamsSeed = 1337;
+                values.CreateStarDatasetValues.InstanceSeed = 37;
 
-            values.CreateLvqModelValues.ParamsSeed = 42;
-            values.CreateLvqModelValues.InstanceSeed = 1234;
+                values.CreateLvqModelValues.ParamsSeed = 42;
+                values.CreateLvqModelValues.InstanceSeed = 1234;
 
-            values.CreateStarDatasetValues.ConfirmCreation().Completed +=
+                values.CreateStarDatasetValues.ConfirmCreation().Completed +=
                     (s, e) => Dispatcher.BeginInvokeBackground(
                         () => values.CreateLvqModelValues.ConfirmCreation().ContinueWith(
-                        creationTask => Dispatcher.BeginInvokeBackground(
-                        () => { values.TrainingControlValues.AnimateTraining = true; }
-                        )));
-
-        }, DataContext);
+                            creationTask => Dispatcher.BeginInvokeBackground(
+                                () => { values.TrainingControlValues.AnimateTraining = true; }
+                            )
+                        )
+                    );
+            }, DataContext
+        );
 
         LvqStatPlotsContainer lvqPlotContainer;
         void TrainingControlValues_SelectedModelUpdatedInBackgroundThread() => LvqStatPlotsContainer.QueueUpdateIfCurrent(lvqPlotContainer);
@@ -124,25 +128,29 @@ namespace LvqGui
         }
 
         WindowState lastState = WindowState.Normal;
+
         // Using a DependencyProperty as the backing store for Fullscreen.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty FullscreenProperty =
             DependencyProperty.RegisterAttached("Fullscreen", typeof(bool), typeof(LvqWindow), new UIPropertyMetadata(false, (o, e) => {
-                var win = (LvqWindow)o;
-                if ((bool)e.NewValue) {
-                    win.lastState = win.WindowState;
-                    win.WindowState = WindowState.Normal;
-                    win.WindowStyle = WindowStyle.None;
-                    win.Topmost = true;
-                    win.WindowState = WindowState.Maximized;
-                } else {
-                    win.Topmost = false;
-                    win.WindowStyle = WindowStyle.SingleBorderWindow;
-                    win.WindowState = win.lastState;
-                }
-            }));
+                        var win = (LvqWindow)o;
+                        if ((bool)e.NewValue) {
+                            win.lastState = win.WindowState;
+                            win.WindowState = WindowState.Normal;
+                            win.WindowStyle = WindowStyle.None;
+                            win.Topmost = true;
+                            win.WindowState = WindowState.Maximized;
+                        } else {
+                            win.Topmost = false;
+                            win.WindowStyle = WindowStyle.SingleBorderWindow;
+                            win.WindowState = win.lastState;
+                        }
+                    }
+                )
+            );
 
         // ReSharper disable MemberCanBeMadeStatic.Global
         public IEnumerable<LvqModelType> ModelTypes => (LvqModelType[])Enum.GetValues(typeof(LvqModelType));
+
         public IEnumerable<long> Iters => new[] { 100000L, 1000000L, 10000000L, };
         // ReSharper restore MemberCanBeMadeStatic.Global
 
@@ -163,23 +171,24 @@ namespace LvqGui
             return
                 allmodels.Aggregate(doneTask, (task, model) =>
                     task.Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.CurrentOnly, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding, graphSettings.ShowTestErrorRates))
-                            .Then(() => lvqInnerPlotContainer.SaveAllGraphs(true))
-                            .Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
-                            .Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.MeanAndStderr, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding, graphSettings.ShowTestErrorRates))
-                            .Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
-                            .ContinueWith(_ => {
+                        .Then(() => lvqInnerPlotContainer.SaveAllGraphs(true))
+                        .Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
+                        .Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.MeanAndStderr, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding, graphSettings.ShowTestErrorRates))
+                        .Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
+                        .ContinueWith(_ => {
                                 Interlocked.Increment(ref counter);
                                 Console.WriteLine(counter + "/" + allmodels.Length);
-                            })
+                            }
+                        )
                 ).ContinueWith(t => {
-                    if (t.Status == TaskStatus.Faulted) {
-                        Console.WriteLine(t.Exception);
+                        if (t.Status == TaskStatus.Faulted) {
+                            Console.WriteLine(t.Exception);
+                        }
+
+                        lvqInnerPlotContainer.Dispose();
+                        Console.WriteLine("saved.");
                     }
-
-                    lvqInnerPlotContainer.Dispose();
-                    Console.WriteLine("saved.");
-                });
+                );
         }
-
     }
 }

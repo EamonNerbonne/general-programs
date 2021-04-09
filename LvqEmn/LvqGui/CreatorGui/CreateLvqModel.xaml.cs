@@ -5,7 +5,6 @@ using LvqLibCli;
 
 namespace LvqGui
 {
-
     public partial class CreateLvqModel
     {
         // ReSharper disable MemberCanBeMadeStatic.Global
@@ -13,7 +12,8 @@ namespace LvqGui
         public IEnumerable<LvqModelType> ModelTypes => (LvqModelType[])Enum.GetValues(typeof(LvqModelType));
         // ReSharper restore MemberCanBePrivate.Global
         // ReSharper restore MemberCanBeMadeStatic.Global
-        public CreateLvqModel() { InitializeComponent(); }
+
+        public CreateLvqModel() => InitializeComponent();
 
         void ReseedParam(object sender, RoutedEventArgs e) => ((IHasSeed)DataContext).ReseedParam();
         void ReseedInst(object sender, RoutedEventArgs e) => ((IHasSeed)DataContext).ReseedInst();

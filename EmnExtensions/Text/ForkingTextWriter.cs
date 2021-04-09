@@ -8,6 +8,7 @@ namespace EmnExtensions.Text
     {
         readonly bool closeUnderlying;
         readonly TextWriter[] writers;
+
         public ForkingTextWriter(IEnumerable<TextWriter> targetWriters, bool? closeUnderlyingWriters = null)
         {
             closeUnderlying = closeUnderlyingWriters ?? true;

@@ -10,18 +10,19 @@ namespace EmnExtensions.Text
             DateTime val;
             if (DateTime.TryParse(s, out val)) {
                 return val;
-            } else {
-                return null;
             }
+
+            return null;
         }
+
         public static DateTime? ParseAsDateTime(this string s, DateTimeStyles style, IFormatProvider provider)
         {
             DateTime val;
             if (DateTime.TryParse(s, provider, style, out val)) {
                 return val;
-            } else {
-                return null;
             }
+
+            return null;
         }
 
 
@@ -30,18 +31,19 @@ namespace EmnExtensions.Text
             int val;
             if (int.TryParse(s, out val)) {
                 return val;
-            } else {
-                return null;
             }
+
+            return null;
         }
+
         public static int? ParseAsInt32(this string s, NumberStyles style, IFormatProvider provider)
         {
             int val;
             if (int.TryParse(s, style, provider, out val)) {
                 return val;
-            } else {
-                return null;
             }
+
+            return null;
         }
 
         public static ulong? ParseAsUInt64(this string s)
@@ -49,18 +51,19 @@ namespace EmnExtensions.Text
             ulong val;
             if (ulong.TryParse(s, out val)) {
                 return val;
-            } else {
-                return null;
             }
+
+            return null;
         }
+
         public static ulong? ParseAsUInt64(this string s, NumberStyles style, IFormatProvider provider)
         {
             ulong val;
             if (ulong.TryParse(s, style, provider, out val)) {
                 return val;
-            } else {
-                return null;
             }
+
+            return null;
         }
 
         public static long? ParseAsInt64(this string s)
@@ -68,38 +71,39 @@ namespace EmnExtensions.Text
             long val;
             if (long.TryParse(s, out val)) {
                 return val;
-            } else {
-                return null;
             }
+
+            return null;
         }
+
         public static long? ParseAsInt64(this string s, NumberStyles style, IFormatProvider provider)
         {
             long val;
             if (long.TryParse(s, style, provider, out val)) {
                 return val;
-            } else {
-                return null;
             }
+
+            return null;
         }
 
         public static double? ParseAsDouble(this string s)
         {
             double val;
-            if (Double.TryParse(s, out val)) {
+            if (double.TryParse(s, out val)) {
                 return val;
-            } else {
-                return null;
             }
+
+            return null;
         }
+
         public static double? ParseAsDouble(this string s, NumberStyles style, IFormatProvider provider)
         {
             double val;
-            if (Double.TryParse(s, style, provider, out val)) {
+            if (double.TryParse(s, style, provider, out val)) {
                 return val;
-            } else {
-                return null;
             }
-        }
 
+            return null;
+        }
     }
 }

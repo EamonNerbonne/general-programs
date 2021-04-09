@@ -5,7 +5,6 @@ using System.Windows.Data;
 
 namespace EmnExtensions.Wpf
 {
-
     [ValueConversion(typeof(uint[]), typeof(string))]
     public class ByteArrayConverter : IValueConverter
     {

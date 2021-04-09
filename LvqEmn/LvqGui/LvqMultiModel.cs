@@ -35,9 +35,9 @@ namespace LvqGui
             var shorthand = lvqModelSettingsCli.ToShorthand() + "--" + forDataset.DatasetLabel;
             subModels =
                 Enumerable.Range(0, lvqModelSettingsCli.ParallelModels).AsParallel()
-                .Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold + lvqModelSettingsCli.FoldOffset, lvqModelSettingsCli, trackStats))
-                .OrderBy(model => model.DataFold)
-                .ToArray();
+                    .Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold + lvqModelSettingsCli.FoldOffset, lvqModelSettingsCli, trackStats))
+                    .OrderBy(model => model.DataFold)
+                    .ToArray();
             nnErrIdx = subModels[0].TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error"));
         }
 
@@ -59,7 +59,12 @@ namespace LvqGui
 
         public int SelectedSubModel { get; set; }
 
-        public struct Statistic { public double[] Value, StandardError; public int BestIdx; }
+        public struct Statistic
+        {
+            public double[] Value, StandardError;
+            public int BestIdx;
+        }
+
         public static double GetItersPerEpoch(LvqDatasetCli dataset, int fold) => dataset.PointCount(fold);
 
         public Statistic CurrentRawStats() => MeanStdErrStats(EvaluateFullStats());
@@ -78,13 +83,14 @@ namespace LvqGui
 
             return sb.ToString();
         }
+
         public string CurrentFullStatsString()
         {
             var allstats = EvaluateFullStats().ToArray();
             return FullStatsString(allstats);
         }
 
-        private string FullStatsString(LvqTrainingStatCli[] allstats)
+        string FullStatsString(LvqTrainingStatCli[] allstats)
         {
             var meanstats = MeanStdErrStats(allstats);
 
@@ -101,8 +107,9 @@ namespace LvqGui
         public LvqTrainingStatCli[] SelectedStats(int submodel) => subModels[submodel].TrainingStats;
         readonly object statCacheSync = new object();
         readonly List<Statistic> statCache = new List<Statistic>();
-        Statistic[] cachedStatCache = new Statistic[] { };
+        Statistic[] cachedStatCache = { };
         int statProcIdx;
+
         public Statistic[] TrainingStats
         {
             get {
@@ -130,6 +137,7 @@ namespace LvqGui
 
                         statCache.RemoveRange(statCache.Count - 128, 128);
                     }
+
                     return (cachedStatCache = statCache.ToArray());
                 }
             }
@@ -139,8 +147,9 @@ namespace LvqGui
         {
             var statDistribution =
                 newstats.Aggregate(default(MeanVarDistrib[]), (acc, statArray) =>
-                    acc == null ? statArray.values.Select(val => MeanVarDistrib.Init(val)).ToArray()
-                    : acc.Zip(statArray.values, (mv, val) => mv.Add(val)).ToArray()
+                    acc == null
+                        ? statArray.values.Select(val => MeanVarDistrib.Init(val)).ToArray()
+                        : acc.Zip(statArray.values, (mv, val) => mv.Add(val)).ToArray()
                 );
 
 
@@ -149,6 +158,7 @@ namespace LvqGui
                 newStat.Value[mi] = statDistribution[mi].Mean;
                 newStat.StandardError[mi] = Math.Sqrt(statDistribution[mi].SampleVar / statDistribution[mi].Weight);
             }
+
             return newStat;
         }
 
@@ -162,22 +172,28 @@ namespace LvqGui
                     minval = val;
                     minidx = idx;
                 }
+
                 idx++;
             }
+
             return minidx;
         }
 
         static readonly int ParWindow = Environment.ProcessorCount * 2;
+
         public bool FitsDataShape(LvqDatasetCli selectedDataset) => subModels.First().FitsDataShape(selectedDataset);
+
         //readonly object epochsSynch = new object();
         volatile int epochsDone;
         static int trainersRunning;
+
         public static void WaitForTraining()
         {
             while (trainersRunning != 0) {
                 Thread.Sleep(1);
             }
         }
+
         public void TrainAndPrintOrder(CancellationToken cancel)
         {
             if (cancel.IsCancellationRequested) {
@@ -187,14 +203,16 @@ namespace LvqGui
             var selectedSubModel = SelectedSubModel;
             var helpers = subModels
                 .Select((model, modelIndex) =>
-                        Task.Factory.StartNew(
-                            () => model.Train(1, modelIndex == selectedSubModel, false)
-                            ,
-                            cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
+                    Task.Factory.StartNew(
+                        () => model.Train(1, modelIndex == selectedSubModel, false)
+                        ,
+                        cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler
+                    )
                 ).ToArray();
             var labelOrdering = Task.Factory.ContinueWhenAll(helpers, tasks => tasks.Select(task => task.Result).Single(labelOrder => labelOrder != null)).Result;
             Console.WriteLine(string.Join("", labelOrdering.Select(i => (char)(i < 10 ? i + '0' : i - 10 + 'a'))));
         }
+
         public void SortedTrain(CancellationToken cancel)
         {
             if (cancel.IsCancellationRequested) {
@@ -203,10 +221,11 @@ namespace LvqGui
 
             var helpers = subModels
                 .Select((model, modelIndex) =>
-                        Task.Factory.StartNew(
-                            () => model.Train(1, false, true)
-                            ,
-                            cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
+                    Task.Factory.StartNew(
+                        () => model.Train(1, false, true)
+                        ,
+                        cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler
+                    )
                 ).ToArray();
             Task.WaitAll(helpers);
         }
@@ -237,20 +256,21 @@ namespace LvqGui
 
                 var prevEpochs = Interlocked.CompareExchange(ref epochsDone, epochsToTrainUpto, epochsCurrent);
                 if (prevEpochs == epochsCurrent) {
-                    break;//successfully swapped;
+                    break; //successfully swapped;
                 }
 
                 epochsCurrent = prevEpochs;
             }
+
             TrainImpl(cancel, epochsCurrent, epochsToTrainUpto);
         }
 
-        static BlockingCollection<string> toLog = new BlockingCollection<string>();
-        static LvqMultiModel()
-        {
-            new Thread(() => {
+        static readonly BlockingCollection<string> toLog = new BlockingCollection<string>();
+
+        static LvqMultiModel() => new Thread(() => {
                 using (var stream = File.Open(Path.Combine(FSUtil.FindDataDir("lvqlog").FullName + "\\", "training-" + DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture) + ".log"),
-                                                            FileMode.Append, FileAccess.Write, FileShare.Read))
+                    FileMode.Append, FileAccess.Write, FileShare.Read
+                ))
                 using (var writer = new StreamWriter(stream, Encoding.UTF8)) {
                     foreach (var line in toLog.GetConsumingEnumerable()) {
                         writer.WriteLine(line);
@@ -259,8 +279,8 @@ namespace LvqGui
                         }
                     }
                 }
-            }) { Priority = ThreadPriority.AboveNormal, IsBackground = true }.Start();
-        }
+            }
+        ) { Priority = ThreadPriority.AboveNormal, IsBackground = true }.Start();
 
 
         void TrainImpl(CancellationToken cancel, int epochsCurrent, int epochsTarget)
@@ -274,18 +294,20 @@ namespace LvqGui
                         trainingqueue.Add(Tuple.Create(model, epochsCurrent));
                     }
                 }
+
                 trainingqueue.CompleteAdding();
                 var helpers = Enumerable.Range(0, Math.Min(subModels.Length, ParWindow))
                     .Select(ignored =>
-                            Task.Factory.StartNew(
-                                () => {
-                                    foreach (var next in trainingqueue.GetConsumingEnumerable(cancel)) {
-                                        toLog.Add(next.Item1.ModelLabel + "  #" + next.Item1.DataFold + "   " + next.Item2.ToString(CultureInfo.InvariantCulture).PadLeft(6, '.') + "Begin");
-                                        next.Item1.TrainUpto(next.Item2);
-                                        toLog.Add(next.Item1.ModelLabel + "  #" + next.Item1.DataFold + "   " + next.Item2.ToString(CultureInfo.InvariantCulture).PadLeft(6, '.') + "End");
-                                    }
-                                },
-                                cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
+                        Task.Factory.StartNew(
+                            () => {
+                                foreach (var next in trainingqueue.GetConsumingEnumerable(cancel)) {
+                                    toLog.Add(next.Item1.ModelLabel + "  #" + next.Item1.DataFold + "   " + next.Item2.ToString(CultureInfo.InvariantCulture).PadLeft(6, '.') + "Begin");
+                                    next.Item1.TrainUpto(next.Item2);
+                                    toLog.Add(next.Item1.ModelLabel + "  #" + next.Item1.DataFold + "   " + next.Item2.ToString(CultureInfo.InvariantCulture).PadLeft(6, '.') + "End");
+                                }
+                            },
+                            cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler
+                        )
                     ).ToArray();
 
                 Task.WaitAll(helpers, cancel);
@@ -309,21 +331,24 @@ namespace LvqGui
         }
 
         public static readonly DirectoryInfo statsDir = FSUtil.FindDataDir(@"uni\Thesis\doc\stats", typeof(LvqStatPlotsContainer));
+
         static FileInfo StatFile(LvqDatasetCli dataset, LvqModelSettingsCli modelSettings, long iterIntent)
         {
             var dSettings = CreateDataset.CreateFactory(dataset.DatasetLabel);
             var dSettingsShorthand = dSettings.Shorthand;
             var datasetDir = statsDir.GetDirectories().FirstOrDefault(dir => {
-                var otherSettings = CreateDataset.CreateFactory(dir.Name);
-                return otherSettings != null && otherSettings.Shorthand == dSettingsShorthand;
-            }) ?? statsDir.CreateSubdirectory(dSettingsShorthand);
+                    var otherSettings = CreateDataset.CreateFactory(dir.Name);
+                    return otherSettings != null && otherSettings.Shorthand == dSettingsShorthand;
+                }
+            ) ?? statsDir.CreateSubdirectory(dSettingsShorthand);
             var iterPrefix = ItersPrefix(iterIntent) + "-";
             var mSettingsShorthand = modelSettings.ToShorthand();
 
             return datasetDir.GetFiles(iterPrefix + "*.txt").FirstOrDefault(file => {
-                var otherSettings = CreateLvqModelValues.TryParseShorthand(Path.GetFileNameWithoutExtension(file.Name).Substring(iterPrefix.Length));
-                return otherSettings.HasValue && otherSettings.Value.ToShorthand() == mSettingsShorthand;
-            }) ?? new FileInfo(Path.Combine(datasetDir.FullName + "\\", iterPrefix + mSettingsShorthand + ".txt"));
+                    var otherSettings = CreateLvqModelValues.TryParseShorthand(Path.GetFileNameWithoutExtension(file.Name).Substring(iterPrefix.Length));
+                    return otherSettings.HasValue && otherSettings.Value.ToShorthand() == mSettingsShorthand;
+                }
+            ) ?? new FileInfo(Path.Combine(datasetDir.FullName + "\\", iterPrefix + mSettingsShorthand + ".txt"));
         }
 
         public static bool AnnounceModelTrainingGeneration(LvqDatasetCli dataset, LvqModelSettingsCli shorthand, long iterIntent)
@@ -370,7 +395,7 @@ namespace LvqGui
         }
 
         public ModelProjectionAndImage CurrentProjectionAndImage(LvqDatasetCli dataset, int width, int height, bool hideBoundaries, int currSubModel, bool showTestEmbedding)
-        {//TODO:testembed
+        { //TODO:testembed
 #if DEBUG
             var renderwidth = (width + 7) / 8;
             var renderheight = (height + 7) / 8;
@@ -389,9 +414,11 @@ namespace LvqGui
                 }
 
                 bounds = ExpandToShape(renderwidth, renderheight, ComputeProjectionBounds(projection.Points));
-                closestClass = hideBoundaries ? default(MatrixContainer<byte>)
+                closestClass = hideBoundaries
+                    ? default(MatrixContainer<byte>)
                     : selectedModel.ClassBoundaries(bounds.Left, bounds.Right, bounds.Bottom, bounds.Top, renderwidth, renderheight);
             }
+
             Debug.Assert(NotDefault(projection));
             Debug.Assert(NotDefault(bounds));
 
@@ -448,10 +475,15 @@ namespace LvqGui
                 var label = labelledPoints[i].label;
                 pointsByLabel[label][pointIndexPerClass[label]++] = labelledPoints[i].point;
             }
+
             return pointsByLabel;
         }
 
-        struct IntPoint { public int X, Y; }
+        struct IntPoint
+        {
+            public int X, Y;
+        }
+
         static uint[] BoundaryImageFor(MatrixContainer<byte> closestClass, uint[] nativeColorsPerClass, int width, int renderwidth, int height, int renderheight)
         {
             var boundaryPoints = GetBoundaryPoints(closestClass);
@@ -490,7 +522,7 @@ namespace LvqGui
                         || val != closestClass.arr[addr + 1]
                         || val != closestClass.arr[addr - closestClass.cols]
                         || val != closestClass.arr[addr + closestClass.cols]
-                        ) {
+                    ) {
                         edges.Add(new IntPoint { X = x, Y = y });
                     }
                 }
@@ -502,10 +534,14 @@ namespace LvqGui
         static bool NotDefault<T>(T val) => !Equals(val, default(T));
 
         static uint[] NativeColorsPerClassAndBlack(LvqDatasetCli dataset) => dataset.ClassColors
-                .Select(c => { c.ScA = 0.05f; return c; })
-                .Concat(Enumerable.Repeat(Color.FromRgb(0, 0, 0), 1))
-                .Select(c => c.ToNativeColor())
-                .ToArray();
+            .Select(c => {
+                    c.ScA = 0.05f;
+                    return c;
+                }
+            )
+            .Concat(Enumerable.Repeat(Color.FromRgb(0, 0, 0), 1))
+            .Select(c => c.ToNativeColor())
+            .ToArray();
 
 
         static Rect ComputeProjectionBounds(CliLvqLabelledPoint[] cliLvqLabelledPoint)
@@ -519,6 +555,5 @@ namespace LvqGui
         public IEnumerable<LvqModelCli> SubModels => subModels;
 
         public object Tag { get; set; }
-
     }
 }

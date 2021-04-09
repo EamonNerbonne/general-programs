@@ -26,6 +26,7 @@ namespace EmnExtensions.Wpf
                             }
                         }
                     }
+
                     for (var i = 0; i < colors.Length; i++) {
                         colors[i].LimitBrightness(0.1, 0.7);
                     }
@@ -55,6 +56,7 @@ namespace EmnExtensions.Wpf
                 G = G + force * (G - other.G);
                 B = B + force * (B - other.B);
             }
+
             public void ScaleBack(ColorSimple min, ColorSimple max)
             {
                 R = scaled(R, min.R, max.R);
@@ -78,7 +80,6 @@ namespace EmnExtensions.Wpf
             }
 
 
-
             public Color ToWindowsColor() => Color.FromRgb((byte)(255 * R + 0.5), (byte)(255 * G + 0.5), (byte)(255 * B + 0.5));
 
             public static ColorSimple Min(ColorSimple a, ColorSimple b) => new ColorSimple { R = Math.Min(a.R, b.R), G = Math.Min(a.G, b.G), B = Math.Min(a.B, b.B) };
@@ -95,9 +96,11 @@ namespace EmnExtensions.Wpf
             double Sum => 0.35 * R + 0.5 * G + 0.15 * B;
 
             static double sqr(double x) => x * x;
+
             static double scaled(double val, double min, double max) => max <= min || max < 0.99 && min > 0.01
-                    ? val
-                    : 0.01 + 0.98 * (val - min) / (max - min);
+                ? val
+                : 0.01 + 0.98 * (val - min) / (max - min);
+
             const double HueEmphasis = 0.5;
 
             internal static ColorSimple FromColor(Color color) => new ColorSimple {

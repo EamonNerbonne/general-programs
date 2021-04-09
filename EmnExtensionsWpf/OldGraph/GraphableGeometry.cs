@@ -7,7 +7,7 @@ namespace EmnExtensions.Wpf.Plot
     public class GraphableGeometry : GraphableData
     {
         Geometry m_Geometry;
-        MatrixTransform m_ProjectionTransform = new MatrixTransform();
+        readonly MatrixTransform m_ProjectionTransform = new MatrixTransform();
         bool m_AutosizeBounds = true;
         Brush m_Fill = Brushes.Black;
         Pen m_Pen = defaultPen;
@@ -15,9 +15,19 @@ namespace EmnExtensions.Wpf.Plot
 
         //public GraphableGeometry
 
-        static Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness = 1.5 }.GetAsFrozen();
+        static readonly Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness = 1.5 }.GetAsFrozen();
 
-        public Brush Fill { get => m_Fill; set { if (m_Fill != value) { m_Fill = value; OnChange(GraphChange.Drawing); } } }
+        public Brush Fill
+        {
+            get => m_Fill;
+            set {
+                if (m_Fill != value) {
+                    m_Fill = value;
+                    OnChange(GraphChange.Drawing);
+                }
+            }
+        }
+
         public Pen Pen
         {
             get => m_Pen;
@@ -41,7 +51,14 @@ namespace EmnExtensions.Wpf.Plot
         /// <summary>
         /// Defaults to true.
         /// </summary>
-        public bool AutosizeBounds { get => m_AutosizeBounds; set { m_AutosizeBounds = value; RecomputeBoundsIfAuto(); } }
+        public bool AutosizeBounds
+        {
+            get => m_AutosizeBounds;
+            set {
+                m_AutosizeBounds = value;
+                RecomputeBoundsIfAuto();
+            }
+        }
 
         public Geometry Geometry
         {
@@ -63,13 +80,15 @@ namespace EmnExtensions.Wpf.Plot
         }
 
         void m_Pen_Changed(object sender, EventArgs e) => RecomputeBoundsIfAuto();
+
         void m_Geometry_Changed(object sender, EventArgs e)
         {
             if (!changingGeometry) {
                 RecomputeBoundsIfAuto();
             }
         }
-        bool changingGeometry = false;
+
+        bool changingGeometry;
 
         void RecomputeBoundsIfAuto()
         {
@@ -77,10 +96,10 @@ namespace EmnExtensions.Wpf.Plot
                 changingGeometry = true;
 
                 m_Geometry.Transform = new MatrixTransform(m_geomToAxis);
-                DataBounds = m_Geometry.Bounds;//this will trigger OnChanged if neeeded.
+                DataBounds = m_Geometry.Bounds; //this will trigger OnChanged if neeeded.
                 m_Geometry.Transform = m_ProjectionTransform;
                 changingGeometry = false;
-                Margin = new Thickness(Pen.Thickness / 2.0);//this will trigger OnChanged if neeeded.
+                Margin = new Thickness(Pen.Thickness / 2.0); //this will trigger OnChanged if neeeded.
             }
         }
 

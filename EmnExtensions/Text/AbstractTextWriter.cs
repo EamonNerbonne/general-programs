@@ -4,12 +4,11 @@ using System.Text;
 namespace EmnExtensions.Text
 {
     /// <summary>
-    /// This class implements a minimalist text writer.  Only one method is necessary to implement, namely 
+    /// This class implements a minimalist text writer.  Only one method is necessary to implement, namely
     /// <code>WriteString</code>, unlike the normal <code>TextWriter</code>, which requires you implement all of them.
     /// This class uses the <code>FormatProvider</code> property to format everything, and is probably a little slower
     /// than an optimal writer, but extremely simple.
-    /// 
-    /// Beyond the required implementation of <code>WriteString</code>, inhereting classes might wish to override 
+    /// Beyond the required implementation of <code>WriteString</code>, inhereting classes might wish to override
     /// <code>Encoding</code>, which currently (meaninglessly) returns <code>Encoding.Unicode</code> if a meaningful
     /// alternative exists, and might wish to override <code>Close</code>, <code>Flush</code> &amp; <code>Dispose</code>
     /// as necessary.

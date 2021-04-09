@@ -35,12 +35,14 @@ namespace LvqGui
         LvqDatasetCli _ForDataset;
 
         [NotInShorthand]
-        public double EstCost => _ForDataset == null || PrototypesPerClass <= 0 ? double.NaN
-                    : settings.EstimateCost(_ForDataset.ClassCount, _ForDataset.Dimensions);
+        public double EstCost => _ForDataset == null || PrototypesPerClass <= 0
+            ? double.NaN
+            : settings.EstimateCost(_ForDataset.ClassCount, _ForDataset.Dimensions);
 
         [NotInShorthand]
-        public double AnimEpochSuggestion => _ForDataset == null || PrototypesPerClass <= 0 ? double.NaN
-                    : 1000.0 * 1000.0 / ((settings.EstimateCost(_ForDataset.ClassCount, _ForDataset.Dimensions) + 0.5) * _ForDataset.PointCount(0));
+        public double AnimEpochSuggestion => _ForDataset == null || PrototypesPerClass <= 0
+            ? double.NaN
+            : 1000.0 * 1000.0 / ((settings.EstimateCost(_ForDataset.ClassCount, _ForDataset.Dimensions) + 0.5) * _ForDataset.PointCount(0));
 
 
         LvqModelSettingsCli settings;
@@ -444,12 +446,13 @@ namespace LvqGui
             "
                 + @")(--.*|\}\{[^\}]*\})?\s*$"
                 ,
-                RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
+                RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace
+            );
 
         public override string Shorthand
         {
             get => settings.ToShorthand()
-                    + (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
+                + (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
             set {
                 settings = ParseShorthand(value);
                 foreach (var group in shR.GetGroupNames()) {
@@ -467,9 +470,9 @@ namespace LvqGui
             var maybeParsed = ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand);
             if (maybeParsed.HasValue) {
                 return maybeParsed.Value;
-            } else {
-                throw new ArgumentException("Can't parse: " + shorthand);
             }
+
+            throw new ArgumentException("Can't parse: " + shorthand);
         }
 
         public static LvqModelSettingsCli? TryParseShorthand(string shorthand) => ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand).AsNullableStruct<LvqModelSettingsCli>();
@@ -488,29 +491,29 @@ namespace LvqGui
             var whenDone = new TaskCompletionSource<object>();
             Task.Factory
                 .StartNew(() => {
-                    if (settingsCopy.LR0 == 0.0 && settingsCopy.LrScaleP == 0.0 && settingsCopy.LrScaleB == 0.0) {
-                        settingsCopy = LrGuesser.ChooseReasonableLr(settingsCopy);
-                    }
+                        if (settingsCopy.LR0 == 0.0 && settingsCopy.LrScaleP == 0.0 && settingsCopy.LrScaleB == 0.0) {
+                            settingsCopy = LrGuesser.ChooseReasonableLr(settingsCopy);
+                        }
 
-                    if (settingsCopy.LR0 == 0.0) {
-                        Console.WriteLine("Cannot create model with 0 LR!");
-                    } else {
-                        var newModel = new LvqMultiModel(dataset, settingsCopy);
-                        Console.WriteLine("Created: " + newModel.ModelLabel);
-                        owner.Dispatcher.BeginInvoke(owner.LvqModels.Add, newModel).Completed += (s, e) => whenDone.SetResult(null);
+                        if (settingsCopy.LR0 == 0.0) {
+                            Console.WriteLine("Cannot create model with 0 LR!");
+                        } else {
+                            var newModel = new LvqMultiModel(dataset, settingsCopy);
+                            Console.WriteLine("Created: " + newModel.ModelLabel);
+                            owner.Dispatcher.BeginInvoke(owner.LvqModels.Add, newModel).Completed += (s, e) => whenDone.SetResult(null);
+                        }
                     }
-                });
+                );
             return whenDone.Task;
         }
 
 
-        static readonly string[] depProps = new[] {
+        static readonly string[] depProps = {
             "HasOptimizedLr", "OptimizeButtonText", "OptimizedLrAllIncomplete", "OptimizedLrAllStatus",
             "OptimizeAllButtonText", "EstCost", "AnimEpochSuggestion"
         };
 
         protected override IEnumerable<string> GloballyDependantProps => base.GloballyDependantProps.Concat(depProps);
-
     }
 
     static class LvqModelTypeHelpers

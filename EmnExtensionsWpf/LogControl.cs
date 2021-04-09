@@ -1,4 +1,5 @@
 ﻿// ReSharper disable UnusedMember.Global
+
 using System;
 using System.IO;
 using System.Text;
@@ -41,12 +42,13 @@ namespace EmnExtensions.Wpf
         static Tuple<Window, LogControl> ShowNewLogWindow_NewDispatcher(string windowTitle = null, double? width = null, double? height = null)
         {
             var disp = WpfTools.StartNewDispatcher();
-            return (Tuple<Window, LogControl>)disp.Invoke((Func<Tuple<Window, LogControl>>)(() => ShowNewLogWindow(windowTitle, width, height)));
+            return disp.Invoke(() => ShowNewLogWindow(windowTitle, width, height));
         }
 
 
         readonly StringBuilder curLine = new StringBuilder();
         readonly DelegateTextWriter logger;
+
         public LogControl()
         {
             Reset();
@@ -71,11 +73,13 @@ namespace EmnExtensions.Wpf
         };
 
         bool wantsStdOut, wantsStdErr;
+
         void LogControl_Loaded(object sender, RoutedEventArgs e)
         {
             ClaimStandardOut = wantsStdOut || ClaimStandardOut;
             ClaimStandardError = wantsStdErr || ClaimStandardError;
         }
+
         void LogControl_Unloaded(object sender, EventArgs e)
         {
             wantsStdErr = ClaimStandardError;
@@ -118,9 +122,10 @@ namespace EmnExtensions.Wpf
                     curLine.Length = 0;
                 }
             }
+
             if (strToAppendToCur != null) {
                 Document.ContentEnd.InsertTextInRun(strToAppendToCur);
-                NavigationCommands.LastPage.Execute(null, this);//can we say... nasty hack?
+                NavigationCommands.LastPage.Execute(null, this); //can we say... nasty hack?
             }
         }
 
@@ -130,10 +135,12 @@ namespace EmnExtensions.Wpf
                 Document.ContentEnd.InsertTextInRun(curLine.ToString());
                 curLine.Length = 0;
             }
+
             return new TextRange(Document.ContentStart, Document.ContentEnd).Text;
         }
 
         RestoringReadStream stdOutOverride;
+
         public bool ClaimStandardOut
         {
             get => stdOutOverride != null;
@@ -153,6 +160,7 @@ namespace EmnExtensions.Wpf
         }
 
         RestoringReadStream stdErrOverride;
+
         public bool ClaimStandardError
         {
             get => stdErrOverride != null;
@@ -172,17 +180,18 @@ namespace EmnExtensions.Wpf
         }
 
         static void RedirectNativeStream(LogControl toControl, RestoringReadStream fromNative, string name) => new Thread(() => {
-            using (var reader = new StreamReader(fromNative.ReadStream)) {
-                var buffer = new char[4096];
-                while (true) {
-                    var actuallyRead = reader.Read(buffer, 0, buffer.Length);
-                    if (actuallyRead <= 0) {
-                        break;
-                    }
+                using (var reader = new StreamReader(fromNative.ReadStream)) {
+                    var buffer = new char[4096];
+                    while (true) {
+                        var actuallyRead = reader.Read(buffer, 0, buffer.Length);
+                        if (actuallyRead <= 0) {
+                            break;
+                        }
 
-                    toControl.AppendThreadSafe(new string(buffer, 0, actuallyRead));
+                        toControl.AppendThreadSafe(new string(buffer, 0, actuallyRead));
+                    }
                 }
             }
-        }) { IsBackground = true }.Start();
+        ) { IsBackground = true }.Start();
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using EmnExtensions.Collections;
 
@@ -23,8 +23,9 @@ namespace EmnExtensions.Algorithms
                         gens.Add(gen, gen.Current);
                     }
                 }
+
                 //the costs *are* the current enumerator value
-                var lastYield = gens.Count > 0 ? gens.Top().Cost - 1 : 0;//anything but equal!
+                var lastYield = gens.Count > 0 ? gens.Top().Cost - 1 : 0; //anything but equal!
 
                 while (gens.Count > 0) {
                     var current = gens.Top();
@@ -44,7 +45,8 @@ namespace EmnExtensions.Algorithms
             }
         }
 
-        internal static void DisposeAll<T>(T[] disposables, int startAt) where T : IDisposable
+        internal static void DisposeAll<T>(T[] disposables, int startAt)
+            where T : IDisposable
         {
             for (var i = startAt; i < disposables.Length; i++) {
                 try {
@@ -60,8 +62,8 @@ namespace EmnExtensions.Algorithms
 
         public static IEnumerable<int> ZipMerge(IEnumerable<int> a, IEnumerable<int> b)
         {
-            var enumA = a.GetEnumerator();
-            var enumB = b.GetEnumerator();
+            using var enumA = a.GetEnumerator();
+            using var enumB = b.GetEnumerator();
             if (enumA.MoveNext()) {
                 if (enumB.MoveNext()) {
                     var elA = enumA.Current;
@@ -71,7 +73,7 @@ namespace EmnExtensions.Algorithms
                             yield return elA;
                             if (enumA.MoveNext()) {
                                 elA = enumA.Current;
-                            } else {//no more a's
+                            } else { //no more a's
                                 yield return elB;
                                 while (enumB.MoveNext()) {
                                     yield return enumB.Current;
@@ -83,7 +85,7 @@ namespace EmnExtensions.Algorithms
                             yield return elB;
                             if (enumB.MoveNext()) {
                                 elB = enumB.Current;
-                            } else {//no more b's!
+                            } else { //no more b's!
                                 yield return elA;
                                 while (enumA.MoveNext()) {
                                     yield return enumA.Current;

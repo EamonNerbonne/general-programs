@@ -7,38 +7,28 @@ namespace EmnExtensions.Wpf
 {
     /// <summary>
     /// Follow steps 1a or 1b and then 2 to use this custom control in a XAML file.
-    ///
     /// Step 1a) Using this custom control in a XAML file that exists in the current project.
-    /// Add this XmlNamespace attribute to the root element of the markup file where it is 
+    /// Add this XmlNamespace attribute to the root element of the markup file where it is
     /// to be used:
-    ///
-    ///     xmlns:MyNamespace="clr-namespace:EmnExtensions.Wpf"
-    ///
-    ///
+    /// xmlns:MyNamespace="clr-namespace:EmnExtensions.Wpf"
     /// Step 1b) Using this custom control in a XAML file that exists in a different project.
-    /// Add this XmlNamespace attribute to the root element of the markup file where it is 
+    /// Add this XmlNamespace attribute to the root element of the markup file where it is
     /// to be used:
-    ///
-    ///     xmlns:MyNamespace="clr-namespace:EmnExtensions.Wpf;assembly=EmnExtensions.Wpf"
-    ///
+    /// xmlns:MyNamespace="clr-namespace:EmnExtensions.Wpf;assembly=EmnExtensions.Wpf"
     /// You will also need to add a project reference from the project where the XAML file lives
     /// to this project and Rebuild to avoid compilation errors:
-    ///
-    ///     Right click on the target project in the Solution Explorer and
-    ///     "Add Reference"->"Projects"->[Browse to and select this project]
-    ///
-    ///
+    /// Right click on the target project in the Solution Explorer and
+    /// "Add Reference"->"Projects"->[Browse to and select this project]
     /// Step 2)
     /// Go ahead and use your control in the XAML file.
-    ///
-    ///     <MyNamespace:TickedLegendControl/>
-    ///
+    /// <MyNamespace:TickedLegendControl />
     /// </summary>
     public class TickedLegendControl : FrameworkElement
     {
-        Typeface labelType;
-        double fontSize = 12.0 * 4.0 / 3.0;
+        readonly Typeface labelType;
+        readonly double fontSize = 12.0 * 4.0 / 3.0;
         Pen tickPen;
+
         public Brush TickColor
         {
             set {
@@ -54,7 +44,6 @@ namespace EmnExtensions.Wpf
         }
 
 
-
         public TickedLegendControl()
         {
             TickColor = Brushes.Black;
@@ -62,7 +51,9 @@ namespace EmnExtensions.Wpf
             //            StartVal = 0;
             //          EndVal = 1;
         }
+
         GraphControl watchedGraph;
+
         public GraphControl Watch
         {
             get => watchedGraph;
@@ -72,6 +63,7 @@ namespace EmnExtensions.Wpf
                         watchedGraph.GraphBoundsUpdated -= OnGraphBoundsUpdated;
                     } catch { } //who cares if it doesn't work
                 }
+
                 watchedGraph = value;
                 if (watchedGraph != null) {
                     watchedGraph.GraphBoundsUpdated += OnGraphBoundsUpdated;
@@ -87,7 +79,7 @@ namespace EmnExtensions.Wpf
         void OnGraphBoundsUpdated(GraphControl graph, Rect newBounds)
         {
             if (graph != watchedGraph) {
-                return;//shouldn't happen, but heck;
+                return; //shouldn't happen, but heck;
             }
 
             if (newBounds.IsEmpty) {
@@ -102,29 +94,63 @@ namespace EmnExtensions.Wpf
                     StartVal = newBounds.Top; //these are inverted since WPF has 0 at the top, and we work with a flipped coordinate system!
                     EndVal = newBounds.Bottom;
                 }
+
                 Visibility = Visibility.Visible;
             }
         }
 
         double startVal, endVal;
+
         /// <summary>
         /// Left or bottom
         /// </summary>
-        public double StartVal { get => startVal; set { startVal = value; InvalidateVisual(); } }
+        public double StartVal
+        {
+            get => startVal;
+            set {
+                startVal = value;
+                InvalidateVisual();
+            }
+        }
+
         /// <summary>
         /// Right or top
         /// </summary>
-        public double EndVal { get => endVal; set { endVal = value; InvalidateVisual(); } }
+        public double EndVal
+        {
+            get => endVal;
+            set {
+                endVal = value;
+                InvalidateVisual();
+            }
+        }
 
         string legendLabel = "test";
-        public string LegendLabel { get => legendLabel; set { legendLabel = value; InvalidateVisual(); } }
+
+        public string LegendLabel
+        {
+            get => legendLabel;
+            set {
+                legendLabel = value;
+                InvalidateVisual();
+            }
+        }
 
         public enum Side { Top, Right, Bottom, Left }
+
         Side snapTo = Side.Top;
-        public Side SnapTo { get => snapTo; set { snapTo = value; InvalidateVisual(); } }
+
+        public Side SnapTo
+        {
+            get => snapTo;
+            set {
+                snapTo = value;
+                InvalidateVisual();
+            }
+        }
 
         CultureInfo cachedCulture;
-        int orderOfMagnitude, orderOfMagnitudeDiff;//TODO:really, these should be calculated in measure.  The measure pass should have everything measured!
+        int orderOfMagnitude, orderOfMagnitudeDiff; //TODO:really, these should be calculated in measure.  The measure pass should have everything measured!
         bool IsHorizontal => snapTo == Side.Bottom || snapTo == Side.Top;
 
         protected override Size MeasureOverride(Size constraint)
@@ -144,9 +170,9 @@ namespace EmnExtensions.Wpf
 
             if (IsHorizontal) {
                 return new Size(constraint.Width.IsFinite() ? constraint.Width : labelWidth, Math.Max(constraint.Height.IsFinite() ? constraint.Height : 0, 17 + text.Height * 2));
-            } else {
-                return new Size(Math.Max(17 + text.Width + text.Height, constraint.Width.IsFinite() ? constraint.Width : 0), constraint.Height.IsFinite() ? constraint.Height : labelWidth);
             }
+
+            return new Size(Math.Max(17 + text.Width + text.Height, constraint.Width.IsFinite() ? constraint.Width : 0), constraint.Height.IsFinite() ? constraint.Height : labelWidth);
         }
 
 
@@ -163,7 +189,7 @@ namespace EmnExtensions.Wpf
                 (endVal == startVal) ||
                 !endVal.IsFinite() ||
                 !startVal.IsFinite()) {
-                return;// no point!
+                return; // no point!
             }
 
             cachedCulture = CultureInfo.CurrentCulture;
@@ -179,21 +205,23 @@ namespace EmnExtensions.Wpf
                 mirrTrans.Rotate(-90.0);
                 mirrTrans.Translate(0.0, ticksPixelsDim);
             }
+
             var textHMax = 0.0;
             //now mirrTrans projects from an "ideal" SnapTo-Top world-view to what we need.
             var geom = DrawTicks(ticksPixelsDim, (val, pixPos) => {
-                var text = MakeText(val / Math.Pow(10, orderOfMagnitude));
-                var textH = (IsHorizontal ? text.Height : text.Width);
-                var altitudeCenter = 17 + textH / 2.0;
-                if (textH > textHMax) {
-                    textHMax = textH;
-                }
+                    var text = MakeText(val / Math.Pow(10, orderOfMagnitude));
+                    var textH = (IsHorizontal ? text.Height : text.Width);
+                    var altitudeCenter = 17 + textH / 2.0;
+                    if (textH > textHMax) {
+                        textHMax = textH;
+                    }
 
-                var textPos = mirrTrans.Transform(new Point(pixPos, altitudeCenter));
-                //but we need to shift from center to top-left...
-                textPos.Offset(text.Width / -2.0, text.Height / -2.0);
-                drawingContext.DrawText(text, textPos);
-            });
+                    var textPos = mirrTrans.Transform(new Point(pixPos, altitudeCenter));
+                    //but we need to shift from center to top-left...
+                    textPos.Offset(text.Width / -2.0, text.Height / -2.0);
+                    drawingContext.DrawText(text, textPos);
+                }
+            );
             geom.Transform = new MatrixTransform(mirrTrans);
 
             drawingContext.DrawGeometry(null, tickPen, geom);
@@ -230,26 +258,28 @@ namespace EmnExtensions.Wpf
         }
 
 
-
         FormattedText MakeText(double val)
         {
             var numericValueString = (val).ToString("g" + (orderOfMagnitude - orderOfMagnitudeDiff + 2));
             return new FormattedText(numericValueString, cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
         }
+
         void MakeLegendText(out FormattedText baseL, out FormattedText powL, out FormattedText textL, out double totalLabelWidth)
         {
             baseL = new FormattedText("×10",
-cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
+                cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black
+            );
             powL = new FormattedText(
                 orderOfMagnitude.ToString(),
-                cachedCulture, FlowDirection.LeftToRight, labelType, fontSize * 0.8, Brushes.Black);
+                cachedCulture, FlowDirection.LeftToRight, labelType, fontSize * 0.8, Brushes.Black
+            );
 
             textL = new FormattedText(
                 " – " + legendLabel,
-                cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
+                cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black
+            );
 
             totalLabelWidth = baseL.Width + powL.Width + textL.Width;
-
         }
 
         StreamGeometry DrawTicks(double pixelsWide, Action<double, double> rank0ValAtPixel)
@@ -258,16 +288,18 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
             var geom = new StreamGeometry();
             using (var context = geom.Open()) {
                 FindAllTicks(pixelsWide / 100, Math.Min(startVal, endVal), Math.Max(startVal, endVal), (val, rank) => {
-                    var pixelPos = (val - startVal) * scale;
+                        var pixelPos = (val - startVal) * scale;
 
-                    context.BeginFigure(new Point(pixelPos, 0), false, false);
-                    context.LineTo(new Point(pixelPos, (4 - rank) * 4), true, false);
+                        context.BeginFigure(new Point(pixelPos, 0), false, false);
+                        context.LineTo(new Point(pixelPos, (4 - rank) * 4), true, false);
 
-                    if (rank == 0) {
-                        rank0ValAtPixel(val, pixelPos);
+                        if (rank == 0) {
+                            rank0ValAtPixel(val, pixelPos);
+                        }
                     }
-                });
+                );
             }
+
             return geom;
         }
 
@@ -287,7 +319,7 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
 
             var subSlotSize = totalSlotSize / subDivTicks[0];
 
-            var firstSubTickMult = (int)Math.Ceiling((minVal - firstTickAt) / subSlotSize);//some positive number;
+            var firstSubTickMult = (int)Math.Ceiling((minVal - firstTickAt) / subSlotSize); //some positive number;
 
             for (var i = firstSubTickMult; firstTickAt + subSlotSize * i <= maxVal + subSlotSize * 0.00001; i++) {
                 var rank = 0;
@@ -307,9 +339,11 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
         /// <param name="preferredNum">the preferred number of labelled ticks.  This method will deviate by at most a factor 1.5 from that</param>
         /// <param name="firstTickAt">output: where the first tick should be placed</param>
         /// <param name="slotSize">output: the distance between consequetive ticks</param>
-        /// <param name="ticks">output: the additional order of subdivisions each slot can be divided into.
+        /// <param name="ticks">
+        /// output: the additional order of subdivisions each slot can be divided into.
         /// This value aims to have around 10 subdivisions total, slightly more when the actual number of slots is fewer than requested
-        /// and slightly less when the actual number of slots greater than requested.</param>
+        /// and slightly less when the actual number of slots greater than requested.
+        /// </param>
         public static void CalcTickPositions(double minVal, double maxVal, double preferredNum, out double firstTickAt, out double slotSize, out int[] ticks, out int orderOfMagnitude)
         {
             var range = maxVal - minVal;
@@ -331,16 +365,13 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
                 fixedSlot = 10;
                 ticks = new[] { 2, 5, 2 };
             }
+
             slotSize = fixedSlot * Math.Pow(10, orderOfMagnitude);
 
 
             //now to find the first tick!
 
             firstTickAt = Math.Ceiling(minVal / slotSize) * slotSize;
-
         }
-
-
-
     }
 }

@@ -1,5 +1,6 @@
 ﻿// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
+
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -14,7 +15,8 @@ namespace LvqGui
     {
         readonly LvqWindowValues owner;
         public event PropertyChangedEventHandler PropertyChanged;
-        void _propertyChanged(String propertyName)
+
+        void _propertyChanged(string propertyName)
         {
             if (PropertyChanged != null) {
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
@@ -24,22 +26,44 @@ namespace LvqGui
         public uint ParamsSeed
         {
             get => _Seed;
-            set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("ParamsSeed"); } }
+            set {
+                if (!Equals(_Seed, value)) {
+                    _Seed = value;
+                    _propertyChanged("ParamsSeed");
+                }
+            }
         }
+
         uint _Seed;
 
         public uint InstanceSeed
         {
             get => _InstSeed;
-            set { if (!_InstSeed.Equals(value)) { _InstSeed = value; _propertyChanged("InstanceSeed"); } }
+            set {
+                if (!_InstSeed.Equals(value)) {
+                    _InstSeed = value;
+                    _propertyChanged("InstanceSeed");
+                }
+            }
         }
+
         uint _InstSeed;
 
         public int Folds
         {
             get => _Folds;
-            set { if (value != 0 && value < 2) { throw new ArgumentException("Must have no folds (no test data) or at least 2"); } if (!_Folds.Equals(value)) { _Folds = value; _propertyChanged("Folds"); } }
+            set {
+                if (value != 0 && value < 2) {
+                    throw new ArgumentException("Must have no folds (no test data) or at least 2");
+                }
+
+                if (!_Folds.Equals(value)) {
+                    _Folds = value;
+                    _propertyChanged("Folds");
+                }
+            }
         }
+
         int _Folds;
 
 
@@ -72,7 +96,9 @@ namespace LvqGui
                         Console.WriteLine("Can't load file: {0}", fe);
                         return null;
                     }
-                } else if (dataFileOpenDialog.FileNames.Length == 2) {
+                }
+
+                if (dataFileOpenDialog.FileNames.Length == 2) {
                     var trainFile = dataFileOpenDialog.FileNames.Where(name => name.Contains("train.")).Select(name => new FileInfo(name)).FirstOrDefault();
                     var testFile = dataFileOpenDialog.FileNames.Where(name => name.Contains("test.")).Select(name => new FileInfo(name)).FirstOrDefault();
                     if (trainFile == null || testFile == null) {
@@ -86,12 +112,12 @@ namespace LvqGui
                         Console.WriteLine("Can't load file: {0}", fe);
                         return null;
                     }
-                } else {
-                    return null;
                 }
-            } else {
+
                 return null;
             }
+
+            return null;
         }
 
         LvqDatasetCli LoadDataset(FileInfo dataFile, uint seed, int folds, FileInfo testFile = null) => LoadDatasetImpl.LoadData(dataFile, testFile, new LoadedDatasetSettings { TestFilename = testFile == null ? null : testFile.Name, ExtendDataByCorrelation = owner.ExtendDataByCorrelation, NormalizeDimensions = owner.NormalizeDimensions, NormalizeByScaling = owner.NormalizeByScaling, InstanceSeed = seed, Folds = folds });
@@ -99,12 +125,13 @@ namespace LvqGui
         public void ConfirmCreation()
         {
             var fileOpenThread = new Thread(o => {
-                var t = (Tuple<uint, int>)o;
-                var dataset = CreateDataset(t.Item1, t.Item2);
-                if (dataset != null) {
-                    owner.Dispatcher.BeginInvoke(owner.Datasets.Add, dataset);
+                    var t = (Tuple<uint, int>)o;
+                    var dataset = CreateDataset(t.Item1, t.Item2);
+                    if (dataset != null) {
+                        owner.Dispatcher.BeginInvoke(owner.Datasets.Add, dataset);
+                    }
                 }
-            });
+            );
             fileOpenThread.SetApartmentState(ApartmentState.STA);
             fileOpenThread.IsBackground = true;
             fileOpenThread.Start(Tuple.Create(_InstSeed, _Folds));

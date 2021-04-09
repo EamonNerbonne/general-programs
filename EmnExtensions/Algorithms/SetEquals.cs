@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+
 namespace EmnExtensions.Algorithms
 {
     public static class SetEqualsExtension

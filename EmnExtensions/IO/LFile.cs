@@ -51,20 +51,26 @@ namespace EmnExtensions.IO
 
         public Stream Open(FileMode fileMode) => File.Open(FullName, fileMode, FileAccess.ReadWrite);
 
-        public LFile Move(string newpath) { File.Move(FullName, newpath); return Construct(newpath); }
+        public LFile Move(string newpath)
+        {
+            File.Move(FullName, newpath);
+            return Construct(newpath);
+        }
 
         public static bool Delete(string path)
         {
             if (File.Exists(path)) {
                 File.Delete(path);
                 return true;
-            } else {
-                return false;
             }
+
+            return false;
         }
+
         public bool Delete() => Delete(FullName);
 
         public static void Move(string path, string newpath) => File.Move(path, newpath);
+
         public LDirectory Directory
         {
             get {
@@ -97,8 +103,9 @@ namespace EmnExtensions.IO
         public IEnumerable<LFile> GetFiles() => Directory.EnumerateFiles(FullName).Select(LFile.Construct);
         public IEnumerable<LFile> GetFiles(string searchPattern) => Directory.EnumerateFiles(FullName, searchPattern).Select(LFile.Construct);
         public IEnumerable<LFile> GetFiles(string searchPattern, SearchOption searchOption) => searchOption == SearchOption.TopDirectoryOnly ? GetFiles(searchPattern) : GetDescendantAndSelfDirectories().SelectMany(dir => dir.GetFiles(searchPattern));
-        public IEnumerable<LDirectory> GetDirectories() => Directory.EnumerateDirectories(FullName).Select(LDirectory.Construct);
+        public IEnumerable<LDirectory> GetDirectories() => Directory.EnumerateDirectories(FullName).Select(Construct);
         public IEnumerable<LDirectory> GetDescendantDirectories() => GetDescendantAndSelfDirectories().Skip(1);
+
         IEnumerable<LDirectory> GetDescendantAndSelfDirectories()
         {
             var todo = new Stack<LDirectory>();
@@ -136,7 +143,7 @@ namespace EmnExtensions.IO
             get {
                 var fullname = FullName;
                 var lastSlash = fullname.LastIndexOf(Path.DirectorySeparatorChar, fullname.Length - 2);
-                return lastSlash == -1 ? null : LDirectory.Construct(FullName.Substring(0, lastSlash + 1));
+                return lastSlash == -1 ? null : Construct(FullName.Substring(0, lastSlash + 1));
             }
         }
 
@@ -147,8 +154,8 @@ namespace EmnExtensions.IO
                 var lastSlash = fullname.LastIndexOf(Path.DirectorySeparatorChar, fullname.Length - 2);
                 var name = fullname.Substring(lastSlash + 1, fullname.Length - lastSlash - 2);
                 return name.EndsWith(":") && lastSlash == -1
-                        ? name + Path.DirectorySeparatorChar
-                        : name;
+                    ? name + Path.DirectorySeparatorChar
+                    : name;
             }
         }
 

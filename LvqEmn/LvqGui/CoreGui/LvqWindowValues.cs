@@ -17,7 +17,8 @@ namespace LvqGui
     public class LvqWindowValues : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
-        void _propertyChanged(String propertyName)
+
+        void _propertyChanged(string propertyName)
         {
             if (PropertyChanged != null) {
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
@@ -34,25 +35,41 @@ namespace LvqGui
         public bool ExtendDataByCorrelation
         {
             get => _ExtendDataByCorrelation;
-            set { if (!_ExtendDataByCorrelation.Equals(value)) { _ExtendDataByCorrelation = value; _propertyChanged("ExtendDataByCorrelation"); } }
+            set {
+                if (!_ExtendDataByCorrelation.Equals(value)) {
+                    _ExtendDataByCorrelation = value;
+                    _propertyChanged("ExtendDataByCorrelation");
+                }
+            }
         }
+
         bool _ExtendDataByCorrelation;
 
         public bool NormalizeDimensions
         {
             get => _NormalizeDimensions;
-            set { if (!_NormalizeDimensions.Equals(value)) { _NormalizeDimensions = value; _propertyChanged("NormalizeDimensions"); } }
+            set {
+                if (!_NormalizeDimensions.Equals(value)) {
+                    _NormalizeDimensions = value;
+                    _propertyChanged("NormalizeDimensions");
+                }
+            }
         }
-        private bool _NormalizeDimensions = true;
+
+        bool _NormalizeDimensions = true;
 
         public bool NormalizeByScaling
         {
             get => _NormalizeByScaling;
-            set { if (!Equals(_NormalizeByScaling, value)) { _NormalizeByScaling = value; _propertyChanged("NormalizeByScaling"); } }
+            set {
+                if (!Equals(_NormalizeByScaling, value)) {
+                    _NormalizeByScaling = value;
+                    _propertyChanged("NormalizeByScaling");
+                }
+            }
         }
-        private bool _NormalizeByScaling;
 
-
+        bool _NormalizeByScaling;
 
 
         public ObservableCollection<LvqDatasetCli> Datasets { get; private set; }
@@ -97,6 +114,7 @@ namespace LvqGui
                 TrainingControlValues.SelectedLvqModel = newModelGroup;
                 //win.trainingTab.IsSelected = true;
             }
+
             if (e.OldItems != null && e.OldItems.Contains(TrainingControlValues.SelectedLvqModel)) {
                 var newModel = LvqModels.LastOrDefault();
                 if (newModel == null) {
@@ -106,6 +124,7 @@ namespace LvqGui
                     TrainingControlValues.SelectedLvqModel = newModel;
                 }
             }
+
             if (e.OldItems != null) {
                 foreach (LvqMultiModel modelGroup in e.OldItems) {
                     foreach (var subModel in modelGroup.SubModels) {
@@ -133,13 +152,16 @@ namespace LvqGui
                 foreach (LvqDatasetCli newDataset in e.NewItems) {
                     CreateLvqModelValues.ForDataset = newDataset;
                     ThreadPool.QueueUserWorkItem(o => {
-                        var dataset = (LvqDatasetCli)o;
-                        var errorRateAndVar = dataset.GetPcaNnErrorRate();
-                        Console.WriteLine("NN error rate under PCA: {0} ~ {1}", errorRateAndVar.Item1, Math.Sqrt(errorRateAndVar.Item2));
-                    }, newDataset);
+                            var dataset = (LvqDatasetCli)o;
+                            var errorRateAndVar = dataset.GetPcaNnErrorRate();
+                            Console.WriteLine("NN error rate under PCA: {0} ~ {1}", errorRateAndVar.Item1, Math.Sqrt(errorRateAndVar.Item2));
+                        }, newDataset
+                    );
                 }
+
                 win.modelTab.IsSelected = true;
             }
+
             if (e.OldItems != null) {
                 if (e.OldItems.Contains(CreateLvqModelValues.ForDataset)) {
                     CreateLvqModelValues.ForDataset = Datasets.LastOrDefault();
@@ -150,6 +172,5 @@ namespace LvqGui
                 }
             }
         }
-
     }
 }

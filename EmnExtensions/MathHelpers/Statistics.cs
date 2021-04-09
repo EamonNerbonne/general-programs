@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
 namespace EmnExtensions.MathHelpers
 {
-
     /// <summary>
     /// This isn't a good implementation, but heck, it's already implemented...
     /// </summary>
@@ -24,21 +23,24 @@ namespace EmnExtensions.MathHelpers
                 errF = " ~ {1:f" + errOOM + "}";
             } else {
                 var digitEstimate = Math.Abs(mean) <= stderr
-                                ? 1.0
-                                : (Math.Log10(Math.Abs(mean) / stderr) + 1.5);
+                    ? 1.0
+                    : (Math.Log10(Math.Abs(mean) / stderr) + 1.5);
                 var digits = (int)(digitEstimate + extraprecision);
                 numF = "g" + digits;
                 errF = " ~ {1:g2}";
             }
+
+            // ReSharper disable FormatStringProblem
             return string.Format("{0:" + numF + "}" + (suppressStderr ? "" : errF), mean, stderr);
+            // ReSharper restore FormatStringProblem
         }
 
 
         public static float CentralMoment(IEnumerable<float> list, float average, int moment) => (float)list.Average(x => Math.Pow(x - average, moment));
         public static float Covariance(Statistics A, Statistics B) => (float)(A.Seq.Cast<double>().ZipWith(B.Seq.Cast<double>(), (a, b) => (a - A.Mean) * (b - B.Mean)).Average() / Math.Sqrt(A.Var) / Math.Sqrt(B.Var));
-        public float Mean, Var, Skew, Kurtosis;
-        public int Count;
-        public IEnumerable<float> Seq;
+        public readonly float Mean, Var, Skew, Kurtosis;
+        public readonly int Count;
+        public readonly IEnumerable<float> Seq;
 
 
         public Statistics(IEnumerable<float> seq)

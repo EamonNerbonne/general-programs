@@ -33,8 +33,9 @@ namespace EmnExtensions.Wpf
 
             value = (6 - 2 * dx) * value + dx;
             var c = Color.FromRgb((byte)(Math.Max(0.0f, (3 - Math.Abs(value - 4) - Math.Abs(value - 5)) / 2) * 255),
-                                     (byte)(Math.Max(0.0f, (4 - Math.Abs(value - 2) - Math.Abs(value - 4)) / 2) * 255),
-                                     (byte)(Math.Max(0.0f, (3 - Math.Abs(value - 1) - Math.Abs(value - 2)) / 2) * 255));
+                (byte)(Math.Max(0.0f, (4 - Math.Abs(value - 2) - Math.Abs(value - 4)) / 2) * 255),
+                (byte)(Math.Max(0.0f, (3 - Math.Abs(value - 1) - Math.Abs(value - 2)) / 2) * 255)
+            );
             /*if (saturation < 1)
                 c = ColorConversion.Desaturize(c, saturation);
 
@@ -43,6 +44,7 @@ namespace EmnExtensions.Wpf
 
             return c;
         }
+
         public static Color ScaledRainbow(double value)
         {
             if (value < 0) {
@@ -70,6 +72,7 @@ namespace EmnExtensions.Wpf
                 hsl.H = 2.0 / 3.0;
             }
 
+
             var c = hsl.ToRGB();
 
             return c;
@@ -77,8 +80,9 @@ namespace EmnExtensions.Wpf
 
 
         public static Color BlueYellow(double value) => Color.FromRgb((byte)((1 - value) * 255),
-                         (byte)((1 - value) * 255),
-                         (byte)(value * 255));
+            (byte)((1 - value) * 255),
+            (byte)(value * 255)
+        );
 
         public static Color BlueCyanWhite(double value)
         {
@@ -101,6 +105,7 @@ namespace EmnExtensions.Wpf
             var b = value;
             return Color.FromRgb((byte)(r * 255.9999), (byte)(g * 255.9999), (byte)(b * 255.9999));
         }
+
         public static Color BlueMagentaWhite(double value)
         {
             value = value * 3.0;
@@ -111,6 +116,5 @@ namespace EmnExtensions.Wpf
             var g = value;
             return Color.FromRgb((byte)(r * 255.9999), (byte)(g * 255.9999), (byte)(b * 255.9999));
         }
-
     }
 }

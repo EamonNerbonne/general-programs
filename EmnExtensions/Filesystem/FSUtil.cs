@@ -7,7 +7,7 @@ namespace EmnExtensions.Filesystem
 {
     public static class FSUtil
     {
-        static char[] invalidChars = Path.GetInvalidPathChars();
+        static readonly char[] invalidChars = Path.GetInvalidPathChars();
         public static bool IsValidPath(string path) => path.IndexOfAny(invalidChars) < 0;
 
         /// <summary>
@@ -26,26 +26,27 @@ namespace EmnExtensions.Filesystem
         public static DirectoryInfo FindDataDir(string relpath, Type relativeToAssemblyFor) => FindDataDir(relpath, Assembly.GetAssembly(relativeToAssemblyFor));
 
         public static DirectoryInfo FindDataDir(string relpath, Assembly relativeTo = null) => new FileInfo((relativeTo ?? Assembly.GetCallingAssembly()).Location)
-                .Directory.ParentDirs()
-                .Select(dir => Path.Combine(dir.FullName + @"\", relpath))
-                .Where(Directory.Exists)
-                .Select(path => new DirectoryInfo(path))
-                .FirstOrDefault();
+            .Directory.ParentDirs()
+            .Select(dir => Path.Combine(dir.FullName + @"\", relpath))
+            .Where(Directory.Exists)
+            .Select(path => new DirectoryInfo(path))
+            .FirstOrDefault();
+
         public static DirectoryInfo FindDataDir(string[] relpaths, Type relativeToAssemblyFor) => FindDataDir(relpaths, Assembly.GetAssembly(relativeToAssemblyFor));
 
         public static DirectoryInfo FindDataDir(string[] relpaths, Assembly relativeTo = null) => new FileInfo((relativeTo ?? Assembly.GetCallingAssembly()).Location)
-                .Directory.ParentDirs()
-                .SelectMany(dir => relpaths.Select(relpath => Path.Combine(dir.FullName + @"\", relpath)))
-                .Where(Directory.Exists)
-                .Select(path => new DirectoryInfo(path))
-                .FirstOrDefault();
+            .Directory.ParentDirs()
+            .SelectMany(dir => relpaths.Select(relpath => Path.Combine(dir.FullName + @"\", relpath)))
+            .Where(Directory.Exists)
+            .Select(path => new DirectoryInfo(path))
+            .FirstOrDefault();
 
         /// <summary>
-        /// Returns the path of the tgtPath parameter relative to the basePath parameter.  Both parameters must be absolute paths.  
+        /// Returns the path of the tgtPath parameter relative to the basePath parameter.  Both parameters must be absolute paths.
         /// If either represents a directory, it should end with a directory seperating character (e.g. a backslash)
         /// </summary>
         public static string MakeRelativePath(string basePath, string tgtPath) => Uri.UnescapeDataString(
-                    new Uri(basePath, UriKind.Absolute).MakeRelativeUri(new Uri(tgtPath, UriKind.Absolute)).ToString()
-                ).Replace('/', Path.DirectorySeparatorChar);
+            new Uri(basePath, UriKind.Absolute).MakeRelativeUri(new Uri(tgtPath, UriKind.Absolute)).ToString()
+        ).Replace('/', Path.DirectorySeparatorChar);
     }
 }

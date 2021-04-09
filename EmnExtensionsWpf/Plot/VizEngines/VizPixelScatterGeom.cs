@@ -13,6 +13,7 @@ namespace EmnExtensions.Wpf.VizEngines
         Point[] currentData;
         Rect? computedInnerBounds;
         StreamGeometry transformedData;
+
         public override void ChangeData(Point[] newData)
         {
             currentData = newData;
@@ -20,12 +21,9 @@ namespace EmnExtensions.Wpf.VizEngines
             impl.ChangeData(transformedData);
 
             InvalidateBounds();
+        }
 
-        }
-        public VizPixelScatterGeom(IPlotMetaData metadata)
-        {
-            impl = new VizGeometry(metadata) { AutosizeBounds = false };
-        }
+        public VizPixelScatterGeom(IPlotMetaData metadata) => impl = new VizGeometry(metadata) { AutosizeBounds = false };
 
         void InvalidateBounds()
         {
@@ -34,9 +32,11 @@ namespace EmnExtensions.Wpf.VizEngines
                 MetaData.GraphChanged(GraphChange.Projection);
             }
         }
+
         public int? OverridePointCountEstimate { get; set; }
 
         double lastAreaScale = 1.0;
+
         void SetPenSize()
         {
             var pointCount = OverridePointCountEstimate ?? (currentData == null ? 0 : currentData.Length);
@@ -71,10 +71,26 @@ namespace EmnExtensions.Wpf.VizEngines
         }
 
         double m_Coverage = 0.9999;
-        public double CoverageRatio { get => m_Coverage; set { m_Coverage = value; InvalidateBounds(); } }
+
+        public double CoverageRatio
+        {
+            get => m_Coverage;
+            set {
+                m_Coverage = value;
+                InvalidateBounds();
+            }
+        }
 
         double m_CoverageGradient = 5.0;
-        public double CoverageGradient { get => m_CoverageGradient; set { m_CoverageGradient = value; InvalidateBounds(); } }
+
+        public double CoverageGradient
+        {
+            get => m_CoverageGradient;
+            set {
+                m_CoverageGradient = value;
+                InvalidateBounds();
+            }
+        }
 
         Rect RecomputeBounds()
         {
@@ -82,9 +98,9 @@ namespace EmnExtensions.Wpf.VizEngines
             VizPixelScatterHelpers.RecomputeBounds(currentData, CoverageRatio, CoverageRatio, CoverageGradient, out outerBounds, out innerBounds);
             return innerBounds;
         }
+
         public override Rect DataBounds => computedInnerBounds ?? (computedInnerBounds = RecomputeBounds()).Value;
 
         protected override IVizEngine<StreamGeometry> Implementation => impl;
-
     }
 }

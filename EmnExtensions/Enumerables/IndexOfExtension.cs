@@ -15,6 +15,7 @@ namespace EmnExtensions
 
                 index++;
             }
+
             return -1;
         }
     }

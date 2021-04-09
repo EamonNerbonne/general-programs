@@ -1,5 +1,6 @@
 ﻿// ReSharper disable ParameterTypeCanBeEnumerable.Local
 // ReSharper disable MemberCanBePrivate.Global
+
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,7 +14,13 @@ namespace LvqGui
         public readonly FileInfo resultsFile;
         public readonly double trainedIterations;
         public readonly LvqModelSettingsCli unoptimizedSettings;
-        LrOptimizationResult(FileInfo fi, double iters, LvqModelSettingsCli settings) { unoptimizedSettings = settings; trainedIterations = iters; resultsFile = fi; }
+
+        LrOptimizationResult(FileInfo fi, double iters, LvqModelSettingsCli settings)
+        {
+            unoptimizedSettings = settings;
+            trainedIterations = iters;
+            resultsFile = fi;
+        }
 
         public LvqModelSettingsCli GetOptimizedSettings(uint? paramSeed = null, uint? instSeed = null)
         {
@@ -48,21 +55,20 @@ namespace LvqGui
         }
 
 
-
-        static readonly char[] comma = new[] { ',' };
+        static readonly char[] comma = { ',' };
         static double[] ExtractLrs(string line) => line.SubstringAfterFirst("{").SubstringUntil("}").Split(comma).Select(double.Parse).ToArray();
 
 
         public static IEnumerable<LrOptimizationResult> FromDataset(LvqDatasetCli dataset, string settingsStr) => from creator in MaybeGetCreator(dataset)
-                                                                                                                  from parsedResults in FromDataset(creator, settingsStr)
-                                                                                                                  select parsedResults;
+            from parsedResults in FromDataset(creator, settingsStr)
+            select parsedResults;
 
         public static IEnumerable<LrOptimizationResult> FromDataset(IDatasetCreator dataset, string settingsStr = null) => from datasetResultsDir in GetDatasetResultDir(dataset)
-                                                                                                                           from resultFile in datasetResultsDir.GetFiles("*" + (settingsStr == null ? "" : settingsStr + "*") + ".txt")
-                                                                                                                           where resultFile.Length > 0
-                                                                                                                           let parsedResults = ProcFile(resultFile)
-                                                                                                                           where parsedResults != null
-                                                                                                                           select parsedResults;
+            from resultFile in datasetResultsDir.GetFiles("*" + (settingsStr == null ? "" : settingsStr + "*") + ".txt")
+            where resultFile.Length > 0
+            let parsedResults = ProcFile(resultFile)
+            where parsedResults != null
+            select parsedResults;
 
 
         public static LrOptimizationResult ProcFile(FileInfo resultFile)
@@ -104,13 +110,14 @@ namespace LvqGui
 
             return Enumerable.Repeat(CreateDataset.CreateFactory(dataset.DatasetLabel), 1);
         }
+
         static IEnumerable<DirectoryInfo> GetDatasetResultDir(IDatasetCreator basicExample) => from dir in LrGuesser.resultsDir.GetDirectories()
-                                                                                               where basicExample != null
-                                                                                               let dirSplitName = CreateDataset.CreateFactory(dir.Name)
-                                                                                               where dirSplitName != null && dirSplitName.GetType() == basicExample.GetType() && basicExample.LrTrainingShorthand() == dirSplitName.LrTrainingShorthand()
-                                                                                               orderby dirSplitName.HasTestfile() == basicExample.HasTestfile() descending
-                                                                                               , dirSplitName.Folds == basicExample.Folds descending
-                                                                                               , dirSplitName.InstanceSeed == basicExample.InstanceSeed descending
-                                                                                               select dir;
+            where basicExample != null
+            let dirSplitName = CreateDataset.CreateFactory(dir.Name)
+            where dirSplitName != null && dirSplitName.GetType() == basicExample.GetType() && basicExample.LrTrainingShorthand() == dirSplitName.LrTrainingShorthand()
+            orderby dirSplitName.HasTestfile() == basicExample.HasTestfile() descending
+                , dirSplitName.Folds == basicExample.Folds descending
+                , dirSplitName.InstanceSeed == basicExample.InstanceSeed descending
+            select dir;
     }
 }

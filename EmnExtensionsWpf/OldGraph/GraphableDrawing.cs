@@ -5,16 +5,16 @@ namespace EmnExtensions.Wpf.Plot
 {
     public abstract class GraphableDrawing : GraphableData
     {
-        MatrixTransform m_drawingToDisplay = new MatrixTransform();
+        readonly MatrixTransform m_drawingToDisplay = new MatrixTransform();
 
         public static Rect ComputeDataBounds(Rect innerDrawingBounds, Rect innerDataBounds, Rect drawingBounds)
         {
             if (innerDataBounds.IsEmpty || innerDrawingBounds.IsEmpty) {
                 return Rect.Empty;
-            } else {
-                var trans = GraphUtils.TransformShape(innerDrawingBounds, innerDataBounds, false);
-                return Rect.Transform(drawingBounds, trans);
             }
+
+            var trans = GraphUtils.TransformShape(innerDrawingBounds, innerDataBounds, false);
+            return Rect.Transform(drawingBounds, trans);
         }
 
         public sealed override void DrawGraph(DrawingContext context)

@@ -19,17 +19,48 @@ namespace EmnExtensions.Wpf.VizEngines
         StreamGeometry geomCache;
         Tuple<Point[], Point[]> currentPoints;
 
-        public VizDataRange(IPlotMetaData owner) { impl = new VizGeometry(owner) { AutosizeBounds = false, IsStroked = false, IsFilled = true }; }
+        public VizDataRange(IPlotMetaData owner) => impl = new VizGeometry(owner) { AutosizeBounds = false, IsStroked = false, IsFilled = true };
 
         protected override IVizEngine<StreamGeometry> Implementation => impl;
 
         double m_CoverageRatioY = 0.9999;
-        public double CoverageRatioY { get => m_CoverageRatioY; set { if (value != m_CoverageRatioY) { m_CoverageRatioY = value; RecomputeBounds(); } } }
+
+        public double CoverageRatioY
+        {
+            get => m_CoverageRatioY;
+            set {
+                if (value != m_CoverageRatioY) {
+                    m_CoverageRatioY = value;
+                    RecomputeBounds();
+                }
+            }
+        }
+
         double m_CoverageRatioX = 1.0;
-        public double CoverageRatioX { get => m_CoverageRatioX; set { if (value != m_CoverageRatioX) { m_CoverageRatioX = value; RecomputeBounds(); } } }
+
+        public double CoverageRatioX
+        {
+            get => m_CoverageRatioX;
+            set {
+                if (value != m_CoverageRatioX) {
+                    m_CoverageRatioX = value;
+                    RecomputeBounds();
+                }
+            }
+        }
 
         double m_CoverageRatioGrad = 2.0;
-        public double CoverageRatioGrad { get => m_CoverageRatioGrad; set { if (value != m_CoverageRatioGrad) { m_CoverageRatioGrad = value; RecomputeBounds(); } } }
+
+        public double CoverageRatioGrad
+        {
+            get => m_CoverageRatioGrad;
+            set {
+                if (value != m_CoverageRatioGrad) {
+                    m_CoverageRatioGrad = value;
+                    RecomputeBounds();
+                }
+            }
+        }
 
         public override void ChangeData(Tuple<Point[], Point[]> newData)
         {
@@ -53,8 +84,8 @@ namespace EmnExtensions.Wpf.VizEngines
                 }
             }
         }
+
         Rect m_InnerBounds;
         public override Rect DataBounds => m_InnerBounds;
     }
 }
-

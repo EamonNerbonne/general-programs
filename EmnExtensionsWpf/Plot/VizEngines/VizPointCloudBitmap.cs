@@ -7,16 +7,38 @@ using System.Windows.Media;
 namespace EmnExtensions.Wpf.VizEngines
 {
     public class VizPointCloudBitmap : VizDynamicBitmap<LabelledPoint[]>
-    //for efficiency reasons, accept data in a Point[] rather than the more general IEnumerable<Point>
+        //for efficiency reasons, accept data in a Point[] rather than the more general IEnumerable<Point>
     {
         struct UintColor
         {
             public uint R, G, B;
-            public UintColor(Color c) { R = c.R; G = c.G; B = c.B; }
-            public static UintColor operator +(UintColor a, UintColor b) { var result = default(UintColor); result.R = a.R + b.R; result.G = a.G + b.G; result.B = a.B + b.B; return result; }
-            public void Increment(UintColor other) { R += other.R; G += other.G; B += other.B; }
+
+            public UintColor(Color c)
+            {
+                R = c.R;
+                G = c.G;
+                B = c.B;
+            }
+
+            public static UintColor operator +(UintColor a, UintColor b)
+            {
+                var result = default(UintColor);
+                result.R = a.R + b.R;
+                result.G = a.G + b.G;
+                result.B = a.B + b.B;
+                return result;
+            }
+
+            public void Increment(UintColor other)
+            {
+                R += other.R;
+                G += other.G;
+                B += other.B;
+            }
+
             public uint RawDiv(uint divisor) => divisor == 0 ? 0u : (R / divisor << 16) + (G / divisor << 8) + (B / divisor);
         }
+
         Rect m_OuterDataBounds = Rect.Empty;
         uint[] m_image;
         UintColor[] m_accumulator;
@@ -25,14 +47,40 @@ namespace EmnExtensions.Wpf.VizEngines
 
         protected override Rect? OuterDataBound => m_OuterDataBounds;
         double m_CoverageRatio = 0.9999;
-        public double CoverageRatio { get => m_CoverageRatio; set { if (value != m_CoverageRatio) { m_CoverageRatio = value; InvalidateDataBounds(); } } }
+
+        public double CoverageRatio
+        {
+            get => m_CoverageRatio;
+            set {
+                if (value != m_CoverageRatio) {
+                    m_CoverageRatio = value;
+                    InvalidateDataBounds();
+                }
+            }
+        }
 
         double m_CoverageGradient = 5.0;
-        public double CoverageGradient { get => m_CoverageGradient; set { m_CoverageGradient = value; InvalidateDataBounds(); } }
+
+        public double CoverageGradient
+        {
+            get => m_CoverageGradient;
+            set {
+                m_CoverageGradient = value;
+                InvalidateDataBounds();
+            }
+        }
 
         Color[] m_ClassColors;
         UintColor[] m_MappedColors;
-        public Color[] ClassColors { get => m_ClassColors; set { m_ClassColors = value; RecomputeColors(); } }
+
+        public Color[] ClassColors
+        {
+            get => m_ClassColors;
+            set {
+                m_ClassColors = value;
+                RecomputeColors();
+            }
+        }
 
         void RecomputeColors()
         {
@@ -47,7 +95,7 @@ namespace EmnExtensions.Wpf.VizEngines
             Trace.WriteLine("UpdateBitmap");
 
             if (dataToBitmap.IsIdentity || m_ClassColors == null || Data == null || Data.Length == 0) {
-                return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
+                return; //this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
             }
 
             var thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data == null ? 0 : Data.Length));
@@ -68,26 +116,41 @@ namespace EmnExtensions.Wpf.VizEngines
 
             if (alpha <= 1.0) {
                 return Tuple.Create(alpha, 0);
-            } else if (alpha <= 1.2) {
-                return Tuple.Create(1.0, 0);
-            } else if (alpha <= 2.5) {
-                return Tuple.Create(alpha / 6.0, 1);
-            } else if (alpha <= 5.0) {
-                return Tuple.Create(alpha / 5.0, 2);
-            } else if (alpha <= 6.0) {
-                return Tuple.Create(1.0, 2);
-            } else if (alpha <= 10.0) {
-                return Tuple.Create(alpha / 10.0, 3);
-            } else if (alpha <= 12.0) {
-                return Tuple.Create(1.0, 3);
-            } else if (alpha <= 21.0) {
-                return Tuple.Create(alpha / 21.0, 4);
-            } else {
-                return Tuple.Create(1.0, 4);
             }
+
+            if (alpha <= 1.2) {
+                return Tuple.Create(1.0, 0);
+            }
+
+            if (alpha <= 2.5) {
+                return Tuple.Create(alpha / 6.0, 1);
+            }
+
+            if (alpha <= 5.0) {
+                return Tuple.Create(alpha / 5.0, 2);
+            }
+
+            if (alpha <= 6.0) {
+                return Tuple.Create(1.0, 2);
+            }
+
+            if (alpha <= 10.0) {
+                return Tuple.Create(alpha / 10.0, 3);
+            }
+
+            if (alpha <= 12.0) {
+                return Tuple.Create(1.0, 3);
+            }
+
+            if (alpha <= 21.0) {
+                return Tuple.Create(alpha / 21.0, 4);
+            }
+
+            return Tuple.Create(1.0, 4);
         }
 
         #region UpdateBitmap Helpers
+
         void Make2dHistogramInRegion(int pW, int pH, Matrix dataToBitmap, int addpixelMode)
         {
             MakeVisibleRegionEmpty(pW, pH);
@@ -249,7 +312,6 @@ namespace EmnExtensions.Wpf.VizEngines
                     AddPixel(offset - 1 + pW, label);
                     AddPixel(offset + pW, label);
                     AddPixel(offset + 1 + pW, label);
-
                 }
             }
         }
@@ -262,7 +324,6 @@ namespace EmnExtensions.Wpf.VizEngines
 
         void ConvertHistogramToColorDensityImage(int pW, int pH, double alpha)
         {
-
             var numPixels = pW * pH;
             var alphaLookup = PregenerateAlphaLookup(alpha, m_image, numPixels);
 
@@ -276,11 +337,12 @@ namespace EmnExtensions.Wpf.VizEngines
         {
             try {
                 m_bmp.WritePixels(
-                    sourceRect: new Int32Rect(0, 0, pW, pH),
-                    sourceBuffer: m_image,
-                    sourceBufferStride: pW * sizeof(uint),
-                    destinationX: 0,
-                    destinationY: 0);
+                    new Int32Rect(0, 0, pW, pH),
+                    m_image,
+                    pW * sizeof(uint),
+                    0,
+                    0
+                );
             } catch (ArgumentOutOfRangeException ae) {
                 Console.WriteLine(ae);
                 Console.WriteLine("pW: " + pW);
@@ -300,6 +362,7 @@ namespace EmnExtensions.Wpf.VizEngines
                 var overlappingAlpha = (1.0 - Math.Pow(transparencyPerOverlap, overlap / 2.0));
                 alphaLookup[overlap] = (uint)(overlappingAlpha * 255.5) << 24;
             }
+
             return alphaLookup;
         }
 
@@ -314,6 +377,7 @@ namespace EmnExtensions.Wpf.VizEngines
 
             return maxCount;
         }
+
         #endregion
 
         protected override void OnDataChanged(LabelledPoint[] oldData)

@@ -15,7 +15,8 @@ namespace EmnExtensions.Threading
             PassUpErrors(t, whencomplete, t0 => PassUpErrors(startnext(), whencomplete, continuationFunction));
             return whencomplete.Task;
         }
-        private static void PassUpErrors(Task t, TaskCompletionSource<int> parent, Action<Task> whenOk)
+
+        static void PassUpErrors(Task t, TaskCompletionSource<int> parent, Action<Task> whenOk)
         {
             t.ContinueWith(t0 => parent.SetCanceled(), TaskContinuationOptions.OnlyOnCanceled);
             t.ContinueWith(t0 => parent.SetException(t0.Exception), TaskContinuationOptions.OnlyOnFaulted);
@@ -30,7 +31,7 @@ namespace EmnExtensions.Threading
             return whencomplete.Task;
         }
 
-        private static void PassUpErrors<TIn, TOut>(Task<TIn> t, TaskCompletionSource<TOut> parent, Action<Task<TIn>> whenOk)
+        static void PassUpErrors<TIn, TOut>(Task<TIn> t, TaskCompletionSource<TOut> parent, Action<Task<TIn>> whenOk)
         {
             t.ContinueWith(t0 => parent.SetCanceled(), TaskContinuationOptions.OnlyOnCanceled);
             t.ContinueWith(t0 => parent.SetException(t0.Exception), TaskContinuationOptions.OnlyOnFaulted);

@@ -32,6 +32,7 @@ namespace LvqGui
                 StatGroup = StatGroup.Substring(1);
             }
         }
+
         public static LvqStatName Create(string compoundName, int index) => new LvqStatName(compoundName, index);
     }
 }

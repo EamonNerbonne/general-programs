@@ -13,18 +13,20 @@ namespace EmnExtensions.Algorithms
 
         static bool Compare(HashSet<ReferencePair> assumeEquals, object object1, object object2)
         {
-            if (object.ReferenceEquals(object1, object2)) {
+            if (ReferenceEquals(object1, object2)) {
                 return true;
-            } else if (object1 == null || object2 == null) {
+            }
+
+            if (object1 == null || object2 == null) {
                 return false; //not equal if one of the two is null
             }
 
             var pair = new ReferencePair(object1, object2);
             if (assumeEquals.Contains(pair)) {
                 return true;
-            } else {
-                assumeEquals.Add(pair);
             }
+
+            assumeEquals.Add(pair);
 
             var type = object1.GetType();
 
@@ -37,26 +39,31 @@ namespace EmnExtensions.Algorithms
             }
 
             if (type == object2.GetType()) {
-
                 var builtin = TypeBuiltinEquals(type);
                 if (builtin != null) {
                     return CompareWithBuiltinEquals(builtin, object1, object2);
                 }
 
                 return CompareAccessibleMembers(assumeEquals, type, object1, object2);
-            } else {
-                return object1 is IEnumerable && object2 is IEnumerable && CompareEnumerables(assumeEquals, (IEnumerable)object1, (IEnumerable)object2);
             }
+
+            return object1 is IEnumerable && object2 is IEnumerable && CompareEnumerables(assumeEquals, (IEnumerable)object1, (IEnumerable)object2);
         }
 
         public class ReferencePair : IEquatable<ReferencePair>
         {
             readonly object a, b;
-            public ReferencePair(object o1, object o2) { a = o1; b = o2; }
+
+            public ReferencePair(object o1, object o2)
+            {
+                a = o1;
+                b = o2;
+            }
+
             public override bool Equals(object obj) => Equals(obj as ReferencePair);
             public bool Equals(ReferencePair other) => other != null && ReferenceEquals(a, other.a) && ReferenceEquals(b, other.b);
             public override int GetHashCode() => RuntimeHelpers.GetHashCode(a) + 137 * RuntimeHelpers.GetHashCode(b);
-            public static bool operator ==(ReferencePair a, ReferencePair b) => object.ReferenceEquals(a, b) || !object.ReferenceEquals(a, null) && a.Equals(b);
+            public static bool operator ==(ReferencePair a, ReferencePair b) => ReferenceEquals(a, b) || !ReferenceEquals(a, null) && a.Equals(b);
             public static bool operator !=(ReferencePair a, ReferencePair b) => !(a == b);
         }
 
@@ -85,6 +92,7 @@ namespace EmnExtensions.Algorithms
                     return false;
                 }
             }
+
             return true;
         }
 

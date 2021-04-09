@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -8,36 +8,26 @@ namespace EmnExtensions.Wpf
 {
     /// <summary>
     /// Follow steps 1a or 1b and then 2 to use this custom control in a XAML file.
-    ///
     /// Step 1a) Using this custom control in a XAML file that exists in the current project.
-    /// Add this XmlNamespace attribute to the root element of the markup file where it is 
+    /// Add this XmlNamespace attribute to the root element of the markup file where it is
     /// to be used:
-    ///
-    ///     xmlns:MyNamespace="clr-namespace:EmnExtensions.Wpf"
-    ///
-    ///
+    /// xmlns:MyNamespace="clr-namespace:EmnExtensions.Wpf"
     /// Step 1b) Using this custom control in a XAML file that exists in a different project.
-    /// Add this XmlNamespace attribute to the root element of the markup file where it is 
+    /// Add this XmlNamespace attribute to the root element of the markup file where it is
     /// to be used:
-    ///
-    ///     xmlns:MyNamespace="clr-namespace:EmnExtensions.Wpf;assembly=EmnExtensions.Wpf"
-    ///
+    /// xmlns:MyNamespace="clr-namespace:EmnExtensions.Wpf;assembly=EmnExtensions.Wpf"
     /// You will also need to add a project reference from the project where the XAML file lives
     /// to this project and Rebuild to avoid compilation errors:
-    ///
-    ///     Right click on the target project in the Solution Explorer and
-    ///     "Add Reference"->"Projects"->[Browse to and select this project]
-    ///
-    ///
+    /// Right click on the target project in the Solution Explorer and
+    /// "Add Reference"->"Projects"->[Browse to and select this project]
     /// Step 2)
     /// Go ahead and use your control in the XAML file.
-    ///
-    ///     <MyNamespace:GraphControl/>
-    ///
+    /// <MyNamespace:GraphControl />
     /// </summary>
     public class GraphControl : FrameworkElement
     {
-        static Random GraphColorRandom = new Random();
+        static readonly Random GraphColorRandom = new Random();
+
         static Brush RandomGraphColor()
         {
             double r, g, b, sum;
@@ -47,25 +37,27 @@ namespace EmnExtensions.Wpf
             sum = GraphColorRandom.NextDouble() * 0.5 + 0.5;
             var brush = new SolidColorBrush(
                 new Color {
-                    A = (byte)255,
+                    A = 255,
                     R = (byte)(255 * r * sum / (r + g + b)),
                     G = (byte)(255 * g * sum / (r + g + b)),
                     B = (byte)(255 * b * sum / (r + g + b)),
                 }
-                );
+            );
             brush.Freeze();
             return brush;
         }
 
 
         protected override Size MeasureOverride(Size constraint) => new Size(
-                constraint.Width.IsFinite() ? constraint.Width : 150,
-                constraint.Height.IsFinite() ? constraint.Height : 150
-                );
+            constraint.Width.IsFinite() ? constraint.Width : 150,
+            constraint.Height.IsFinite() ? constraint.Height : 150
+        );
+
         public event Action<GraphControl, Rect> GraphBoundsUpdated;
 
         Rect oldBounds = Rect.Empty;
         Rect graphBoundsPrivate = Rect.Empty;
+
         public Rect GraphBounds
         { //TODO dependency property?
             get => graphBoundsPrivate;
@@ -76,9 +68,26 @@ namespace EmnExtensions.Wpf
         }
 
         string xLabel;
-        public string XLabel { get => xLabel; set { xLabel = value; InvalidateVisual(); } }
+
+        public string XLabel
+        {
+            get => xLabel;
+            set {
+                xLabel = value;
+                InvalidateVisual();
+            }
+        }
+
         string yLabel;
-        public string YLabel { get => yLabel; set { yLabel = value; InvalidateVisual(); } }
+
+        public string YLabel
+        {
+            get => yLabel;
+            set {
+                yLabel = value;
+                InvalidateVisual();
+            }
+        }
 
         public void EnsurePointInBounds(Point p)
         {
@@ -87,6 +96,7 @@ namespace EmnExtensions.Wpf
         }
 
         Size lastDispSize = Size.Empty;
+
         void UpdateBounds()
         {
             var curSize = new Size(ActualWidth, ActualHeight);
@@ -120,14 +130,14 @@ namespace EmnExtensions.Wpf
 
 
         Pen graphLinePen;
+
         public Brush GraphLineColor
         {
             set {
-                graphLinePen = new Pen(value, 1.5) {
-                    StartLineCap = PenLineCap.Round,
-                    EndLineCap = PenLineCap.Round,
-                    LineJoin = PenLineJoin.Round
-                };
+                graphLinePen = new Pen(value, 1.5);
+                graphLinePen.StartLineCap = PenLineCap.Round;
+                graphLinePen.EndLineCap = PenLineCap.Round;
+                graphLinePen.LineJoin = PenLineJoin.Round;
                 graphLinePen.Freeze();
                 InvalidateVisual();
             }
@@ -136,8 +146,10 @@ namespace EmnExtensions.Wpf
 
         //List<Point> points;
         PathGeometry graphGeom2;
+
         //        StreamGeometry graphGeom;
-        PathFigure fig = null;
+        PathFigure fig;
+
         // bool needUpdate = false;
         public void NewLine(IEnumerable<Point> lineOfPoints)
         {
@@ -150,18 +162,19 @@ namespace EmnExtensions.Wpf
                 var points = lineOfPoints.ToArray();
                 graphGeom2 = new PathGeometry();
                 foreach (var startPoint in points.Take(1)) {
-                    fig = new PathFigure {
-                        StartPoint = startPoint
-                    };
+                    fig = new PathFigure();
+                    fig.StartPoint = startPoint;
                     graphGeom2.Figures.Add(fig);
                     graphBoundsPrivate.Union(startPoint);
                 }
+
                 foreach (var point in points.Skip(1)) {
                     fig.Segments.Add(new LineSegment(point, true));
                     graphBoundsPrivate.Union(point);
                 }
                 //note that graphGeom.Bounds are in view-space, i.e. calling these without a Transformation should result in the same Bounds...
             }
+
             UpdateBounds();
         }
 
@@ -173,7 +186,8 @@ namespace EmnExtensions.Wpf
                 }
 
                 yield return fig.StartPoint;
-                foreach (LineSegment lineTo in fig.Segments) {
+                foreach (var pathSegment in fig.Segments) {
+                    var lineTo = (LineSegment)pathSegment;
                     yield return lineTo.Point;
                 }
             }
@@ -185,13 +199,13 @@ namespace EmnExtensions.Wpf
                 NewLine(new[] { point });
             } else {
                 if (fig == null) {
-                    fig = new PathFigure {
-                        StartPoint = point
-                    };
+                    fig = new PathFigure();
+                    fig.StartPoint = point;
                     graphGeom2.Figures.Add(fig);
                 } else {
                     fig.Segments.Add(new LineSegment(point, true));
                 }
+
                 graphBoundsPrivate.Union(point);
                 InvalidateVisual();
                 if (GraphBoundsUpdated != null) {
@@ -200,10 +214,7 @@ namespace EmnExtensions.Wpf
             }
         }
 
-        public GraphControl()
-        {
-            GraphLineColor = RandomGraphColor();
-        }
+        public GraphControl() => GraphLineColor = RandomGraphColor();
 
         protected override void OnRender(DrawingContext drawingContext)
         {
@@ -215,6 +226,5 @@ namespace EmnExtensions.Wpf
             drawingContext.PushClip(new RectangleGeometry(new Rect(0, 0, ActualWidth, ActualHeight)));
             drawingContext.DrawGeometry(null, graphLinePen, graphGeom2);
         }
-
     }
 }

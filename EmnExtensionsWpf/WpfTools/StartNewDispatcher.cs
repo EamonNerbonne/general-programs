@@ -10,10 +10,11 @@ namespace EmnExtensions.Wpf
             using (var sem = new SemaphoreSlim(0)) {
                 Dispatcher retval = null;
                 var winThread = new Thread(() => {
-                    retval = Dispatcher.CurrentDispatcher;
-                    sem.Release();
-                    Dispatcher.Run();
-                }) { IsBackground = true, Priority = cpuPriority };
+                        retval = Dispatcher.CurrentDispatcher;
+                        sem.Release();
+                        Dispatcher.Run();
+                    }
+                ) { IsBackground = true, Priority = cpuPriority };
                 winThread.SetApartmentState(ApartmentState.STA);
                 winThread.Start();
                 sem.Wait();

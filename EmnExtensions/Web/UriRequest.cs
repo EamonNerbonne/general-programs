@@ -19,6 +19,7 @@ namespace EmnExtensions.Web
 
         UriRequest() { }
         static readonly Encoding FallbackEncoding = Encoding.UTF8;
+
         public static UriRequest Execute(Uri uri, CookieContainer cookies = null, Uri referer = null, string UserAgent = null, string PostData = null)
         {
             if (uri.Scheme.ToUpperInvariant() != "HTTP") {
@@ -67,9 +68,10 @@ namespace EmnExtensions.Web
                     try {
                         retval.Encoding = Encoding.GetEncoding(encodingName);
                     } catch (ArgumentException) {
-                        retval.Encoding = FallbackEncoding;//fallback to UTF-8
+                        retval.Encoding = FallbackEncoding; //fallback to UTF-8
                         encodingName = null;
                     }
+
                     retval.EncodingName = encodingName;
                 }
 
@@ -82,6 +84,7 @@ namespace EmnExtensions.Web
                             returnBuf.Write(buf, 0, lastReadCount);
                             lastReadCount = stream.Read(buf, 0, BUFSIZE);
                         }
+
                         retval.Content = returnBuf.ToArray();
                     }
                 }

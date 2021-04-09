@@ -15,14 +15,22 @@ namespace LvqGui
         string Shorthand { get; }
         IDatasetCreator Clone();
     }
-    public abstract class DatasetCreatorBase<T> : CloneableAs<T>, IDatasetCreator, IHasShorthand where T : DatasetCreatorBase<T>, new()
+
+    public abstract class DatasetCreatorBase<T> : CloneableAs<T>, IDatasetCreator, IHasShorthand
+        where T : DatasetCreatorBase<T>, new()
     {
         public uint InstanceSeed { get; set; }
         public bool ExtendDataByCorrelation { get; set; }
         public bool NormalizeDimensions { get; set; }
         public bool NormalizeByScaling { get; set; }
         int _Folds = 10;
-        public int Folds { get => _Folds; set => _Folds = value; }
+
+        public int Folds
+        {
+            get => _Folds;
+            set => _Folds = value;
+        }
+
         IDatasetCreator IDatasetCreator.Clone() => Clone();
         protected abstract string RegexText { get; }
         protected abstract string GetShorthand();
@@ -30,7 +38,12 @@ namespace LvqGui
 
         public static readonly Regex shR = new Regex(defaults.RegexText, RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
-        public string Shorthand { get => GetShorthand(); set => ShorthandHelper.ParseShorthand(this, defaults, shR, value); }
+        public string Shorthand
+        {
+            get => GetShorthand();
+            set => ShorthandHelper.ParseShorthand(this, defaults, shR, value);
+        }
+
         public string ShorthandErrors => ShorthandHelper.VerifyShorthand(this, shR);
         public abstract LvqDatasetCli CreateDataset();
         public static T ParseSettings(string shorthand) => new T { Shorthand = shorthand };
@@ -40,6 +53,7 @@ namespace LvqGui
     public static class CreateDataset
     {
         public static void IncInstanceSeed(this IDatasetCreator obj) => obj.InstanceSeed++;
+
         public static IDatasetCreator BaseClone(this IDatasetCreator obj)
         {
             obj = obj.Clone();
@@ -86,6 +100,7 @@ namespace LvqGui
 
             return obj.Shorthand;
         }
+
         public static bool HasTestfile(this IDatasetCreator obj) => obj is LoadedDatasetSettings && ((LoadedDatasetSettings)obj).TestFilename != null;
 
 

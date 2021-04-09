@@ -7,11 +7,21 @@ namespace EmnExtensions.Wpf.Plot
 {
     public class GraphableBitmapDelegate : GraphableResizeableBitmap
     {
-        public GraphableBitmapDelegate() { UpdateBitmapDelegate = DefaultUpdateBitmapDelegate; }
+        public GraphableBitmapDelegate() => UpdateBitmapDelegate = DefaultUpdateBitmapDelegate;
         static void DefaultUpdateBitmapDelegate(WriteableBitmap bmp, Matrix mat, int pixelWidth, int pixelHeight) { }
-        protected override System.Windows.Rect? OuterDataBound => m_OuterDataBound;
-        public Rect? MaximalDataBound { get => m_OuterDataBound; set { m_OuterDataBound = value; OnChange(GraphChange.Projection); } }
+        protected override Rect? OuterDataBound => m_OuterDataBound;
+
+        public Rect? MaximalDataBound
+        {
+            get => m_OuterDataBound;
+            set {
+                m_OuterDataBound = value;
+                OnChange(GraphChange.Projection);
+            }
+        }
+
         Rect? m_OuterDataBound;
+
         /// <summary>
         /// This delegate is called whenever the bitmap needs to be updated.
         /// The first parameter is the bitmap that needs to be written to (eventual locking is the responsibility of the client code).

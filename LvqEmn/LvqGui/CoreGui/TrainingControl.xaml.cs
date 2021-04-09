@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace LvqGui
 {
     public partial class TrainingControl
     {
-        public TrainingControl() { InitializeComponent(); }
+        public TrainingControl() => InitializeComponent();
         TrainingControlValues Values => (TrainingControlValues)DataContext;
         void StartTraining(object sender, RoutedEventArgs e) => ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).ConfirmTraining(), DataContext);
         void StartPrintOrderTraining(object sender, RoutedEventArgs e) => ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).ConfirmTrainingPrintOrder(), DataContext);
@@ -19,7 +20,7 @@ namespace LvqGui
         void DoGC(object sender, RoutedEventArgs e) => GC.Collect();
         void PrintCurrentStats(object sender, RoutedEventArgs e) => ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).PrintCurrentStats(), DataContext);
         void PrintLearningRate(object sender, RoutedEventArgs e) => Console.WriteLine(Values.GetLearningRate());
-        void SaveAllGraphs(object sender, RoutedEventArgs e) => ((TrainingControlValues)DataContext).Owner.win.SaveAllGraphs().ContinueWith(t => Console.WriteLine(t.Exception), System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+        void SaveAllGraphs(object sender, RoutedEventArgs e) => ((TrainingControlValues)DataContext).Owner.win.SaveAllGraphs().ContinueWith(t => Console.WriteLine(t.Exception), TaskContinuationOptions.OnlyOnFaulted);
 
         void DoExtendDatasetWithProtoDistances(object sender, RoutedEventArgs e) => ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).DoExtendDatasetWithProtoDistances(), DataContext);
     }

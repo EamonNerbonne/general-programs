@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -8,9 +9,11 @@ namespace EmnExtensions.Text
 {
     public static class Canonicalize
     {
-        static byte[] categorycache;
-        static BitArray reasonablechar;
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
+        static readonly byte[] categorycache;
+        static readonly BitArray reasonablechar;
+
+        [SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
+        [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static Canonicalize()
         {
             foreach (UnicodeCategory cat in Enum.GetValues(typeof(UnicodeCategory))) {
@@ -19,24 +22,26 @@ namespace EmnExtensions.Text
                     throw new ApplicationException("Programming Error: Invalid category number!  Can't cache in byte: " + cat);
                 }
             }
-            categorycache = new byte[(int)char.MaxValue + 1];
-            reasonablechar = new BitArray((int)char.MaxValue + 1);
+
+            categorycache = new byte[char.MaxValue + 1];
+            reasonablechar = new BitArray(char.MaxValue + 1);
             //translatedchar = new char[(int)char.MaxValue + 1];
-            foreach (var c in Enumerable.Range(0, (int)char.MaxValue + 1)) {
+            foreach (var c in Enumerable.Range(0, char.MaxValue + 1)) {
                 var cat = CharUnicodeInfo.GetUnicodeCategory((char)c);
                 categorycache[c] = (byte)(int)cat;
                 reasonablechar[c] = IsSafeChar((char)c) && cat != UnicodeCategory.Format && cat != UnicodeCategory.Control && cat != UnicodeCategory.OtherNotAssigned && cat != UnicodeCategory.PrivateUse;
             }
-            reasonablechar[(int)'\n'] = true;
-            reasonablechar[(int)'\t'] = true;
+
+            reasonablechar['\n'] = true;
+            reasonablechar['\t'] = true;
         }
 
-        public static UnicodeCategory FastGetUnicodeCategory(char c) => (UnicodeCategory)(int)categorycache[(int)c];
+        public static UnicodeCategory FastGetUnicodeCategory(char c) => (UnicodeCategory)categorycache[c];
 
         /// <summary>
         /// Determines whether a character is safe to use, essentially meaning "can be present in an XML file".
         /// This allows the surrogate pair ranges, though they aren't necessarily valid in xml (they must come in pairs) and simply bans really bad things you don't ever want,
-        /// being control characters below 0x20 (except tab, carriage return and newline), 0xfffe and 0xffff.  
+        /// being control characters below 0x20 (except tab, carriage return and newline), 0xfffe and 0xffff.
         /// </summary>
         public static bool IsSafeChar(char c) => c >= 0x20 && c < 0xfffe || c == '\n' || c == '\t' || c == '\r';
 
@@ -49,7 +54,7 @@ namespace EmnExtensions.Text
         /// Determines whether a character is a "reasonable" text character.  Basically, this means any kind of symbol, spacing, surrogate or newline,
         /// but not unassigned, format, control or private characters (except newline and tab, which are OK).
         /// </summary>
-        public static bool IsReasonableChar(char c) => reasonablechar[(int)c];
+        public static bool IsReasonableChar(char c) => reasonablechar[c];
 
         /// <summary>
         /// Strips all characters deemed unsafe by IsSafeChar.  Returns null if the input is null or empty.
@@ -63,7 +68,7 @@ namespace EmnExtensions.Text
             var retval = new char[input.Length];
             int pos = 0, srcPos = 0;
             while (srcPos < input.Length && !IsSafeNonWhitespaceChar(input[srcPos])) {
-                srcPos++;//skip inital space or junk
+                srcPos++; //skip inital space or junk
             }
 
             while (srcPos < input.Length) {
@@ -74,8 +79,9 @@ namespace EmnExtensions.Text
 
                 srcPos++;
             }
+
             while (pos > 0 && !IsSafeNonWhitespaceChar(retval[pos - 1])) {
-                pos--;//skip trailing space or junk
+                pos--; //skip trailing space or junk
             }
 
             return pos == 0 ? null : new string(retval, 0, pos);
@@ -83,11 +89,11 @@ namespace EmnExtensions.Text
 
         public static string CanonicalizeBasic(this string input) => Basic(input);
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
+        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         public static string Basic(string input)
         {
             //splits accents and the likes from the characters.  FormKD even splits a single char ¾ into 3/4.
-            var temp = input.ToLowerInvariant().Normalize(NormalizationForm.FormD);//Normalize is fast! Much faster than ToLower for instance.
+            var temp = input.ToLowerInvariant().Normalize(NormalizationForm.FormD); //Normalize is fast! Much faster than ToLower for instance.
             var output = new StringBuilder(temp.Length);
             foreach (var c in temp) {
                 if (c >= 'a' && c <= 'z') {
@@ -99,7 +105,7 @@ namespace EmnExtensions.Text
                 } else if (c == '\n') {
                     output.Append('\n');
                 } else if (c == '0') {
-                    output.Append('o');//normalize the number 0 and the letter 'o' - controversial.
+                    output.Append('o'); //normalize the number 0 and the letter 'o' - controversial.
                 } else {
                     switch (FastGetUnicodeCategory(c)) {
                         case UnicodeCategory.NonSpacingMark:
@@ -127,13 +133,13 @@ namespace EmnExtensions.Text
                                     break;
                                 case (char)248:
                                     output.Append('o');
-                                    break;// 'o'  as opposed to 'o'
+                                    break; // 'o'  as opposed to 'o'
                                 case (char)240:
                                     output.Append('d');
-                                    break;//240 'd'   as opposed to 'd'
+                                    break; //240 'd'   as opposed to 'd'
                                 case (char)215:
                                     output.Append('x');
-                                    break;// 'x'  as opposed to 'x'
+                                    break; // 'x'  as opposed to 'x'
                                 case (char)222:
                                 case (char)254:
                                 case (char)190:
@@ -143,7 +149,7 @@ namespace EmnExtensions.Text
                                 case '^':
                                 case (char)175:
                                     output.Append(' ');
-                                    break;// 254 '_',222 '_',190 '_',175 '_',//160 ' '
+                                    break; // 254 '_',222 '_',190 '_',175 '_',//160 ' '
                                 case 'ß':
                                     output.Append("ss");
                                     break;
@@ -158,19 +164,19 @@ namespace EmnExtensions.Text
                                     break;
                                 case (char)185:
                                     output.Append('1');
-                                    break;//185: '1'
+                                    break; //185: '1'
                                 case (char)184:
                                     output.Append(',');
                                     break;
                                 case (char)179:
                                     output.Append('3');
-                                    break;//179: '3'
+                                    break; //179: '3'
                                 case '²':
                                     output.Append('2');
                                     break;
                                 case (char)174:
                                     output.Append('r');
-                                    break;//174 'r'
+                                    break; //174 'r'
                                 case 'µ':
                                     output.Append('u');
                                     break;
@@ -185,13 +191,13 @@ namespace EmnExtensions.Text
                                     break;
                                 case 'º':
                                     output.Append('o');
-                                    break;//use letter, not number, for canonicalization purposes.
+                                    break; //use letter, not number, for canonicalization purposes.
                                 case '$':
                                     output.Append('s');
                                     break;
                                 case '\\':
                                     output.Append('/');
-                                    break;//for stupid path stuff
+                                    break; //for stupid path stuff
                                 case '<':
                                     output.Append('(');
                                     break;
@@ -206,21 +212,23 @@ namespace EmnExtensions.Text
                                     break;
                                 case '¡':
                                     output.Append('!');
-                                    break;//this one's difficult
+                                    break; //this one's difficult
                                 case (char)169:
                                     output.Append('c');
-                                    break;//169 'c'
+                                    break; //169 'c'
                                 default:
                                     if (c < 128) {
                                         output.Append(c);
                                     }
 
                                     break;
-                            }//Unclear: should I normalize any of:  | # % & * + ; : = ? @ ~
+                            } //Unclear: should I normalize any of:  | # % & * + ; : = ? @ ~
+
                             break;
                     }
                 }
             }
+
             return output.ToString();
         }
     }

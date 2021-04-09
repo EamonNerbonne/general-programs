@@ -6,17 +6,35 @@ using System.Windows.Media;
 namespace EmnExtensions.Wpf.VizEngines
 {
     public class VizPixelScatterBitmap : VizDynamicBitmap<Point[]>, IVizPixelScatter
-    //for efficiency reasons, accept data in a Point[] rather than the more general IEnumerable<Point>
+        //for efficiency reasons, accept data in a Point[] rather than the more general IEnumerable<Point>
     {
         Rect m_OuterDataBounds = Rect.Empty;
         uint[] m_image;
 
         protected override Rect? OuterDataBound => m_OuterDataBounds;
         double m_CoverageRatio = 0.9999;
-        public double CoverageRatio { get => m_CoverageRatio; set { if (value != m_CoverageRatio) { m_CoverageRatio = value; InvalidateDataBounds(); } } }
+
+        public double CoverageRatio
+        {
+            get => m_CoverageRatio;
+            set {
+                if (value != m_CoverageRatio) {
+                    m_CoverageRatio = value;
+                    InvalidateDataBounds();
+                }
+            }
+        }
 
         double m_CoverageGradient = 5.0;
-        public double CoverageGradient { get => m_CoverageGradient; set { m_CoverageGradient = value; InvalidateDataBounds(); } }
+
+        public double CoverageGradient
+        {
+            get => m_CoverageGradient;
+            set {
+                m_CoverageGradient = value;
+                InvalidateDataBounds();
+            }
+        }
 
         public int? OverridePointCountEstimate { get; set; }
 
@@ -28,7 +46,7 @@ namespace EmnExtensions.Wpf.VizEngines
             Trace.WriteLine("UpdateBitmap");
 
             if (dataToBitmap.IsIdentity) {
-                return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
+                return; //this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
             }
 
             var thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data == null ? 0 : Data.Length));
@@ -54,6 +72,7 @@ namespace EmnExtensions.Wpf.VizEngines
         }
 
         #region UpdateBitmap Helpers
+
         void Make2dHistogramInRegion(int pW, int pH, Matrix dataToBitmap, bool useDiamondPoints)
         {
             MakeVisibleRegionEmpty(pW, pH);
@@ -118,11 +137,12 @@ namespace EmnExtensions.Wpf.VizEngines
         }
 
         void CopyImageRegionToWriteableBitmap(int pW, int pH) => m_bmp.WritePixels(
-                sourceRect: new Int32Rect(0, 0, pW, pH),
-                sourceBuffer: m_image,
-                sourceBufferStride: pW * sizeof(uint),
-                destinationX: 0,
-                destinationY: 0);
+            new Int32Rect(0, 0, pW, pH),
+            m_image,
+            pW * sizeof(uint),
+            0,
+            0
+        );
 
         static uint[] PregenerateAlphaLookup(double alpha, uint[] image, int numPixels, double overallAlpha)
         {
@@ -138,6 +158,7 @@ namespace EmnExtensions.Wpf.VizEngines
                 var overlappingAlpha = overallAlpha * (1.0 - Math.Pow(transparencyPerOverlap, overlap));
                 alphaLookup[overlap] = (uint)(overlappingAlpha * 255.5) << 24;
             }
+
             return alphaLookup;
         }
 
@@ -152,6 +173,7 @@ namespace EmnExtensions.Wpf.VizEngines
 
             return maxCount;
         }
+
         #endregion
 
         protected override void OnDataChanged(Point[] oldData)

@@ -8,58 +8,137 @@ namespace EmnExtensions.Wpf.Plot
 {
     public class GraphablePixelScatterPlot : GraphableData
     {
-        public GraphablePixelScatterPlot() { Margin = new Thickness(0.5); BitmapScalingMode = BitmapScalingMode.Linear; }
+        public GraphablePixelScatterPlot()
+        {
+            Margin = new Thickness(0.5);
+            BitmapScalingMode = BitmapScalingMode.Linear;
+        }
+
         double m_dpiX = 96.0, m_dpiY = 96.0;
         bool m_useDiamondPoints;
-        public bool UseDiamondPoints { get => m_useDiamondPoints; set { m_useDiamondPoints = value; OnChange(GraphChange.Projection); } }
-        public double DpiX { get => m_dpiX; set { if (value != m_dpiX) { m_dpiX = value; OnChange(GraphChange.Projection); } } }
-        public double DpiY { get => m_dpiY; set { if (value != m_dpiY) { m_dpiY = value; OnChange(GraphChange.Projection); } } }
-        public BitmapScalingMode BitmapScalingMode { get => m_scalingMode; set { m_scalingMode = value; if (m_bmp != null) { RenderOptions.SetBitmapScalingMode(m_bmp, value); } } }
-        BitmapScalingMode m_scalingMode;
 
-        WriteableBitmap m_bmp;
-        RectangleGeometry m_clipGeom = new RectangleGeometry();
-        TranslateTransform m_offsetTransform = new TranslateTransform();
-        const int EXTRA_RESIZE_PIX = 256;
-        Point[] m_points;
-        Rect m_outerBounds = Rect.Empty;
-        public Point[] Points { get => m_points; set { if (value != m_points) { m_points = value; DataBounds = ComputeBounds(); OnChange(GraphChange.Projection); } } }
-        double m_coverage = 1.0;
-        public double CoverageRatio { get => m_coverage; set { if (value != m_coverage) { m_coverage = value; DataBounds = ComputeBounds(); } } }
-
-        private Rect ComputeBounds()
+        public bool UseDiamondPoints
         {
-            if (m_points == null || m_points.Length == 0) {
-                return Rect.Empty;
-            } else {
-                var cutoff = (int)(0.5 + 0.5 * (1.0 - m_coverage) * m_points.Length);
-                m_outerBounds = Rect.Empty;
-                foreach (var point in m_points) {
-                    m_outerBounds.Union(point);
-                }
+            get => m_useDiamondPoints;
+            set {
+                m_useDiamondPoints = value;
+                OnChange(GraphChange.Projection);
+            }
+        }
 
-                if (cutoff == 0) {
-                    return m_outerBounds;
-                } else if (cutoff * 2 >= m_points.Length) {
-                    return Rect.Empty;
-                } else {
-                    var xs = new double[m_points.Length];
-                    var ys = new double[m_points.Length];
-                    for (var i = 0; i < m_points.Length; i++) {
-                        xs[i] = m_points[i].X;
-                        ys[i] = m_points[i].Y;
-                    }
-                    Array.Sort(xs);
-                    Array.Sort(ys);
-                    return new Rect(new Point(xs[cutoff], ys[cutoff]), new Point(xs[m_points.Length - 1 - cutoff], ys[m_points.Length - 1 - cutoff]));
+        public double DpiX
+        {
+            get => m_dpiX;
+            set {
+                if (value != m_dpiX) {
+                    m_dpiX = value;
+                    OnChange(GraphChange.Projection);
                 }
             }
         }
 
-        Color m_pointColor;
-        public Color PointColor { get => m_pointColor; set { if (value != m_pointColor) { m_pointColor = value; OnChange(GraphChange.Projection); } } }
+        public double DpiY
+        {
+            get => m_dpiY;
+            set {
+                if (value != m_dpiY) {
+                    m_dpiY = value;
+                    OnChange(GraphChange.Projection);
+                }
+            }
+        }
 
-        public override void DrawGraph(System.Windows.Media.DrawingContext context)
+        public BitmapScalingMode BitmapScalingMode
+        {
+            get => m_scalingMode;
+            set {
+                m_scalingMode = value;
+                if (m_bmp != null) {
+                    RenderOptions.SetBitmapScalingMode(m_bmp, value);
+                }
+            }
+        }
+
+        BitmapScalingMode m_scalingMode;
+
+        WriteableBitmap m_bmp;
+        readonly RectangleGeometry m_clipGeom = new RectangleGeometry();
+        readonly TranslateTransform m_offsetTransform = new TranslateTransform();
+        const int EXTRA_RESIZE_PIX = 256;
+        Point[] m_points;
+        Rect m_outerBounds = Rect.Empty;
+
+        public Point[] Points
+        {
+            get => m_points;
+            set {
+                if (value != m_points) {
+                    m_points = value;
+                    DataBounds = ComputeBounds();
+                    OnChange(GraphChange.Projection);
+                }
+            }
+        }
+
+        double m_coverage = 1.0;
+
+        public double CoverageRatio
+        {
+            get => m_coverage;
+            set {
+                if (value != m_coverage) {
+                    m_coverage = value;
+                    DataBounds = ComputeBounds();
+                }
+            }
+        }
+
+        Rect ComputeBounds()
+        {
+            if (m_points == null || m_points.Length == 0) {
+                return Rect.Empty;
+            }
+
+            var cutoff = (int)(0.5 + 0.5 * (1.0 - m_coverage) * m_points.Length);
+            m_outerBounds = Rect.Empty;
+            foreach (var point in m_points) {
+                m_outerBounds.Union(point);
+            }
+
+            if (cutoff == 0) {
+                return m_outerBounds;
+            }
+
+            if (cutoff * 2 >= m_points.Length) {
+                return Rect.Empty;
+            }
+
+            var xs = new double[m_points.Length];
+            var ys = new double[m_points.Length];
+            for (var i = 0; i < m_points.Length; i++) {
+                xs[i] = m_points[i].X;
+                ys[i] = m_points[i].Y;
+            }
+
+            Array.Sort(xs);
+            Array.Sort(ys);
+            return new Rect(new Point(xs[cutoff], ys[cutoff]), new Point(xs[m_points.Length - 1 - cutoff], ys[m_points.Length - 1 - cutoff]));
+        }
+
+        Color m_pointColor;
+
+        public Color PointColor
+        {
+            get => m_pointColor;
+            set {
+                if (value != m_pointColor) {
+                    m_pointColor = value;
+                    OnChange(GraphChange.Projection);
+                }
+            }
+        }
+
+        public override void DrawGraph(DrawingContext context)
         {
             if (m_bmp == null) {
                 return;
@@ -80,10 +159,11 @@ namespace EmnExtensions.Wpf.Plot
         static Rect SnapRect(Rect r, double multX, double multY) => new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY));
 
         uint[] image;
+
         public override void SetTransform(Matrix matrix, Rect displayClip)
         {
             if (matrix.IsIdentity) {
-                return;//TODO: clear bitmap??
+                return; //TODO: clear bitmap??
             }
 
             var outerDispBounds = Rect.Transform(m_outerBounds, matrix);
@@ -99,18 +179,19 @@ namespace EmnExtensions.Wpf.Plot
                     image[i] = 0;
                 }
             }
+
             //image.Count();
             matrix.Translate(-outerDispBounds.X, -outerDispBounds.Y);
             var xScale = m_dpiX / 96.0;
             var yScale = m_dpiY / 96.0;
             matrix.Scale(xScale, yScale);
             if (UseDiamondPoints) //for performance, if-lifted out of loop.
-{
+            {
                 foreach (var point in Points) {
                     var displaypoint = matrix.Transform(point);
 
-                    var x = (int)(displaypoint.X);// - outerDispBounds.X) * m_dpiX / 96.0);
-                    var y = (int)(displaypoint.Y);// - outerDispBounds.Y) * m_dpiY / 96.0);
+                    var x = (int)(displaypoint.X); // - outerDispBounds.X) * m_dpiX / 96.0);
+                    var y = (int)(displaypoint.Y); // - outerDispBounds.Y) * m_dpiY / 96.0);
                     if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1) {
                         image[x + pW * y]++;
                         image[x - 1 + pW * y]++;
@@ -120,7 +201,7 @@ namespace EmnExtensions.Wpf.Plot
                     }
                 }
             } else //non-diamond case 
- {
+            {
                 foreach (var point in Points) {
                     var displaypoint = matrix.Transform(point);
                     var x = (int)(displaypoint.X);

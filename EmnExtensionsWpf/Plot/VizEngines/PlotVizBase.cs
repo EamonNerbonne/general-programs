@@ -6,13 +6,21 @@ namespace EmnExtensions.Wpf.VizEngines
 {
     public abstract class PlotVizBase<T> : IVizEngine<T>
     {
+        protected PlotVizBase(IPlotMetaData owner)
+        {
+            if (owner == null) {
+                throw new ArgumentNullException("owner");
+            }
 
-        protected PlotVizBase(IPlotMetaData owner) { if (owner == null) { throw new ArgumentNullException("owner"); } m_owner = owner; }
+            m_owner = owner;
+        }
+
         readonly IPlotMetaData m_owner;
         public IPlotMetaData MetaData => m_owner;
 
         Rect? m_DataBounds;
         public Rect DataBounds => m_DataBounds ?? (m_DataBounds = ComputeBounds()).Value;
+
         protected void InvalidateDataBounds()
         {
             m_DataBounds = null;
@@ -29,6 +37,7 @@ namespace EmnExtensions.Wpf.VizEngines
         Thickness m_Margin;
 
         public Thickness Margin => MetaData.OverrideMargin ?? m_Margin;
+
         protected void SetMargin(Thickness newMargin)
         {
             var oldMargin = Margin;
@@ -41,18 +50,18 @@ namespace EmnExtensions.Wpf.VizEngines
         public abstract void DrawGraph(DrawingContext context);
         public abstract void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY);
         protected T Data { get; private set; }
+
         public void ChangeData(T data)
         {
             var oldData = Data;
             Data = data;
             OnDataChanged(oldData);
         }
+
         protected abstract void OnDataChanged(T oldData);
         public abstract void OnRenderOptionsChanged();
         public abstract bool SupportsColor { get; }
 
         public virtual Drawing SampleDrawing => MetaData.RenderColor == null ? null : new GeometryDrawing(new SolidColorBrush(MetaData.RenderColor.Value).AsFrozen(), null, new RectangleGeometry(new Rect(0, 0, 10, 10)));
-
-
     }
 }

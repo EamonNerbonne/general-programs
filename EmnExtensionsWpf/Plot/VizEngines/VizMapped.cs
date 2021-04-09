@@ -18,7 +18,11 @@ namespace EmnExtensions.Wpf.VizEngines
         public bool SupportsColor => Implementation.SupportsColor;
         public Drawing SampleDrawing => Implementation == null ? null : Implementation.SampleDrawing;
 
-        public VizMapped(IVizEngine<TOut> impl, Func<TIn, TOut> map) { this.map = map; Implementation = impl; }
+        public VizMapped(IVizEngine<TOut> impl, Func<TIn, TOut> map)
+        {
+            this.map = map;
+            Implementation = impl;
+        }
 
         IVizEngine<TOut> ITranformed<TOut>.Implementation => Implementation;
     }

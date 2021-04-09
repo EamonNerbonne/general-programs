@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace EmnExtensions.Enumerables
 {
     public static class BatchExtension
     {
-        static IEnumerable<T[]> Batch<T>(this IEnumerable<T> list, int batchSize)
+        public static IEnumerable<T[]> Batch<T>(this IEnumerable<T> list, int batchSize)
         {
             var i = 0;
             var arr = new T[batchSize];
@@ -17,6 +17,7 @@ namespace EmnExtensions.Enumerables
                     arr = new T[batchSize];
                 }
             }
+
             if (i > 0) {
                 Array.Resize(ref arr, i);
                 yield return arr;

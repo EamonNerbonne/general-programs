@@ -1,4 +1,5 @@
-﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMember.Global
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,9 +25,11 @@ namespace EmnExtensions.Wpf
                 fig = new PathFigure { StartPoint = startPoint };
                 geom.Figures.Add(fig);
             }
+
             foreach (var point in lineOfPoints.Skip(1)) {
                 fig.Segments.Add(new LineSegment(point, true));
             }
+
             var bounds = geom.Bounds;
             var errWidth = bounds.Width / 200.0;
             for (var i = 0; i < lineOfPoints.Length; i++) {
@@ -56,6 +59,7 @@ namespace EmnExtensions.Wpf
                 fig = new PathFigure { StartPoint = startPoint };
                 geom.Figures.Add(fig);
             }
+
             var wasOK = true;
             foreach (var point in lineOfPoints.Skip(1)) {
                 if (IsOK(point)) {
@@ -65,6 +69,7 @@ namespace EmnExtensions.Wpf
                     wasOK = false;
                 }
             }
+
             return geom;
         }
 
@@ -75,10 +80,10 @@ namespace EmnExtensions.Wpf
             }
 
             var dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(lineOfPoints);
-            const double maxSafe = Int32.MaxValue / 2.0;
+            const double maxSafe = int.MaxValue / 2.0;
             var safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
-            var dataToGeom = TransformShape(dataBounds, safeBounds, flipVertical: false);
-            var geomToData = TransformShape(safeBounds, dataBounds, flipVertical: false);
+            var dataToGeom = TransformShape(dataBounds, safeBounds, false);
+            var geomToData = TransformShape(safeBounds, dataBounds, false);
             var scaledPoints = lineOfPoints.Select(dataToGeom.Transform);
             return Line(scaledPoints, false, new MatrixTransform(geomToData));
         }
@@ -93,7 +98,10 @@ namespace EmnExtensions.Wpf
                         wasOK = makeFillable;
                     } else if (wasOK) {
                         context.LineTo(point, true, true);
-                    } else { context.BeginFigure(point, makeFillable, makeFillable); wasOK = true; }
+                    } else {
+                        context.BeginFigure(point, makeFillable, makeFillable);
+                        wasOK = true;
+                    }
                 }
             }
 
@@ -101,7 +109,7 @@ namespace EmnExtensions.Wpf
                 geom.Transform = withTransform;
             }
 
-            geom.Freeze();//can't freeze since that breaks transform changes.
+            geom.Freeze(); //can't freeze since that breaks transform changes.
             return geom;
         }
 
@@ -113,10 +121,10 @@ namespace EmnExtensions.Wpf
 
             var dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(upper);
             dataBounds.Union(VizPixelScatterHelpers.ComputeOuterBounds(lower));
-            const double maxSafe = Int32.MaxValue / 2.0;
+            const double maxSafe = int.MaxValue / 2.0;
             var safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
-            var dataToGeom = TransformShape(dataBounds, safeBounds, flipVertical: false);
-            var geomToData = TransformShape(safeBounds, dataBounds, flipVertical: false);
+            var dataToGeom = TransformShape(dataBounds, safeBounds, false);
+            var geomToData = TransformShape(safeBounds, dataBounds, false);
             var scaledPointsInCircle = upper.Concat(lower.Reverse()).Select(dataToGeom.Transform);
             return Line(scaledPointsInCircle, true, new MatrixTransform(geomToData));
         }
@@ -138,7 +146,7 @@ namespace EmnExtensions.Wpf
                 }
             }
 
-            geom.Freeze();//can't freeze since that breaks transform changes.
+            geom.Freeze(); //can't freeze since that breaks transform changes.
             return geom;
         }
 
@@ -172,6 +180,7 @@ namespace EmnExtensions.Wpf
                     }
                 }
             }
+
             //geom.Freeze();//can't freeze since that breaks transform changes.
             return geom;
         }
@@ -181,7 +190,6 @@ namespace EmnExtensions.Wpf
         /// </summary>
         public static DrawingVisual PointCloud2(IEnumerable<Point> setOfPoints, Brush brush, double radius, out Rect bounds)
         {
-
             var vis = new DrawingVisual();
             bounds = Rect.Empty;
             using (var ctx = vis.RenderOpen()) {
@@ -211,6 +219,7 @@ namespace EmnExtensions.Wpf
                     }
                 }
             }
+
             drawing.Freeze();
             return drawing;
         }
@@ -222,7 +231,8 @@ namespace EmnExtensions.Wpf
             }
 
             yield return fig.StartPoint;
-            foreach (LineSegment lineTo in fig.Segments) {
+            foreach (var pathSegment in fig.Segments) {
+                var lineTo = (LineSegment)pathSegment;
                 yield return lineTo.Point;
             }
         }
@@ -230,11 +240,13 @@ namespace EmnExtensions.Wpf
         public static void AddPoint(PathFigure fig, Point point) => fig.Segments.Add(new LineSegment(point, true));
 
         /// <summary>
-        /// Extends the line made by the last figure in the geometry to the given point.  
+        /// Extends the line made by the last figure in the geometry to the given point.
         /// </summary>
         /// <param name="toGeom">The PathGeometry to extend.</param>
-        /// <param name="point">The point to draw a line to.  IsOK(point) must hold (i.e.
-        /// no NaN of Inf points) for sane results;</param>
+        /// <param name="point">
+        /// The point to draw a line to.  IsOK(point) must hold (i.e.
+        /// no NaN of Inf points) for sane results;
+        /// </param>
         public static void AddPoint(PathGeometry toGeom, Point point)
         {
             var figs = toGeom.Figures;
@@ -263,6 +275,7 @@ namespace EmnExtensions.Wpf
             if (flipVertical) {
                 translateThenScale.ScaleAt(1.0, -1.0, 0.0, toPosition.Height / 2.0);
             }
+
             //now we push the graph to the right spot, which will usually simply be 0,0.
             translateThenScale.Translate(toPosition.X, toPosition.Y);
 
@@ -318,6 +331,7 @@ namespace EmnExtensions.Wpf
                 context.Pop();
                 context.Pop();
             }
+
             RenderOptions.SetBitmapScalingMode(retval, BitmapScalingMode.NearestNeighbor);
             return retval;
         }

@@ -8,14 +8,20 @@ namespace EmnExtensions.MathHelpers
     public struct MeanVarDistrib
     {
         readonly double weightSum, sX, meanX;
-        MeanVarDistrib(double _weightSum, double _sX, double _meanX) { meanX = _meanX; sX = _sX; weightSum = _weightSum; }
+
+        MeanVarDistrib(double _weightSum, double _sX, double _meanX)
+        {
+            meanX = _meanX;
+            sX = _sX;
+            weightSum = _weightSum;
+        }
 
         public static MeanVarDistrib Init(double val, double weight = 1.0) => new MeanVarDistrib(weight, 0.0, val); //equivalent to adding to an empty distribution.
 
         public MeanVarDistrib Add(double val, double weight = 1.0)
         {
             if (weight == 0.0) {
-                return this;//ignore zero-weight stuff...
+                return this; //ignore zero-weight stuff...
             }
 
             var newWeightSum = weightSum + weight;
@@ -42,7 +48,6 @@ namespace EmnExtensions.MathHelpers
         public static MeanVarDistrib Of(IEnumerable<double> vals) => vals.Aggregate(new MeanVarDistrib(), (mv, v) => mv.Add(v));
 
         public override string ToString() => Mean.ToString(CultureInfo.InvariantCulture) + " +/- " + StdDev.ToString(CultureInfo.InvariantCulture);
-
     }
 
 

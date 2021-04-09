@@ -57,7 +57,14 @@ namespace EmnExtensions.Wpf.VizEngines
         /// <summary>
         /// Defaults to true.
         /// </summary>
-        public bool AutosizeBounds { get => m_AutosizeBounds; set { m_AutosizeBounds = value; RecomputeBoundsIfAuto(); } }
+        public bool AutosizeBounds
+        {
+            get => m_AutosizeBounds;
+            set {
+                m_AutosizeBounds = value;
+                RecomputeBoundsIfAuto();
+            }
+        }
 
         protected override void OnDataChanged(Geometry oldData)
         {
@@ -90,15 +97,17 @@ namespace EmnExtensions.Wpf.VizEngines
             TriggerChange(GraphChange.Drawing);
             RecomputeMargin();
         }
+
         void RecomputeMargin() => SetMargin(new Thickness(Pen.Thickness / 2.0));
         void m_Geometry_Changed(object sender, EventArgs e) => RecomputeBoundsIfAuto();
 
         void RecomputeBoundsIfAuto()
         {
             if (m_AutosizeBounds) {
-                InvalidateDataBounds();//this will trigger OnChanged if neeeded.
+                InvalidateDataBounds(); //this will trigger OnChanged if neeeded.
             }
         }
+
         protected override Rect ComputeBounds() => Data.Bounds;
 
         public override void SetTransform(Matrix axisToDisplay, Rect displayClip, double forDpiX, double forDpiY)
@@ -134,11 +143,32 @@ namespace EmnExtensions.Wpf.VizEngines
                 Pen = newPen;
             }
         }
+
         public override bool SupportsColor => true;
         bool _isFilled;
-        public bool IsFilled { get => _isFilled; set { if (_isFilled != value) { _isFilled = value; TriggerChange(GraphChange.Drawing); } } }
-        bool _isStroked = true;
-        public bool IsStroked { get => _isStroked; set { if (_isStroked != value) { _isStroked = value; TriggerChange(GraphChange.Drawing); } } }
 
+        public bool IsFilled
+        {
+            get => _isFilled;
+            set {
+                if (_isFilled != value) {
+                    _isFilled = value;
+                    TriggerChange(GraphChange.Drawing);
+                }
+            }
+        }
+
+        bool _isStroked = true;
+
+        public bool IsStroked
+        {
+            get => _isStroked;
+            set {
+                if (_isStroked != value) {
+                    _isStroked = value;
+                    TriggerChange(GraphChange.Drawing);
+                }
+            }
+        }
     }
 }

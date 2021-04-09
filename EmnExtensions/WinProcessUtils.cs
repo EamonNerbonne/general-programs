@@ -19,20 +19,20 @@ namespace EmnExtensions
         public Encoding StandardErrorOverrideEncoding;
         public string WorkingDirectory;
     }
+
     /// <summary>
     /// Useful in LINQpad queries
     /// </summary>
     public static class WinProcessUtil
     {
-
         public static ProcessExecutionResult ExecuteProcessSynchronously(string filename, string arguments, string input, ProcessStartOptions startOptions = default(ProcessStartOptions))
         {
             var processStartInfo = new ProcessStartInfo {
-                CreateNoWindow = true,//don't need UI.
+                CreateNoWindow = true, //don't need UI.
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 RedirectStandardInput = true, //so we can capture and control the new process's standard I/O
-                UseShellExecute = false,//required to be able to redirect streams
+                UseShellExecute = false, //required to be able to redirect streams
                 FileName = filename,
                 Arguments = arguments,
                 WorkingDirectory = startOptions.WorkingDirectory,
@@ -40,6 +40,7 @@ namespace EmnExtensions
             if (startOptions.StandardOutputAndErrorEncoding != null) {
                 processStartInfo.StandardOutputEncoding = startOptions.StandardOutputAndErrorEncoding;
             }
+
             if (startOptions.StandardErrorOverrideEncoding != null) {
                 processStartInfo.StandardErrorEncoding = startOptions.StandardErrorOverrideEncoding;
             }
@@ -74,4 +75,3 @@ namespace EmnExtensions
         }
     }
 }
-

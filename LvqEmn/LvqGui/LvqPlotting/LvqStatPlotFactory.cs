@@ -12,13 +12,13 @@ using Vector = System.Windows.Vector;
 
 namespace LvqGui
 {
-
     static class LvqStatPlotFactory
     {
         static readonly ConcurrentDictionary<int, Color[]> colorLookup = new ConcurrentDictionary<int, Color[]>();
+
         static Color[] GetColors(int length) => colorLookup.GetOrAdd(length, len =>
-                                                                  WpfTools.MakeDistributedColors(len, new MersenneTwister(42))
-                );
+            WpfTools.MakeDistributedColors(len, new MersenneTwister(42))
+        );
 
 
         public static IEnumerable<IVizEngine<LvqStatPlots>> Create(string statisticGroup, IEnumerable<LvqStatName> stats, bool isMultiModel, bool hasTestSet, Color[] classColors, int protosPerClass)
@@ -36,7 +36,6 @@ namespace LvqGui
             foreach (var stat in relevantStatistics) {
                 var color =
                     isSpecialGroup && stat.TrainingStatLabel.StartsWith("Training") ? Color.FromRgb(190, 140, 0)
-
                     : isSpecialGroup && stat.TrainingStatLabel.StartsWith("Test") ? Color.FromRgb(190, 0, 255)
                     : isSpecialGroup && stat.TrainingStatLabel.StartsWith("NN") ? Color.FromRgb(0, 140, 255)
                     : colors[i];
@@ -56,6 +55,7 @@ namespace LvqGui
                 yield return MakeStderrRangePlot(yunitLabel, color, statIdx, isTest, isNn);
                 yield return MakeCurrentModelPlot(yunitLabel, color, statIdx, isTest, isNn);
             }
+
             yield return MakeMeanPlot(dataLabel, yunitLabel, color, statIdx, isTest, isNn);
         }
 
@@ -82,14 +82,15 @@ namespace LvqGui
         static IVizEngine<LvqStatPlots> MakePlotHelper(string dataLabel, Color color, string yunitLabel, object tag, Func<LvqStatPlots, Point[]> mapper, DashStyle dashStyle = null)
         {
             var lineplot = PlotHelpers.CreateLine(new PlotMetaData {
-                DataLabel = string.IsNullOrEmpty(dataLabel) || dataLabel.StartsWith("#") ? null : dataLabel,
-                RenderColor = color,
-                XUnitLabel = "Training iterations",
-                YUnitLabel = yunitLabel,
-                AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph,
-                ZIndex = 1,
-                Tag = tag,
-            });
+                    DataLabel = string.IsNullOrEmpty(dataLabel) || dataLabel.StartsWith("#") ? null : dataLabel,
+                    RenderColor = color,
+                    XUnitLabel = "Training iterations",
+                    YUnitLabel = yunitLabel,
+                    AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph,
+                    ZIndex = 1,
+                    Tag = tag,
+                }
+            );
             lineplot.CoverageRatioY = yunitLabel.StartsWith("max") ? 1.0 : 0.90;
             lineplot.CoverageRatioGrad = 20.0;
             lineplot.DashStyle = dashStyle ?? DashStyles.Solid;
@@ -102,13 +103,14 @@ namespace LvqGui
             //Blend(color, Colors.White)
             color.ScA = 0.25f;
             var rangeplot = PlotHelpers.CreateDataRange(new PlotMetaData {
-                RenderColor = color,
-                XUnitLabel = "Training iterations",
-                YUnitLabel = yunitLabel,
-                AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph,
-                Tag = isTest ? IsTestPlotTag : isNn ? IsNnPlotTag : null,
-                ZIndex = 0
-            });
+                    RenderColor = color,
+                    XUnitLabel = "Training iterations",
+                    YUnitLabel = yunitLabel,
+                    AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph,
+                    Tag = isTest ? IsTestPlotTag : isNn ? IsNnPlotTag : null,
+                    ZIndex = 0
+                }
+            );
             rangeplot.CoverageRatioY = yunitLabel.StartsWith("max") ? 1.0 : 0.90;
             rangeplot.CoverageRatioGrad = 20.0;
             return rangeplot.Map(ModelToRangeMapper(statIdx));
@@ -116,21 +118,24 @@ namespace LvqGui
 
         static Func<LvqStatPlots, Point[]> ModelToPointsMapper(int statIdx) => subplots => LimitGraphDetail(subplots.model.TrainingStats.Where(info => info.Value[statIdx].IsFinite()).Select(info => new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx])).ToArray());
         static Func<LvqStatPlots, Point[]> SelectedModelToPointsMapper(int statIdx) => subplots => LimitGraphDetail(subplots.model.SelectedStats(subplots.selectedSubModel).Where(stat => stat.values[statIdx].IsFinite()).Select(stat => new Point(stat.values[LvqTrainingStatCli.TrainingIterationI], stat.values[statIdx])).ToArray());
+
         static Func<LvqStatPlots, Tuple<Point[], Point[]>> ModelToRangeMapper(int statIdx) => subplots => {
             var okstats = subplots.model.TrainingStats.Where(info => (info.Value[statIdx] + info.StandardError[statIdx]).IsFinite());
             return
-            Tuple.Create(
-                LimitGraphDetail(
-                    okstats.Select(info =>
-                        new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx] + info.StandardError[statIdx])
-                    ).ToArray()),
-                LimitGraphDetail(
-                    okstats.Select(info =>
-                        new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx] - info.StandardError[statIdx])
-                    ).ToArray()
-                )
-            );
+                Tuple.Create(
+                    LimitGraphDetail(
+                        okstats.Select(info =>
+                            new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx] + info.StandardError[statIdx])
+                        ).ToArray()
+                    ),
+                    LimitGraphDetail(
+                        okstats.Select(info =>
+                            new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx] - info.StandardError[statIdx])
+                        ).ToArray()
+                    )
+                );
         };
+
         static Point[] LimitGraphDetail(Point[] retval)
         {
             var scaleFac = retval.Length / 1024; //not necessary anymore?
@@ -144,6 +149,7 @@ namespace LvqGui
                     newret[i] += new Vector(retval[j].X / scaleFac, retval[j].Y / scaleFac);
                 }
             }
+
             return newret;
         }
     }

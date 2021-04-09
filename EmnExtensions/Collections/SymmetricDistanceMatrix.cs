@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 
 namespace EmnExtensions.Collections
 {
-
     /// <summary>
     /// Resizable Symmetric distance matrix.  It is an error to access the matrix's diagonal.
     /// </summary>
@@ -13,7 +13,7 @@ namespace EmnExtensions.Collections
     {
         const double resizefactor = 1.5;
         T[] distances = new T[0];
-        int elementCount = 0;
+        int elementCount;
 
         public T DefaultElement { get; set; }
 
@@ -43,9 +43,8 @@ namespace EmnExtensions.Collections
 
         public IEnumerable<T> Values => distances.Take(DistCount);
 
-        public SymmetricDistanceMatrixGen() { }
-
         static int matSize(int elemCount) => elemCount * (elemCount - 1) >> 1;
+
         int calcOffset(int i, int j)
         {
             if (i > j) {
@@ -76,7 +75,7 @@ namespace EmnExtensions.Collections
         /// <summary>
         /// It is an error to access the diagonal which must be 0!
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1023:IndexersShouldNotBeMultidimensional")]
+        [SuppressMessage("Microsoft.Design", "CA1023:IndexersShouldNotBeMultidimensional")]
         public T this[int i, int j]
         {
             get => distances[calcOffset(i, j)];
@@ -97,7 +96,6 @@ namespace EmnExtensions.Collections
     }
 
 
-
     public class SymmetricDistanceMatrix : SymmetricDistanceMatrixGen<float>
     {
         public void WriteTo(BinaryWriter writer)
@@ -105,9 +103,10 @@ namespace EmnExtensions.Collections
             writer.Write(ElementCount);
             writer.Write(DistCount);
             foreach (var f in Values) {
-                writer.Write((float)f);
+                writer.Write(f);
             }
         }
+
         public SymmetricDistanceMatrix(BinaryReader reader)
         {
             ElementCount = reader.ReadInt32();
@@ -117,6 +116,7 @@ namespace EmnExtensions.Collections
                 distances[i] = reader.ReadSingle();
             }
         }
+
         public SymmetricDistanceMatrix() { }
 
         public void FloydWarshall(Action<double> progress)
@@ -134,7 +134,6 @@ namespace EmnExtensions.Collections
                 }
             }
         }
-
     }
 
     /// <summary>
@@ -144,7 +143,7 @@ namespace EmnExtensions.Collections
     {
         const double resizefactor = 1.5;
         T[] distances = new T[0];
-        int elementCount = 0;
+        int elementCount;
 
         //used when growing the matrix;
         public T DefaultElement { get; set; }
@@ -175,9 +174,8 @@ namespace EmnExtensions.Collections
 
         public IEnumerable<T> Values => distances.Take(DistCount);
 
-        public TriangularMatrix() { }
-
         static int matSize(int elemCount) => elemCount * (elemCount + 1) >> 1;
+
         int calcOffset(int i, int j)
         {
             if (i > j) {
@@ -206,12 +204,11 @@ namespace EmnExtensions.Collections
         /// <summary>
         /// It is an error to access the diagonal which must be 0!
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1023:IndexersShouldNotBeMultidimensional")]
+        [SuppressMessage("Microsoft.Design", "CA1023:IndexersShouldNotBeMultidimensional")]
         public T this[int i, int j]
         {
             get => distances[calcOffset(i, j)];
             set => distances[calcOffset(i, j)] = value;
         }
     }
-
 }

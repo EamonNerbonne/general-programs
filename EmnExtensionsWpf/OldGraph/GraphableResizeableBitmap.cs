@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
@@ -8,18 +8,28 @@ namespace EmnExtensions.Wpf.Plot
 {
     public abstract class GraphableResizeableBitmap : GraphableData
     {
+        public GraphableResizeableBitmap() => BitmapScalingMode = BitmapScalingMode.Linear;
 
-        public GraphableResizeableBitmap() { BitmapScalingMode = BitmapScalingMode.Linear; }
-        public BitmapScalingMode BitmapScalingMode { get => m_scalingMode; set { m_scalingMode = value; if (m_drawing != null) { RenderOptions.SetBitmapScalingMode(m_drawing, value); } } }
+        public BitmapScalingMode BitmapScalingMode
+        {
+            get => m_scalingMode;
+            set {
+                m_scalingMode = value;
+                if (m_drawing != null) {
+                    RenderOptions.SetBitmapScalingMode(m_drawing, value);
+                }
+            }
+        }
+
         BitmapScalingMode m_scalingMode;
 
         const int EXTRA_RESIZE_PIX = 256;
-        double m_dpiX = 96.0, m_dpiY = 96.0;
+        readonly double m_dpiX = 96.0;
+        readonly double m_dpiY = 96.0;
         protected WriteableBitmap m_bmp;
-        RectangleGeometry m_clipGeom = new RectangleGeometry();
-        TranslateTransform m_offsetTransform = new TranslateTransform();
-        DrawingGroup m_drawing = new DrawingGroup();
-        Rect m_outerBounds = Rect.Empty;
+        readonly RectangleGeometry m_clipGeom = new();
+        readonly TranslateTransform m_offsetTransform = new();
+        readonly DrawingGroup m_drawing = new();
 
         public override void DrawGraph(DrawingContext context)
         {
@@ -34,7 +44,7 @@ namespace EmnExtensions.Wpf.Plot
         public override void SetTransform(Matrix dataToDisplay, Rect displayClip)
         {
             if (dataToDisplay.IsIdentity) //TODO: is this a good test for no-show?
-{
+            {
                 using (m_drawing.Open()) {
                     return;
                 }
@@ -58,12 +68,13 @@ namespace EmnExtensions.Wpf.Plot
                 m_offsetTransform.X = snappedDrawingClip.X;
                 m_offsetTransform.Y = snappedDrawingClip.Y;
             }
-            m_clipGeom.Rect = snappedDrawingClip;//TODO: maybe better to clip after transform and then to clip to pW/pH?
+
+            m_clipGeom.Rect = snappedDrawingClip; //TODO: maybe better to clip after transform and then to clip to pW/pH?
             //TODO2: this clips to nearest pixel boundary; but a tighter clip is possible to sub-pixel accuracy.
 
             if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH) {
-                var width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + (int)(EXTRA_RESIZE_PIX));
-                var height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + (int)(EXTRA_RESIZE_PIX));
+                var width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + EXTRA_RESIZE_PIX);
+                var height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + EXTRA_RESIZE_PIX);
                 m_bmp = new WriteableBitmap(width, height, m_dpiX, m_dpiY, PixelFormats.Bgra32, null);
                 using (var context = m_drawing.Open()) {
                     context.PushGuidelineSet(new GuidelineSet(new[] { 0.0 }, new[] { 0.0 }));
@@ -74,6 +85,7 @@ namespace EmnExtensions.Wpf.Plot
                     context.Pop();
                     context.Pop();
                 }
+
                 Trace.WriteLine("new WriteableBitmap");
             }
 

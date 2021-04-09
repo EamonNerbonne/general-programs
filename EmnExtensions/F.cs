@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace EmnExtensions
 {
     public static class F
     {
-
         public static IEnumerable<T> EmptyIfNull<T>(this IEnumerable<T> enumerable) => enumerable ?? Enumerable.Empty<T>();
 
         public static IEnumerable<IEnumerable<T>> SplitWhen<T>(this IEnumerable<T> iter, Func<T, bool> splitMark)
@@ -17,10 +17,13 @@ namespace EmnExtensions
                     if (queue.Count != 0) {
                         yield return queue;
                     }
+
                     queue = new Queue<T>();
                 }
+
                 queue.Enqueue(t);
             }
+
             if (queue.Count != 0) {
                 yield return queue;
             }
@@ -36,7 +39,7 @@ namespace EmnExtensions
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public static T Swallow<T>(Func<T> trial, Func<T> error)
         {
             try {
@@ -46,7 +49,8 @@ namespace EmnExtensions
             }
         }
 
-        public static T Swallow<T, TE>(Func<T> trial, Func<TE, T> error) where TE : Exception
+        public static T Swallow<T, TE>(Func<T> trial, Func<TE, T> error)
+            where TE : Exception
         {
             try {
                 return trial();
@@ -81,7 +85,8 @@ namespace EmnExtensions
 
         public static string ToStringOrNull(this object value) => value == null ? null : value.ToString();
 
-        public static int IndexOfMax<T>(this IEnumerable<T> sequence, Func<int, T, bool> filter) where T : IComparable<T>
+        public static int IndexOfMax<T>(this IEnumerable<T> sequence, Func<int, T, bool> filter)
+            where T : IComparable<T>
         {
             using (var enumerator = sequence.GetEnumerator()) {
                 var retval = -1;
@@ -103,16 +108,16 @@ namespace EmnExtensions
         public static bool IsFinite(this float f) => !(float.IsInfinity(f) || float.IsNaN(f));
         public static bool IsFinite(this double f) => !(double.IsInfinity(f) || double.IsNaN(f));
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "1#")]
+        [SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "1#")]
         public static bool GetNext<T>(this IEnumerator<T> enumerator, out T nextValue)
         {
             if (enumerator.MoveNext()) {
                 nextValue = enumerator.Current;
                 return true;
-            } else {
-                nextValue = default(T);
-                return false;
             }
+
+            nextValue = default(T);
+            return false;
         }
 
 

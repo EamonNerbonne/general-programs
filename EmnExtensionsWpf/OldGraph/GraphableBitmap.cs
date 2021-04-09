@@ -10,14 +10,13 @@ namespace EmnExtensions.Wpf.Plot
 
         /// <summary>
         /// Sets DrawingRect + IrrelevantDrawingMargins for you; you should set RelevantDataBounds to Rect describing the data in the image youself.
-        /// for an image of WxH pixels, pixel (0,0) corresponds to the top-left relevant data bound, and  pixel (W-1,H-1) to the bottom right. 
+        /// for an image of WxH pixels, pixel (0,0) corresponds to the top-left relevant data bound, and  pixel (W-1,H-1) to the bottom right.
         /// </summary>
         public BitmapSource Bitmap
         {
             get => bmp;
             set {
                 if (bmp != value) {
-
                     bmp = value;
                     OnChange(GraphChange.Drawing);
                     OnChange(GraphChange.Projection);

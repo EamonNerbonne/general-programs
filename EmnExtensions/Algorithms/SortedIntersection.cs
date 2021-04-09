@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using EmnExtensions.Collections;
 
 namespace EmnExtensions.Algorithms
@@ -21,8 +21,9 @@ namespace EmnExtensions.Algorithms
                         gens.Add(gen, gen.Current);
                     }
                 }
+
                 //the costs *are* the current enumerator value
-                var lastYield = gens.Count > 0 ? gens.Top().Cost - 1 : 0;//anything but equal!
+                var lastYield = gens.Count > 0 ? gens.Top().Cost - 1 : 0; //anything but equal!
                 var matchCount = 0;
 
                 while (gens.Count > 0) {
@@ -51,8 +52,8 @@ namespace EmnExtensions.Algorithms
 
         public static IEnumerable<int> SortedZipIntersect(IEnumerable<int> a, IEnumerable<int> b)
         {
-            var enumA = a.GetEnumerator();
-            var enumB = b.GetEnumerator();
+            using var enumA = a.GetEnumerator();
+            using var enumB = b.GetEnumerator();
 
             if (!enumA.MoveNext() || !enumB.MoveNext()) {
                 yield break;

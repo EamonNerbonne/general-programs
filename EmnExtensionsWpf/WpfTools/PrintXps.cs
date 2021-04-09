@@ -1,4 +1,5 @@
 ﻿//#define USE_PAGED_XPS_SAVE
+
 using System.IO;
 using System.IO.Packaging;
 using System.Printing;
@@ -55,7 +56,7 @@ namespace EmnExtensions.Wpf
                     el.UpdateLayout();
                     el.Measure(new Size(curWidth, curHeight));
                     el.Arrange(new Rect(el.DesiredSize));
-                } else 
+                } else
 #endif
                 {
                     el.Width = reqWidth;
@@ -67,7 +68,6 @@ namespace EmnExtensions.Wpf
                     el.Measure(margin_compensating);
                     el.Arrange(new Rect(margin_compensating));
                 }
-
 
 
 #if USE_PAGED_XPS_SAVE

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using EmnExtensions.Collections;
+
 namespace EmnExtensions.Algorithms
 {
     public static class Dijkstra
@@ -24,6 +25,7 @@ namespace EmnExtensions.Algorithms
                 distance[i] = float.PositiveInfinity;
                 comeFrom[i] = -1;
             }
+
             var toProcess = Heap.Factory<DistanceTo>().Create((node, newIndex) => { nodeIndex[node.targetNode] = newIndex; });
             var noStartNodes = true;
             foreach (var startNode in startNodes) {
@@ -32,23 +34,22 @@ namespace EmnExtensions.Algorithms
                 comeFrom[startNode] = startNode;
                 noStartNodes = false;
             }
+
             if (noStartNodes) {
                 throw new ArgumentException("startNodes must contain at least one node");
             }
 
             DistanceTo current;
             while (toProcess.RemoveTop(out current)) {
-                nodeIndex[current.targetNode] = -2;//i.e. processed
+                nodeIndex[current.targetNode] = -2; //i.e. processed
                 foreach (var outEdge in graph(current.targetNode)) {
-                    if (nodeIndex[outEdge.targetNode] == -2) {
-                        continue; //this edge is already processed.
-                    } else {//OK, next goes to outEdge...
+                    if (nodeIndex[outEdge.targetNode] == -2) { } else { //OK, next goes to outEdge...
                         var newLength = current.distance + outEdge.distance;
                         if (newLength < distance[outEdge.targetNode]) {
                             distance[outEdge.targetNode] = newLength;
                             comeFrom[outEdge.targetNode] = current.targetNode;
                             if (nodeIndex[outEdge.targetNode] != -1) //we need to remove it first
-{
+                            {
                                 toProcess.Delete(nodeIndex[outEdge.targetNode]);
                             }
 

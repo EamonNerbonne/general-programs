@@ -8,9 +8,19 @@ namespace EmnExtensions.Wpf.VizEngines
 {
     public abstract class VizDynamicBitmap<T> : PlotVizBase<T>
     {
-        protected VizDynamicBitmap(IPlotMetaData owner) : base(owner) { BitmapScalingMode = BitmapScalingMode.Linear; }
+        protected VizDynamicBitmap(IPlotMetaData owner) : base(owner) => BitmapScalingMode = BitmapScalingMode.Linear;
 
-        public BitmapScalingMode BitmapScalingMode { get => m_scalingMode; set { m_scalingMode = value; if (m_drawing != null) { RenderOptions.SetBitmapScalingMode(m_drawing, value); } } }
+        public BitmapScalingMode BitmapScalingMode
+        {
+            get => m_scalingMode;
+            set {
+                m_scalingMode = value;
+                if (m_drawing != null) {
+                    RenderOptions.SetBitmapScalingMode(m_drawing, value);
+                }
+            }
+        }
+
         BitmapScalingMode m_scalingMode;
 
         //DrawingGroup painting = new DrawingGroup();
@@ -51,7 +61,6 @@ namespace EmnExtensions.Wpf.VizEngines
             //m_clipGeom.Rect = drawingClip;
 
 
-
             var pW = (int)(0.5 + snappedDrawingClip.Width * scaleX);
             var pH = (int)(0.5 + snappedDrawingClip.Height * scaleY);
             if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH || dpiX != m_bmp.DpiX || dpiY != m_bmp.DpiY) {
@@ -67,6 +76,7 @@ namespace EmnExtensions.Wpf.VizEngines
                     context.Pop();
                     context.Pop();
                 }
+
                 Trace.WriteLine("new WriteableBitmap");
             }
 
@@ -86,7 +96,6 @@ namespace EmnExtensions.Wpf.VizEngines
 
         static Tuple<Matrix, Matrix> SplitDataToDisplay(Matrix dataToDisplay, Rect snappedDrawingClip, double dpiX, double dpiY)
         {
-
             var dataToBitmap = dataToDisplay;
             dataToBitmap.Translate(-snappedDrawingClip.X, -snappedDrawingClip.Y); //transform real-location --> coordinates
             dataToBitmap.Scale(dpiX / 96.0, dpiY / 96.0); //transform from abstract units --> pixels

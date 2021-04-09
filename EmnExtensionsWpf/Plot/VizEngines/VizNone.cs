@@ -15,6 +15,6 @@ namespace EmnExtensions.Wpf.VizEngines
         public void OnRenderOptionsChanged() { }
         public bool SupportsColor => false;
         public virtual Drawing SampleDrawing => null;
-        public VizNone(IPlotMetaData metadata) { MetaData = metadata; }
+        public VizNone(IPlotMetaData metadata) => MetaData = metadata;
     }
 }

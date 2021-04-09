@@ -1,5 +1,6 @@
 ﻿//#define SHAREMEM //useful on workstation GC
 //#define TRACKUSAGE //handy to see how fast GUI is.
+
 using System;
 using System.Windows;
 using EmnExtensions.Algorithms;
@@ -12,9 +13,11 @@ namespace EmnExtensions.Wpf.VizEngines
         double CoverageGradient { get; set; }
         int? OverridePointCountEstimate { get; set; }
     }
+
     public static class VizPixelScatterHelpers
     {
         public const double SquareSidePerThickness = Math.PI / 4.0;
+
         //public static double PointCountToThickness(int pointCount) { return 15.0 / (0.5 + Math.Log(Math.Max(pointCount, 1))); }
         public static double PointCountToThickness(int pointCount) => 225.0 / Math.Sqrt(pointCount + 2500);
 
@@ -27,7 +30,9 @@ namespace EmnExtensions.Wpf.VizEngines
                 coveredBounds = outerBounds = Rect.Empty;
             }
         }
+
         #region RecomputeBounds Helpers
+
         static bool HasPoints(Point[] points) => points != null && points.Length > 0;
 
         // ReSharper disable ParameterTypeCanBeEnumerable.Global
@@ -41,6 +46,7 @@ namespace EmnExtensions.Wpf.VizEngines
                 xmax = Math.Max(xmax, point.X);
                 ymax = Math.Max(ymax, point.Y);
             }
+
             var outerBounds = new Rect(xmin, ymin, xmax - xmin, ymax - ymin);
             if (double.IsNaN(outerBounds.Width) || double.IsNaN(outerBounds.Height)) {
                 throw new PlotVizException("Invalid point array!" + outerBounds);
@@ -54,8 +60,7 @@ namespace EmnExtensions.Wpf.VizEngines
             var cutoffEachSideX = (int)(0.5 * (1.0 - coverageX) * points.Length + 0.5);
             var cutoffEachSideY = (int)(0.5 * (1.0 - coverageY) * points.Length + 0.5);
             return
-                cutoffEachSideX == 0 && cutoffEachSideY == 0 ? completeBounds :
-                ComputeInnerBoundsByCutoff(points, cutoffEachSideX, cutoffEachSideY, coverageGrad);
+                cutoffEachSideX == 0 && cutoffEachSideY == 0 ? completeBounds : ComputeInnerBoundsByCutoff(points, cutoffEachSideX, cutoffEachSideY, coverageGrad);
         }
 
 #if TRACKUSAGE
@@ -74,10 +79,9 @@ namespace EmnExtensions.Wpf.VizEngines
         static Rect ComputeInnerBoundsByCutoff(Point[] points, int cutoffEachSideX, int cutoffEachSideY, double coverageGrad)
         {
 #if SHAREMEM
-            lock (sync) 
+            lock (sync)
 #endif
             {
-
 #if TRACKUSAGE
                 hitcount++;
 #endif
@@ -103,11 +107,13 @@ namespace EmnExtensions.Wpf.VizEngines
 
                 if (xBounds.IsEmpty || yBounds.IsEmpty) {
                     return Rect.Empty;
-                } else if (!xBounds.Length.IsFinite() || !yBounds.Length.IsFinite()) {
-                    throw new PlotVizException("Invalid point array!");
-                } else {
-                    return new Rect(xBounds.Start, yBounds.Start, xBounds.Length, yBounds.Length);
                 }
+
+                if (!xBounds.Length.IsFinite() || !yBounds.Length.IsFinite()) {
+                    throw new PlotVizException("Invalid point array!");
+                }
+
+                return new Rect(xBounds.Start, yBounds.Start, xBounds.Length, yBounds.Length);
             }
         }
 
@@ -125,6 +131,7 @@ namespace EmnExtensions.Wpf.VizEngines
             } else {
                 Array.Sort(data, 0, datalen);
             }
+
             var xLen = data[datalen - 1] - data[0];
             if (xLen == 0.0) {
                 return new DimensionBounds { Start = data[0], End = data[datalen - 1] };
@@ -141,9 +148,10 @@ namespace EmnExtensions.Wpf.VizEngines
             }
 
             return startCutoff < datalen - 1 - endCutoff
-            ? new DimensionBounds { Start = data[startCutoff], End = data[datalen - 1 - endCutoff] }
-            : DimensionBounds.Empty;
+                ? new DimensionBounds { Start = data[startCutoff], End = data[datalen - 1 - endCutoff] }
+                : DimensionBounds.Empty;
         }
+
         #endregion
     }
 }

@@ -7,7 +7,7 @@ namespace EmnExtensions.Wpf.VizEngines
         const int MaxPointsInStreamGeometry = 10000;
 
         IVizPixelScatter engine;
-        public VizPixelScatterSmart(IPlotMetaData metadata) { engine = new VizPixelScatterGeom(metadata); }
+        public VizPixelScatterSmart(IPlotMetaData metadata) => engine = new VizPixelScatterGeom(metadata);
         protected override IVizEngine<Point[]> Implementation => engine;
 
         public override void ChangeData(Point[] newData)
@@ -24,13 +24,27 @@ namespace EmnExtensions.Wpf.VizEngines
                 MetaData.GraphChanged(GraphChange.Projection);
                 MetaData.GraphChanged(GraphChange.Drawing);
             }
+
             Implementation.ChangeData(newData);
         }
 
-        public int? OverridePointCountEstimate { get => engine.OverridePointCountEstimate; set => engine.OverridePointCountEstimate = value; }
+        public int? OverridePointCountEstimate
+        {
+            get => engine.OverridePointCountEstimate;
+            set => engine.OverridePointCountEstimate = value;
+        }
 
 
-        public double CoverageRatio { get => engine.CoverageRatio; set => engine.CoverageRatio = value; }
-        public double CoverageGradient { get => engine.CoverageGradient; set => engine.CoverageGradient = value; }
+        public double CoverageRatio
+        {
+            get => engine.CoverageRatio;
+            set => engine.CoverageRatio = value;
+        }
+
+        public double CoverageGradient
+        {
+            get => engine.CoverageGradient;
+            set => engine.CoverageGradient = value;
+        }
     }
 }

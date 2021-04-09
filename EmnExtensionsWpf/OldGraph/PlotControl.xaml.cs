@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -13,17 +12,18 @@ namespace EmnExtensions.Wpf.Plot
     /// <summary>
     /// Interaction logic for PlotControl.xaml
     /// </summary>
-    public partial class PlotControl : UserControl
+    public partial class PlotControl
     {
-        bool needRedrawGraphs = false;
-        bool needRecomputeBounds = false;
-        bool showGridLines = false;
-        ObservableCollection<GraphableData> graphs = new ObservableCollection<GraphableData>();
-        public ObservableCollection<GraphableData> Graphs => graphs;
+        bool needRedrawGraphs;
+        bool needRecomputeBounds;
+        bool showGridLines;
+        public ObservableCollection<GraphableData> Graphs { get; } = new();
+
         Dictionary<TickedAxisLocation, TickedAxis> axes;
+
         public PlotControl()
         {
-            graphs.CollectionChanged += new NotifyCollectionChangedEventHandler(graphs_CollectionChanged);
+            Graphs.CollectionChanged += graphs_CollectionChanged;
             InitializeComponent();
             axes = new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop }.ToDictionary(axis => axis.AxisPos);
             RenderOptions.SetBitmapScalingMode(dg, BitmapScalingMode.Linear);
@@ -39,14 +39,14 @@ namespace EmnExtensions.Wpf.Plot
         void RegisterChanged(IEnumerable<GraphableData> newGraphs)
         {
             foreach (var newgraph in newGraphs) {
-                newgraph.Changed += new Action<GraphableData, GraphChange>(graphChanged);
+                newgraph.Changed += graphChanged;
             }
         }
 
         void UnregisterChanged(IEnumerable<GraphableData> oldGraphs)
         {
             foreach (var oldgraph in oldGraphs) {
-                oldgraph.Changed -= new Action<GraphableData, GraphChange>(graphChanged);
+                oldgraph.Changed -= graphChanged;
             }
         }
 
@@ -63,13 +63,13 @@ namespace EmnExtensions.Wpf.Plot
             RequireRedisplay();
         }
 
-        private void RequireRedisplay()
+        void RequireRedisplay()
         {
             needRecomputeBounds = true;
             InvalidateMeasure(); //todo; flag and invalidatemeasure always together?
 
             needRedrawGraphs = true;
-            InvalidateVisual();//todo; flag and InvalidateVisual always together?
+            InvalidateVisual(); //todo; flag and InvalidateVisual always together?
         }
 
         void graphChanged(GraphableData graph, GraphChange graphChange)
@@ -83,7 +83,7 @@ namespace EmnExtensions.Wpf.Plot
             }
         }
 
-        private IEnumerable<TickedAxis> Axes => new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop };
+        IEnumerable<TickedAxis> Axes => new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop };
 
         public bool? AttemptBorderTicks
         {
@@ -96,12 +96,13 @@ namespace EmnExtensions.Wpf.Plot
             }
             get {
                 var vals = Axes.Select(axis => axis.AttemptBorderTicks).Distinct().ToArray();
-                return vals.Length != 1 ? (bool?)null : vals[0];
+                return vals.Length != 1 ? null : vals[0];
             }
         }
 
         #region Static Helper Functions
-        private static IEnumerable<TickedAxisLocation> ProjectionCorners
+
+        static IEnumerable<TickedAxisLocation> ProjectionCorners
         {
             get {
                 yield return TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph;
@@ -110,34 +111,37 @@ namespace EmnExtensions.Wpf.Plot
                 yield return TickedAxisLocation.AboveGraph | TickedAxisLocation.RightOfGraph;
             }
         }
-        private static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) => isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds);
-        private static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) => isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins);
-        private static TickedAxisLocation ChooseProjection(GraphableData graph) => ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner);
+
+        static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) => isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds);
+        static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) => isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins);
+        static TickedAxisLocation ChooseProjection(GraphableData graph) => ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner);
+
         #endregion
 
-        private void RecomputeBounds()
+        void RecomputeBounds()
         {
             Trace.WriteLine("RecomputeBounds");
             foreach (var axis in Axes) {
-                var boundGraphs = graphs.Where(graph => (graph.AxisBindings & axis.AxisPos) != 0);
+                var boundGraphs = Graphs.Where(graph => (graph.AxisBindings & axis.AxisPos) != 0);
                 var bounds =
                     boundGraphs
-                    .Select(graph => ToDimBounds(graph.DataBounds, axis.IsHorizontal))
-                    .Aggregate(DimensionBounds.Empty, (bounds1, bounds2) => DimensionBounds.Merge(bounds1, bounds2));
+                        .Select(graph => ToDimBounds(graph.DataBounds, axis.IsHorizontal))
+                        .Aggregate(DimensionBounds.Empty, (bounds1, bounds2) => DimensionBounds.Merge(bounds1, bounds2));
                 var margin =
                     boundGraphs
-                    .Select(graph => ToDimMargins(graph.Margin, axis.IsHorizontal))
-                    .Aggregate(DimensionMargins.Empty, (m1, m2) => DimensionMargins.Merge(m1, m2));
-                var dataUnits = string.Join(", ", graphs.Select(graph => axis.IsHorizontal ? graph.XUnitLabel : graph.YUnitLabel).Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray());
+                        .Select(graph => ToDimMargins(graph.Margin, axis.IsHorizontal))
+                        .Aggregate(DimensionMargins.Empty, (m1, m2) => DimensionMargins.Merge(m1, m2));
+                var dataUnits = string.Join(", ", Graphs.Select(graph => axis.IsHorizontal ? graph.XUnitLabel : graph.YUnitLabel).Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray());
 
                 axis.DataBound = bounds;
                 axis.DataMargin = margin;
                 axis.DataUnits = dataUnits;
             }
+
             needRecomputeBounds = false;
         }
 
-        private void RedrawGraphs(TickedAxisLocation gridLineAxes)
+        void RedrawGraphs(TickedAxisLocation gridLineAxes)
         {
             Trace.WriteLine("Redrawing Graphs");
             using (var drawingContext = dg.Open()) {
@@ -146,9 +150,20 @@ namespace EmnExtensions.Wpf.Plot
 
             needRedrawGraphs = false;
         }
-        public bool ShowGridLines { get => showGridLines; set { if (showGridLines != value) { showGridLines = value; needRedrawGraphs = true; InvalidateVisual(); } } }
 
-        private void RedrawScene(DrawingContext drawingContext, TickedAxisLocation gridLineAxes)
+        public bool ShowGridLines
+        {
+            get => showGridLines;
+            set {
+                if (showGridLines != value) {
+                    showGridLines = value;
+                    needRedrawGraphs = true;
+                    InvalidateVisual();
+                }
+            }
+        }
+
+        void RedrawScene(DrawingContext drawingContext, TickedAxisLocation gridLineAxes)
         {
             if (showGridLines) {
                 foreach (var axis in Axes) {
@@ -158,7 +173,7 @@ namespace EmnExtensions.Wpf.Plot
                 }
             }
 
-            foreach (var graph in graphs.AsEnumerable().Reverse()) {
+            foreach (var graph in Graphs.AsEnumerable().Reverse()) {
                 graph.DrawGraph(drawingContext);
             }
         }
@@ -172,18 +187,18 @@ namespace EmnExtensions.Wpf.Plot
             return base.MeasureOverride(constraint);
         }
 
-        DrawingGroup dg = new DrawingGroup();
+        readonly DrawingGroup dg = new();
 
         protected override void OnRender(DrawingContext drawingContext)
         {
             Trace.WriteLine("PlotControl.OnRender");
             //axes which influence projection matrices:
-            var relevantAxes = graphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));
+            var relevantAxes = Graphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));
             var transforms =
                 from axis in Axes
                 where (axis.AxisPos & relevantAxes) != 0
                 select new {
-                    AxisPos = axis.AxisPos,
+                    axis.AxisPos,
                     Transform = axis.DataToDisplayTransform,
                     HorizontalClip = axis.IsHorizontal ? axis.DisplayClippingBounds : DimensionBounds.Empty,
                     VerticalClip = axis.IsHorizontal ? DimensionBounds.Empty : axis.DisplayClippingBounds,
@@ -192,22 +207,24 @@ namespace EmnExtensions.Wpf.Plot
             var cornerProjection =
                 ProjectionCorners
                     .Where(corner => corner == (corner & relevantAxes))
-                    .ToDictionary(//we have only relevant corners...
+                    .ToDictionary( //we have only relevant corners...
                         corner => corner,
                         corner => transforms.Where(transform => transform.AxisPos == (transform.AxisPos & corner))
-                                           .Aggregate((t1, t2) => new {
-                                               AxisPos = t1.AxisPos | t2.AxisPos,
-                                               Transform = t1.Transform * t2.Transform,
-                                               HorizontalClip = DimensionBounds.Merge(t1.HorizontalClip, t2.HorizontalClip),
-                                               VerticalClip = DimensionBounds.Merge(t1.VerticalClip, t2.VerticalClip),
-                                           })
+                            .Aggregate((t1, t2) => new {
+                                    AxisPos = t1.AxisPos | t2.AxisPos,
+                                    Transform = t1.Transform * t2.Transform,
+                                    HorizontalClip = DimensionBounds.Merge(t1.HorizontalClip, t2.HorizontalClip),
+                                    VerticalClip = DimensionBounds.Merge(t1.VerticalClip, t2.VerticalClip),
+                                }
+                            )
                     );
 
-            foreach (var graph in graphs) {
+            foreach (var graph in Graphs) {
                 var trans = cornerProjection[ChooseProjection(graph)];
                 var bounds = new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
                 graph.SetTransform(trans.Transform, bounds);
             }
+
             foreach (var axis in Axes) {
                 axis.SetGridLineExtent(RenderSize);
             }
@@ -215,9 +232,9 @@ namespace EmnExtensions.Wpf.Plot
             if (needRedrawGraphs) {
                 RedrawGraphs(relevantAxes);
             }
+
             //    drawingContext.DrawDrawing(dg);
             base.OnRender(drawingContext);
         }
-
     }
 }
