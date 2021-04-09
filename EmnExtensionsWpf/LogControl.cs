@@ -15,7 +15,7 @@ using EmnExtensionsNative;
 
 namespace EmnExtensions.Wpf
 {
-    public class LogControl : FlowDocumentScrollViewer
+    public sealed class LogControl : FlowDocumentScrollViewer
     {
         public static Tuple<Window, LogControl> ShowNewLogWindow(string windowTitle = null, double? width = null, double? height = null)
         {

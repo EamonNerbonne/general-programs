@@ -12,7 +12,7 @@ namespace EmnExtensions.Wpf
     [Flags]
     public enum TickedAxisLocation { None = 0, LeftOfGraph = 1, AboveGraph = 2, RightOfGraph = 4, BelowGraph = 8, Any = 15, Auto = 16, Default = LeftOfGraph | BelowGraph | Auto }
 
-    public class TickedAxis : FrameworkElement
+    public sealed class TickedAxis : FrameworkElement
     {
         const double DefaultAxisLength = 1000.0; //assume we have this many pixels for estimates (i.e. measuring)
         const double MinimumNumberOfTicks = 1.0; //don't bother rendering if we have fewer than this many ticks.

@@ -1,4 +1,4 @@
-﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 
 using System;
@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 //see http://msdn.microsoft.com/en-us/library/system.windows.media.imaging.writeablebitmap.aspx
 namespace EmnExtensions.Wpf
 {
-    public class DynamicBitmap : FrameworkElement
+    public sealed class DynamicBitmap : FrameworkElement
     {
         //Dependency Property "BitmapGenerator":==========================
 

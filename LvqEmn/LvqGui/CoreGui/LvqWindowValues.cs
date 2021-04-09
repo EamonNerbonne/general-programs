@@ -14,7 +14,7 @@ using LvqLibCli;
 
 namespace LvqGui
 {
-    public class LvqWindowValues : INotifyPropertyChanged
+    public sealed class LvqWindowValues : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 

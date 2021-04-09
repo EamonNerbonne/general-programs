@@ -1,8 +1,8 @@
-﻿using System.Windows;
+using System.Windows;
 
 namespace EmnExtensions.Wpf.VizEngines
 {
-    public class VizPixelScatterSmart : VizTransformed<Point[], Point[]>, IVizPixelScatter
+    public sealed class VizPixelScatterSmart : VizTransformed<Point[], Point[]>, IVizPixelScatter
     {
         const int MaxPointsInStreamGeometry = 10000;
 

@@ -1,9 +1,9 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Windows;
 
 namespace LvqGui
 {
-    public partial class CreateStarDataset
+    public sealed partial class CreateStarDataset
     {
         public CreateStarDataset() => InitializeComponent();
 

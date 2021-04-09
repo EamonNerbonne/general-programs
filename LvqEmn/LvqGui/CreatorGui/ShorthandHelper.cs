@@ -129,7 +129,7 @@ namespace LvqGui
     [AttributeUsage(AttributeTargets.Property)]
     sealed class NotInShorthandAttribute : Attribute { }
 
-    class ShorthandHelper<T> : IShorthandHelper
+    sealed class ShorthandHelper<T> : IShorthandHelper
     {
         public T shorthandObj;
         public object Value => shorthandObj;
@@ -272,7 +272,7 @@ namespace LvqGui
             }
         }
 
-        public class PropertyDef
+        public sealed class PropertyDef
         {
             public readonly string Name;
             public readonly Type Type;

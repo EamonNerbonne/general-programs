@@ -1,9 +1,9 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Windows;
 
 namespace LvqGui
 {
-    public partial class LoadDataset
+    public sealed partial class LoadDataset
     {
         public LoadDataset() => InitializeComponent();
         void ReseedInst(object sender, RoutedEventArgs e) => ((IHasSeed)DataContext).ReseedInst();

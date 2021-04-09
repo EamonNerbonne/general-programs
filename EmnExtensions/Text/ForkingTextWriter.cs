@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
 namespace EmnExtensions.Text
 {
-    public class ForkingTextWriter : AbstractTextWriter
+    public sealed class ForkingTextWriter : AbstractTextWriter
     {
         readonly bool closeUnderlying;
         readonly TextWriter[] writers;

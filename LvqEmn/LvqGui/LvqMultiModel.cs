@@ -381,7 +381,7 @@ namespace LvqGui
 
         public ModelProjection CurrentModelProjection(int subModelIdx, bool showTestEmbedding) => subModels[subModelIdx].CurrentProjectionAndPrototypes(showTestEmbedding);
 
-        public class ModelProjectionAndImage
+        public sealed class ModelProjectionAndImage
         {
             public LabelledPoint[] RawPoints;
             public Point[][] PrototypesByLabel;

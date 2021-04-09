@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -26,7 +26,7 @@ namespace EmnExtensions.Wpf
         public override bool Equals(object obj) => obj is DimensionMargins && this == (DimensionMargins)obj;
     }
 
-    public class DimensionMarginsConverter : TypeConverter
+    public sealed class DimensionMarginsConverter : TypeConverter
     {
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {

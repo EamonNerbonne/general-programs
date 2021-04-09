@@ -5,7 +5,7 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.VizEngines
 {
-    public class VizPixelScatterBitmap : VizDynamicBitmap<Point[]>, IVizPixelScatter
+    public sealed class VizPixelScatterBitmap : VizDynamicBitmap<Point[]>, IVizPixelScatter
         //for efficiency reasons, accept data in a Point[] rather than the more general IEnumerable<Point>
     {
         Rect m_OuterDataBounds = Rect.Empty;

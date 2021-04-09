@@ -13,7 +13,7 @@ using LvqLibCli;
 
 namespace LvqGui
 {
-    public partial class LvqWindow
+    public sealed partial class LvqWindow
     {
         readonly CancellationTokenSource cts = new CancellationTokenSource();
         public CancellationToken ClosingToken => cts.Token;

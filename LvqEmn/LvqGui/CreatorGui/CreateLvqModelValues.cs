@@ -10,7 +10,7 @@ using LvqLibCli;
 
 namespace LvqGui
 {
-    public class CreateLvqModelValues : HasShorthandBase, IHasSeed
+    public sealed class CreateLvqModelValues : HasShorthandBase, IHasSeed
     {
         readonly LvqWindowValues owner;
 

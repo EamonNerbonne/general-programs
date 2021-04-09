@@ -10,7 +10,7 @@ namespace EmnExtensions.Wpf.VizEngines
         double CoverageRatioGrad { get; set; }
     }
 
-    public class VizLineSegments : VizTransformed<Point[], StreamGeometry>, IVizLineSegments
+    public sealed class VizLineSegments : VizTransformed<Point[], StreamGeometry>, IVizLineSegments
     {
         readonly VizGeometry impl;
 

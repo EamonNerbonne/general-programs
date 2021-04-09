@@ -1,9 +1,9 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Windows;
 
 namespace LvqGui
 {
-    public partial class CreateGaussianCloudDataset
+    public sealed partial class CreateGaussianCloudDataset
     {
         public CreateGaussianCloudDataset() => InitializeComponent();
 

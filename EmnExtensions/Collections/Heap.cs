@@ -116,7 +116,7 @@ namespace EmnExtensions.Collections
     }
 
 
-    public class Heap<T, TSink, TComp> : IHeap<T>
+    public sealed class Heap<T, TSink, TComp> : IHeap<T>
         where TComp : IComparer<T>
         where TSink : IHeapIndexSink<T>
     {
@@ -255,7 +255,7 @@ namespace EmnExtensions.Collections
     }
 
 
-    public class CostHeap<T>
+    public sealed class CostHeap<T>
     {
         public struct Entry
         {

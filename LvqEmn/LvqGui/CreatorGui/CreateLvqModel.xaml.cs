@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using LvqLibCli;
 
 namespace LvqGui
 {
-    public partial class CreateLvqModel
+    public sealed partial class CreateLvqModel
     {
         // ReSharper disable MemberCanBeMadeStatic.Global
         // ReSharper disable MemberCanBePrivate.Global

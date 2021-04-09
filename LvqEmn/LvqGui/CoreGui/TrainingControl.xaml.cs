@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
 namespace LvqGui
 {
-    public partial class TrainingControl
+    public sealed partial class TrainingControl
     {
         public TrainingControl() => InitializeComponent();
         TrainingControlValues Values => (TrainingControlValues)DataContext;

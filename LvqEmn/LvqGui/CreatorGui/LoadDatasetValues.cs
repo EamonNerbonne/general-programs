@@ -1,4 +1,4 @@
-﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 
 using System;
@@ -11,7 +11,7 @@ using Microsoft.Win32;
 
 namespace LvqGui
 {
-    public class LoadDatasetValues : INotifyPropertyChanged, IHasSeed
+    public sealed class LoadDatasetValues : INotifyPropertyChanged, IHasSeed
     {
         readonly LvqWindowValues owner;
         public event PropertyChangedEventHandler PropertyChanged;

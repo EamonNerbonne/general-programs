@@ -6,7 +6,7 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.VizEngines
 {
-    public class VizPointCloudBitmap : VizDynamicBitmap<LabelledPoint[]>
+    public sealed class VizPointCloudBitmap : VizDynamicBitmap<LabelledPoint[]>
         //for efficiency reasons, accept data in a Point[] rather than the more general IEnumerable<Point>
     {
         struct UintColor

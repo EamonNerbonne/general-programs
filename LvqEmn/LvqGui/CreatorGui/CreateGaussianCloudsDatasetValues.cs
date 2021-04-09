@@ -1,4 +1,4 @@
-﻿// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedMember.Global
 
 using System;
@@ -6,7 +6,7 @@ using LvqLibCli;
 
 namespace LvqGui
 {
-    public class CreateGaussianCloudsDatasetValues : HasShorthandBase, IHasSeed
+    public sealed class CreateGaussianCloudsDatasetValues : HasShorthandBase, IHasSeed
     {
         readonly LvqWindowValues owner;
 

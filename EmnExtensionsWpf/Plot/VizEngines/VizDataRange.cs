@@ -12,7 +12,7 @@ namespace EmnExtensions.Wpf.VizEngines
         double CoverageRatioGrad { get; set; }
     }
 
-    public class VizDataRange : VizTransformed<Tuple<Point[], Point[]>, StreamGeometry>, IVizDataRange
+    public sealed class VizDataRange : VizTransformed<Tuple<Point[], Point[]>, StreamGeometry>, IVizDataRange
     {
         readonly IVizEngine<StreamGeometry> impl;
 

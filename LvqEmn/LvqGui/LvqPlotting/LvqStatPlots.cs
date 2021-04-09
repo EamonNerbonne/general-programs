@@ -9,7 +9,7 @@ using LvqLibCli;
 
 namespace LvqGui
 {
-    class LvqStatPlots
+    sealed class LvqStatPlots
     {
         public readonly LvqDatasetCli dataset;
         public readonly LvqMultiModel model;

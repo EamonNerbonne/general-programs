@@ -23,7 +23,7 @@ namespace EmnExtensions.Wpf
     /// Go ahead and use your control in the XAML file.
     /// <MyNamespace:TickedLegendControl />
     /// </summary>
-    public class TickedLegendControl : FrameworkElement
+    public sealed class TickedLegendControl : FrameworkElement
     {
         readonly Typeface labelType;
         readonly double fontSize = 12.0 * 4.0 / 3.0;

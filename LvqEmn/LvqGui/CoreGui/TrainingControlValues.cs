@@ -15,7 +15,7 @@ using LvqLibCli;
 
 namespace LvqGui
 {
-    public class TrainingControlValues : INotifyPropertyChanged
+    public sealed class TrainingControlValues : INotifyPropertyChanged
     {
         readonly LvqWindowValues owner;
         public LvqWindowValues Owner => owner;

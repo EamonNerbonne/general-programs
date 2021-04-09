@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.VizEngines
 {
-    public class VizGeometry : PlotVizBase<Geometry>
+    public sealed class VizGeometry : PlotVizBase<Geometry>
     {
         readonly MatrixTransform m_ProjectionTransform = new MatrixTransform();
         readonly GeometryGroup combinesGeom = new GeometryGroup();

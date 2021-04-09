@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 
 namespace EmnExtensions.Text
 {
-    public class DelegateTextWriter : AbstractTextWriter
+    public sealed class DelegateTextWriter : AbstractTextWriter
     {
         readonly Action<string> OnWrite;
         readonly Action OnClose;

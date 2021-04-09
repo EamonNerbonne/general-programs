@@ -7,7 +7,7 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.VizEngines
 {
-    public class VizPixelScatterGeom : VizTransformed<Point[], StreamGeometry>, IVizPixelScatter
+    public sealed class VizPixelScatterGeom : VizTransformed<Point[], StreamGeometry>, IVizPixelScatter
     {
         readonly VizGeometry impl;
         Point[] currentData;

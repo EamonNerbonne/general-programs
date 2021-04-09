@@ -1,4 +1,4 @@
-﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 
 using System;
@@ -20,7 +20,7 @@ using Microsoft.Win32;
 
 namespace EmnExtensions.Wpf
 {
-    public partial class PlotControl : IPlotContainer
+    public sealed partial class PlotControl : IPlotContainer
     {
         bool needRedrawGraphs;
         readonly ObservableCollection<IVizEngine> graphs = new ObservableCollection<IVizEngine>();
@@ -41,7 +41,7 @@ namespace EmnExtensions.Wpf
         readonly DrawingBrush bgBrush;
         readonly UIElement drawingUi;
 
-        class PlainDrawing : UIElement
+        sealed class PlainDrawing : UIElement
         {
             readonly Drawing drawing;
             public PlainDrawing(DrawingGroup dg) => drawing = dg;

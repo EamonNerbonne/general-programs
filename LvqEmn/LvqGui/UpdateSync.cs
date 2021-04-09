@@ -1,6 +1,6 @@
-﻿namespace LvqGui
+namespace LvqGui
 {
-    class UpdateSync
+    sealed class UpdateSync
     {
         readonly object syncUpdates = new object();
         bool busy, updateQueued;
@@ -21,7 +21,5 @@
                 return !updateQueued;
             }
         }
-
-        public object SyncObject => syncUpdates;
     }
 }

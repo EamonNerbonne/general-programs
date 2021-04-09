@@ -2,7 +2,7 @@ using System;
 
 namespace LvqGui
 {
-    class LvqStatName
+    sealed class LvqStatName
     {
         public readonly string TrainingStatLabel, UnitLabel, StatGroup;
         public readonly bool HideByDefault;

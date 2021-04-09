@@ -1,4 +1,4 @@
-﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 
 using System;
@@ -98,7 +98,7 @@ namespace EmnExtensions.Wpf
     }
 
 
-    public class DimensionBoundsConverter : TypeConverter
+    public sealed class DimensionBoundsConverter : TypeConverter
     {
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {

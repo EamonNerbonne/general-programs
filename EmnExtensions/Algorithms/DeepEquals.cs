@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,7 +50,7 @@ namespace EmnExtensions.Algorithms
             return object1 is IEnumerable && object2 is IEnumerable && CompareEnumerables(assumeEquals, (IEnumerable)object1, (IEnumerable)object2);
         }
 
-        public class ReferencePair : IEquatable<ReferencePair>
+        public sealed class ReferencePair : IEquatable<ReferencePair>
         {
             readonly object a, b;
 
