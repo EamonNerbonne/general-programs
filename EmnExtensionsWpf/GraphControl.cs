@@ -26,7 +26,7 @@ namespace EmnExtensions.Wpf
     /// </summary>
     public sealed class GraphControl : FrameworkElement
     {
-        static readonly Random GraphColorRandom = new Random();
+        static readonly Random GraphColorRandom = new();
 
         static Brush RandomGraphColor()
         {
@@ -35,7 +35,7 @@ namespace EmnExtensions.Wpf
             var b = GraphColorRandom.NextDouble() + 0.01;
             var sum = GraphColorRandom.NextDouble() * 0.5 + 0.5;
             var brush = new SolidColorBrush(
-                new Color {
+                new() {
                     A = 255,
                     R = (byte)(255 * r * sum / (r + g + b)),
                     G = (byte)(255 * g * sum / (r + g + b)),
@@ -133,10 +133,7 @@ namespace EmnExtensions.Wpf
         public Brush GraphLineColor
         {
             set {
-                graphLinePen = new Pen(value, 1.5);
-                graphLinePen.StartLineCap = PenLineCap.Round;
-                graphLinePen.EndLineCap = PenLineCap.Round;
-                graphLinePen.LineJoin = PenLineJoin.Round;
+                graphLinePen = new(value, 1.5) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round, LineJoin = PenLineJoin.Round };
                 graphLinePen.Freeze();
                 InvalidateVisual();
             }
@@ -159,10 +156,9 @@ namespace EmnExtensions.Wpf
                 fig = null;
             } else {
                 var points = lineOfPoints.ToArray();
-                graphGeom2 = new PathGeometry();
+                graphGeom2 = new();
                 foreach (var startPoint in points.Take(1)) {
-                    fig = new PathFigure();
-                    fig.StartPoint = startPoint;
+                    fig = new() { StartPoint = startPoint };
                     graphGeom2.Figures.Add(fig);
                     graphBoundsPrivate.Union(startPoint);
                 }
@@ -198,8 +194,7 @@ namespace EmnExtensions.Wpf
                 NewLine(new[] { point });
             } else {
                 if (fig == null) {
-                    fig = new PathFigure();
-                    fig.StartPoint = point;
+                    fig = new() { StartPoint = point };
                     graphGeom2.Figures.Add(fig);
                 } else {
                     fig.Segments.Add(new LineSegment(point, true));

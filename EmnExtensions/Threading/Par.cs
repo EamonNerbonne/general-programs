@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,15 +11,14 @@ namespace EmnExtensions.Threading
         public static Task Then(this Task t, Func<Task> startnext)
         {
             var whencomplete = new TaskCompletionSource<int>();
-            Action<Task> continuationFunction = t1 => whencomplete.SetResult(0);
-            PassUpErrors(t, whencomplete, t0 => PassUpErrors(startnext(), whencomplete, continuationFunction));
+            PassUpErrors(t, whencomplete, _ => PassUpErrors(startnext(), whencomplete, _ => whencomplete.SetResult(0)));
             return whencomplete.Task;
         }
 
         static void PassUpErrors(Task t, TaskCompletionSource<int> parent, Action<Task> whenOk)
         {
             t.ContinueWith(t0 => parent.SetCanceled(), TaskContinuationOptions.OnlyOnCanceled);
-            t.ContinueWith(t0 => parent.SetException(t0.Exception), TaskContinuationOptions.OnlyOnFaulted);
+            t.ContinueWith(t0 => parent.SetException(t0.Exception ?? throw new InvalidOperationException()), TaskContinuationOptions.OnlyOnFaulted);
             t.ContinueWith(whenOk, TaskContinuationOptions.OnlyOnRanToCompletion);
         }
 
@@ -34,7 +33,7 @@ namespace EmnExtensions.Threading
         static void PassUpErrors<TIn, TOut>(Task<TIn> t, TaskCompletionSource<TOut> parent, Action<Task<TIn>> whenOk)
         {
             t.ContinueWith(t0 => parent.SetCanceled(), TaskContinuationOptions.OnlyOnCanceled);
-            t.ContinueWith(t0 => parent.SetException(t0.Exception), TaskContinuationOptions.OnlyOnFaulted);
+            t.ContinueWith(t0 => parent.SetException(t0.Exception ?? throw new InvalidOperationException()), TaskContinuationOptions.OnlyOnFaulted);
             t.ContinueWith(whenOk, TaskContinuationOptions.OnlyOnRanToCompletion);
         }
     }
