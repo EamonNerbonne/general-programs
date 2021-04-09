@@ -6,3 +6,4 @@ bin/
 /LvqEmn/packages/
 *.vcxproj.user
 x64/
+/LvqEmn/lvqlog/*.log
