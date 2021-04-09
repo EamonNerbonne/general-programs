@@ -17,7 +17,6 @@ namespace LvqGui
     {
         public static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\Thesis\doc\results\", Assembly.GetAssembly(typeof(LrGuesser)));
 
-
         public static LvqModelSettingsCli ChooseReasonableLr(LvqModelSettingsCli settings)
         {
             var options = (
@@ -36,21 +35,25 @@ namespace LvqGui
                     ;
             }
 
-            return settings.ModelType == LvqModelType.Gm ? settings.WithLr(0.002, 2.0, 0.0)
-                : settings.ModelType == LvqModelType.Ggm ? settings.WithLr(0.03, 0.05, 4.0)
-                : settings.ModelType == LvqModelType.Fgm ? settings.WithLr(0.03, 0.05, 4.0)
-                : settings.WithLr(0.01, 0.4, 0.006);
+            return settings.ModelType == LvqModelType.Gm
+                ? settings.WithLr(0.002, 2.0, 0.0)
+                : settings.ModelType == LvqModelType.Ggm
+                    ? settings.WithLr(0.03, 0.05, 4.0)
+                    : settings.ModelType == LvqModelType.Fgm
+                        ? settings.WithLr(0.03, 0.05, 4.0)
+                        : settings.WithLr(0.01, 0.4, 0.006);
         }
 
-
-        public static IEnumerable<Tuple<LvqModelSettingsCli, double>> UniformResults() => from line in File.ReadAllLines(resultsDir.FullName + "\\uniform-results.txt")
-            let settingsOrNull = CreateLvqModelValues.TryParseShorthand(line.SubstringUntil(" "))
-            where settingsOrNull.HasValue
-            let settings = settingsOrNull.Value
-            let geomean = double.Parse(line.SubstringAfterFirst("GeoMean: ").SubstringUntil(";").SubstringUntil("~"))
-            group Tuple.Create(settings, geomean) by settings.WithCanonicalizedDefaults()
-            into settingsGroup
-            select settingsGroup.MinBy(tuple => tuple.Item2).First();
+        public static IEnumerable<Tuple<LvqModelSettingsCli, double>> UniformResults()
+            =>
+                from line in File.ReadAllLines(resultsDir.FullName + "\\uniform-results.txt")
+                let settingsOrNull = CreateLvqModelValues.TryParseShorthand(line.SubstringUntil(" "))
+                where settingsOrNull.HasValue
+                let settings = settingsOrNull.Value
+                let geomean = double.Parse(line.SubstringAfterFirst("GeoMean: ").SubstringUntil(";").SubstringUntil("~"))
+                group Tuple.Create(settings, geomean) by settings.WithCanonicalizedDefaults()
+                into settingsGroup
+                select settingsGroup.MinBy(tuple => tuple.Item2).First();
 
         static readonly Regex resultsFilenameRegex = new(@"^(?<iters>[0-9]?e[0-9]+)\-(?<shorthand>[^ ]*?)\.txt$");
 

@@ -5,10 +5,13 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
     public sealed class VizPixelScatterSmart : VizTransformed<Point[], Point[]>, IVizPixelScatter
     {
         const int MaxPointsInStreamGeometry = 10000;
-
         IVizPixelScatter engine;
-        public VizPixelScatterSmart(IPlotMetaData metadata) => engine = new VizPixelScatterGeom(metadata);
-        protected override IVizEngine<Point[]> Implementation => engine;
+
+        public VizPixelScatterSmart(IPlotMetaData metadata)
+            => engine = new VizPixelScatterGeom(metadata);
+
+        protected override IVizEngine<Point[]> Implementation
+            => engine;
 
         public override void ChangeData(Point[] newData)
         {
@@ -33,7 +36,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             get => engine.OverridePointCountEstimate;
             set => engine.OverridePointCountEstimate = value;
         }
-
 
         public double CoverageRatio
         {

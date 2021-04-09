@@ -19,7 +19,6 @@ namespace EmnExtensions.Wpf.OldGraph
         bool showGridLines;
         public ObservableCollection<GraphableData> Graphs { get; } = new();
 
-
         public PlotControl()
         {
             Graphs.CollectionChanged += graphs_CollectionChanged;
@@ -81,7 +80,8 @@ namespace EmnExtensions.Wpf.OldGraph
             }
         }
 
-        IEnumerable<TickedAxis> Axes => new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop };
+        IEnumerable<TickedAxis> Axes
+            => new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop };
 
         public bool? AttemptBorderTicks
         {
@@ -99,7 +99,6 @@ namespace EmnExtensions.Wpf.OldGraph
         }
 
         #region Static Helper Functions
-
         static IEnumerable<TickedAxisLocation> ProjectionCorners
         {
             get {
@@ -110,10 +109,14 @@ namespace EmnExtensions.Wpf.OldGraph
             }
         }
 
-        static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) => isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds);
-        static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) => isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins);
-        static TickedAxisLocation ChooseProjection(GraphableData graph) => ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner);
+        static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal)
+            => isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds);
 
+        static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal)
+            => isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins);
+
+        static TickedAxisLocation ChooseProjection(GraphableData graph)
+            => ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner);
         #endregion
 
         void RecomputeBounds()
@@ -208,7 +211,8 @@ namespace EmnExtensions.Wpf.OldGraph
                     .ToDictionary( //we have only relevant corners...
                         corner => corner,
                         corner => transforms.Where(transform => transform.AxisPos == (transform.AxisPos & corner))
-                            .Aggregate((t1, t2) => new {
+                            .Aggregate(
+                                (t1, t2) => new {
                                     AxisPos = t1.AxisPos | t2.AxisPos,
                                     Transform = t1.Transform * t2.Transform,
                                     HorizontalClip = DimensionBounds.Merge(t1.HorizontalClip, t2.HorizontalClip),

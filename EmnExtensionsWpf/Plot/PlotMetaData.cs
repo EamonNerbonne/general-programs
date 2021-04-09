@@ -31,7 +31,8 @@ namespace EmnExtensions.Wpf.Plot
             }
         }
 
-        void IPlotMetaData.GraphChanged(GraphChange changeType) => TriggerChange(changeType);
+        void IPlotMetaData.GraphChanged(GraphChange changeType)
+            => TriggerChange(changeType);
 
         string m_xUnitLabel, m_yUnitLabel, m_DataLabel;
 
@@ -121,9 +122,7 @@ namespace EmnExtensions.Wpf.Plot
         }
 
         public object Tag { get; set; }
-
         public IPlotContainer Container { get; set; }
-
         Color? m_PrimaryColor;
 
         public Color? RenderColor

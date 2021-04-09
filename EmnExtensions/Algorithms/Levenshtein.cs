@@ -28,6 +28,7 @@ namespace EmnExtensions.Algorithms
             return d[sLen, tLen];
         }
 
-        public static double LevenshteinDistanceScaled(this string s, string t) => LevenshteinDistance(s, t) / (double)Math.Max(1, Math.Max(s.Length, t.Length));
+        public static double LevenshteinDistanceScaled(this string s, string t)
+            => LevenshteinDistance(s, t) / (double)Math.Max(1, Math.Max(s.Length, t.Length));
     }
 }

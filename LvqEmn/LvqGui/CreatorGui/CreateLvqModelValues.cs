@@ -35,15 +35,16 @@ namespace LvqGui.CreatorGui
         LvqDatasetCli _ForDataset;
 
         [NotInShorthand]
-        public double EstCost => _ForDataset == null || PrototypesPerClass <= 0
-            ? double.NaN
-            : settings.EstimateCost(_ForDataset.ClassCount, _ForDataset.Dimensions);
+        public double EstCost
+            => _ForDataset == null || PrototypesPerClass <= 0
+                ? double.NaN
+                : settings.EstimateCost(_ForDataset.ClassCount, _ForDataset.Dimensions);
 
         [NotInShorthand]
-        public double AnimEpochSuggestion => _ForDataset == null || PrototypesPerClass <= 0
-            ? double.NaN
-            : 1000.0 * 1000.0 / ((settings.EstimateCost(_ForDataset.ClassCount, _ForDataset.Dimensions) + 0.5) * _ForDataset.PointCount(0));
-
+        public double AnimEpochSuggestion
+            => _ForDataset == null || PrototypesPerClass <= 0
+                ? double.NaN
+                : 1000.0 * 1000.0 / ((settings.EstimateCost(_ForDataset.ClassCount, _ForDataset.Dimensions) + 0.5) * _ForDataset.PointCount(0));
 
         LvqModelSettingsCli settings;
 
@@ -463,7 +464,8 @@ namespace LvqGui.CreatorGui
             }
         }
 
-        public override string ShorthandErrors => ShorthandHelper.VerifyShorthand(this, shR);
+        public override string ShorthandErrors
+            => ShorthandHelper.VerifyShorthand(this, shR);
 
         public static LvqModelSettingsCli ParseShorthand(string shorthand)
         {
@@ -475,7 +477,8 @@ namespace LvqGui.CreatorGui
             throw new ArgumentException("Can't parse: " + shorthand);
         }
 
-        public static LvqModelSettingsCli? TryParseShorthand(string shorthand) => ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand).AsNullableStruct<LvqModelSettingsCli>();
+        public static LvqModelSettingsCli? TryParseShorthand(string shorthand)
+            => ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand).AsNullableStruct<LvqModelSettingsCli>();
 
         public CreateLvqModelValues(LvqWindowValues owner)
         {
@@ -484,13 +487,15 @@ namespace LvqGui.CreatorGui
             //this.ReseedBoth();
         }
 
-        public Task ConfirmCreation() => CreateSingleModel(Owner, ForDataset, settings.Canonicalize());
+        public Task ConfirmCreation()
+            => CreateSingleModel(Owner, ForDataset, settings.Canonicalize());
 
         static Task CreateSingleModel(LvqWindowValues owner, LvqDatasetCli dataset, LvqModelSettingsCli settingsCopy)
         {
             var whenDone = new TaskCompletionSource<object>();
-            _=Task.Factory
-                .StartNew(() => {
+            _ = Task.Factory
+                .StartNew(
+                    () => {
                         if (settingsCopy.LR0 == 0.0 && settingsCopy.LrScaleP == 0.0 && settingsCopy.LrScaleB == 0.0) {
                             settingsCopy = LrGuesser.ChooseReasonableLr(settingsCopy);
                         }
@@ -507,17 +512,18 @@ namespace LvqGui.CreatorGui
             return whenDone.Task;
         }
 
-
         static readonly string[] depProps = {
             "HasOptimizedLr", "OptimizeButtonText", "OptimizedLrAllIncomplete", "OptimizedLrAllStatus",
             "OptimizeAllButtonText", "EstCost", "AnimEpochSuggestion"
         };
 
-        protected override IEnumerable<string> GloballyDependantProps => base.GloballyDependantProps.Concat(depProps);
+        protected override IEnumerable<string> GloballyDependantProps
+            => base.GloballyDependantProps.Concat(depProps);
     }
 
     static class LvqModelTypeHelpers
     {
-        public static bool IsFixedDimModel(this LvqModelType modelType) => LvqModelSettingsCli.IsFixedDimensionalityModel(modelType);
+        public static bool IsFixedDimModel(this LvqModelType modelType)
+            => LvqModelSettingsCli.IsFixedDimensionalityModel(modelType);
     }
 }

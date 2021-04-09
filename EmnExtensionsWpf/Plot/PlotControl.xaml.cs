@@ -24,7 +24,10 @@ namespace EmnExtensions.Wpf.Plot
     public sealed partial class PlotControl : IPlotContainer
     {
         bool needRedrawGraphs;
-        IEnumerable<IVizEngine> visibleGraphs => Graphs.Where(g => !g.MetaData.Hidden);
+
+        IEnumerable<IVizEngine> visibleGraphs
+            => Graphs.Where(g => !g.MetaData.Hidden);
+
         public ObservableCollection<IVizEngine> Graphs { get; } = new();
 
         public IEnumerable<IVizEngine> GraphsEnumerable
@@ -44,8 +47,12 @@ namespace EmnExtensions.Wpf.Plot
         sealed class PlainDrawing : UIElement
         {
             readonly Drawing drawing;
-            public PlainDrawing(DrawingGroup dg) => drawing = dg;
-            protected override void OnRender(DrawingContext drawingContext) => drawingContext.DrawDrawing(drawing);
+
+            public PlainDrawing(DrawingGroup dg)
+                => drawing = dg;
+
+            protected override void OnRender(DrawingContext drawingContext)
+                => drawingContext.DrawDrawing(drawing);
         }
 
         static readonly object syncType = new();
@@ -79,7 +86,8 @@ namespace EmnExtensions.Wpf.Plot
         public static readonly DependencyProperty ShowAxesProperty =
             DependencyProperty.Register("ShowAxes", typeof(bool), typeof(PlotControl), new UIPropertyMetadata(true, ShowAxesSet));
 
-        static void ShowAxesSet(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((PlotControl)d).SetAxesShow((bool)e.NewValue);
+        static void ShowAxesSet(DependencyObject d, DependencyPropertyChangedEventArgs e)
+            => ((PlotControl)d).SetAxesShow((bool)e.NewValue);
 
         void SetAxesShow(bool showAxes)
         {
@@ -105,8 +113,14 @@ namespace EmnExtensions.Wpf.Plot
         }
 
         public static readonly DependencyProperty TitleProperty =
-            DependencyProperty.Register("Title", typeof(string), typeof(PlotControl), new UIPropertyMetadata(
-                    (depObj, evtArg) => { (depObj as PlotControl).titleTextbox.Visibility = evtArg.NewValue == null ? Visibility.Collapsed : Visibility.Visible; }
+            DependencyProperty.Register(
+                "Title",
+                typeof(string),
+                typeof(PlotControl),
+                new UIPropertyMetadata(
+                    (depObj, evtArg) => {
+                        (depObj as PlotControl).titleTextbox.Visibility = evtArg.NewValue == null ? Visibility.Collapsed : Visibility.Visible;
+                    }
                 )
             );
 
@@ -174,7 +188,8 @@ namespace EmnExtensions.Wpf.Plot
                 }
 
                 any = true;
-                label.Inlines.Add(new Image {
+                label.Inlines.Add(
+                    new Image {
                         Source = new DrawingImage(graph.SampleDrawing).AsFrozen(),
                         Stretch = Stretch.None,
                         Margin = new(2, 0, 2, 0)
@@ -187,7 +202,6 @@ namespace EmnExtensions.Wpf.Plot
                 labelarea.Children.Add(label);
             }
         }
-
 
         void IPlotContainer.GraphChanged(IVizEngine plot, GraphChange graphChange)
         {
@@ -237,7 +251,6 @@ namespace EmnExtensions.Wpf.Plot
         }
 
         #region Static Helper Functions
-
         static IEnumerable<TickedAxisLocation> ProjectionCorners
         {
             get {
@@ -248,10 +261,18 @@ namespace EmnExtensions.Wpf.Plot
             }
         }
 
-        static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) => bounds.IsEmpty || bounds.Width == 0 || bounds.Height == 0 ? DimensionBounds.Empty : isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds);
-        static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) => isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins);
-        static TickedAxisLocation ChooseProjection(IVizEngine graph) => ProjectionCorners.FirstOrDefault(corner => (graph.MetaData.AxisBindings & corner) == corner);
+        static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal)
+            => bounds.IsEmpty || bounds.Width == 0 || bounds.Height == 0
+                ? DimensionBounds.Empty
+                : isHorizontal
+                    ? DimensionBounds.FromRectX(bounds)
+                    : DimensionBounds.FromRectY(bounds);
 
+        static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal)
+            => isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins);
+
+        static TickedAxisLocation ChooseProjection(IVizEngine graph)
+            => ProjectionCorners.FirstOrDefault(corner => (graph.MetaData.AxisBindings & corner) == corner);
         #endregion
 
         void RecomputeBounds()
@@ -355,7 +376,8 @@ namespace EmnExtensions.Wpf.Plot
                 where corner == (corner & relevantAxes)
                 let relevantTransforms = transforms.Where(transform => transform.AxisPos == (transform.AxisPos & corner))
                 where relevantTransforms.Count() == 2
-                select relevantTransforms.Aggregate((t1, t2) => new {
+                select relevantTransforms.Aggregate(
+                    (t1, t2) => new {
                         AxisPos = t1.AxisPos | t2.AxisPos,
                         Transform = t1.Transform * t2.Transform,
                         HorizontalClip = DimensionBounds.Merge(t1.HorizontalClip, t2.HorizontalClip),
@@ -411,7 +433,8 @@ namespace EmnExtensions.Wpf.Plot
         void ExportGraph(object sender, RoutedEventArgs e)
         {
             var xpsData = PrintToByteArray();
-            var dialogThread = new Thread(() => {
+            var dialogThread = new Thread(
+                () => {
                     var saveDialog = new SaveFileDialog {
                         AddExtension = true,
                         CheckPathExists = true,
@@ -424,7 +447,6 @@ namespace EmnExtensions.Wpf.Plot
                             saveDialog.InitialDirectory = emnExtensionsWpfKey.GetValue("ExportDir") as string;
                         }
                     }
-
 
                     // ReSharper disable ConstantNullCoalescingCondition
                     if (saveDialog.ShowDialog() ?? false) {
@@ -472,7 +494,8 @@ namespace EmnExtensions.Wpf.Plot
         {
             var xpsData = PrintToByteArray();
 
-            var printThread = new Thread(() => {
+            var printThread = new Thread(
+                () => {
                     var tempFile = Path.GetTempFileName();
                     try {
                         File.WriteAllBytes(tempFile, xpsData);

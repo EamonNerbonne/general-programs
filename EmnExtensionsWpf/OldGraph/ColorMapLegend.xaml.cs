@@ -7,9 +7,13 @@ namespace EmnExtensions.Wpf.OldGraph
     /// </summary>
     public partial class ColorMapLegend
     {
-        public ColorMapLegend() => InitializeComponent();
+        public ColorMapLegend()
+            => InitializeComponent();
 
-        public TickedLegendControl TickedLegendControl => colorLegend;
-        public DynamicBitmap DynamicBitmap => colormapControl;
+        public TickedLegendControl TickedLegendControl
+            => colorLegend;
+
+        public DynamicBitmap DynamicBitmap
+            => colormapControl;
     }
 }

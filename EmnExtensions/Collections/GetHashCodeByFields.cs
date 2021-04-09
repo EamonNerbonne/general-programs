@@ -13,7 +13,8 @@ namespace EmnExtensions.Collections
         {
             var objParam = Expression.Parameter(typeof(T), "obj");
             var fields = typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            var fieldHashCodes = fields.Select((fi, n) => {
+            var fieldHashCodes = fields.Select(
+                (fi, n) => {
                     var fieldExpr = Expression.Field(objParam, fi);
 
                     var ulongHashCodeExpr =
@@ -24,8 +25,10 @@ namespace EmnExtensions.Collections
                     var scaledHashExpr = Expression.Multiply(Expression.Constant((ulong)(2 * n + 1)), ulongHashCodeExpr);
                     return fi.FieldType.IsValueType
                         ? (Expression)scaledHashExpr
-                        : Expression.Condition(Expression.Equal(Expression.Default(typeof(object)), fieldExpr),
-                            Expression.Constant((ulong)n), scaledHashExpr
+                        : Expression.Condition(
+                            Expression.Equal(Expression.Default(typeof(object)), fieldExpr),
+                            Expression.Constant((ulong)n),
+                            scaledHashExpr
                         );
                 }
             );
@@ -33,14 +36,13 @@ namespace EmnExtensions.Collections
             var accumulatorVar = Expression.Variable(typeof(ulong), "hashcodeAccumulator");
             var accumulatedHashExpr = fieldHashCodes.Aggregate((Expression)Expression.Constant((ulong)typeof(T).GetHashCode()), Expression.Add);
             var storeHashAcc = Expression.Assign(accumulatorVar, accumulatedHashExpr);
-            var finalHashExpr = Expression.ExclusiveOr(Expression.Convert(accumulatorVar, typeof(int)),
+            var finalHashExpr = Expression.ExclusiveOr(
+                Expression.Convert(accumulatorVar, typeof(int)),
                 Expression.Convert(Expression.RightShift(accumulatorVar, Expression.Constant(32)), typeof(int))
             );
 
             var compiled =
-                Expression.Lambda<Func<T, int>>(
-                    Expression.Block(new[] { accumulatorVar }, storeHashAcc, finalHashExpr), objParam
-                ).Compile();
+                Expression.Lambda<Func<T, int>>(Expression.Block(new[] { accumulatorVar }, storeHashAcc, finalHashExpr), objParam).Compile();
             return compiled;
         }
 

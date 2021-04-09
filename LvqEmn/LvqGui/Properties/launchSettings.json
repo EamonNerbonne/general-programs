@@ -1,8 +1,8 @@
 {
-  "profiles": {
-    "LvqGui": {
-      "commandName": "Project",
-      "nativeDebugging": true
-    }
+    "profiles": {
+        "LvqGui": {
+            "commandName": "Project",
+            "nativeDebugging": true
+          }
+      }
   }
-}

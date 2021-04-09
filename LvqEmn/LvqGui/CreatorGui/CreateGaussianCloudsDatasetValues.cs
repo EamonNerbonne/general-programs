@@ -11,7 +11,6 @@ namespace LvqGui.CreatorGui
     public sealed class CreateGaussianCloudsDatasetValues : HasShorthandBase, IHasSeed
     {
         readonly LvqWindowValues owner;
-
         GaussianCloudDatasetSettings settings = new();
 
         public GaussianCloudDatasetSettings Settings
@@ -168,7 +167,8 @@ namespace LvqGui.CreatorGui
             }
         }
 
-        public override string ShorthandErrors => settings.ShorthandErrors;
+        public override string ShorthandErrors
+            => settings.ShorthandErrors;
 
         public CreateGaussianCloudsDatasetValues(LvqWindowValues owner)
         {
@@ -202,7 +202,7 @@ namespace LvqGui.CreatorGui
             return settings.CreateDataset();
         }
 
-
-        public void ConfirmCreation() => owner.Dispatcher.BeginInvoke(owner.Datasets.Add, CreateDataset());
+        public void ConfirmCreation()
+            => owner.Dispatcher.BeginInvoke(owner.Datasets.Add, CreateDataset());
     }
 }

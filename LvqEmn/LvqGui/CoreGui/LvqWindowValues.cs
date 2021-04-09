@@ -69,13 +69,15 @@ namespace LvqGui.CoreGui
         }
 
         bool _NormalizeByScaling;
-
-
         public ObservableCollection<LvqDatasetCli> Datasets { get; }
         public ObservableCollection<LvqMultiModel> LvqModels { get; }
 
-        public CancellationToken WindowClosingToken => win.ClosingToken;
-        public Dispatcher Dispatcher => win.Dispatcher;
+        public CancellationToken WindowClosingToken
+            => win.ClosingToken;
+
+        public Dispatcher Dispatcher
+            => win.Dispatcher;
+
         public readonly LvqWindow win;
 
         public LvqWindowValues(LvqWindow win)
@@ -139,17 +141,18 @@ namespace LvqGui.CoreGui
             return multiModel;
         }
 
-
         void Datasets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.NewItems != null) {
                 foreach (LvqDatasetCli newDataset in e.NewItems) {
                     CreateLvqModelValues.ForDataset = newDataset;
-                    ThreadPool.QueueUserWorkItem(o => {
+                    ThreadPool.QueueUserWorkItem(
+                        o => {
                             var dataset = (LvqDatasetCli)o;
                             var errorRateAndVar = dataset.GetPcaNnErrorRate();
                             Console.WriteLine("NN error rate under PCA: {0} ~ {1}", errorRateAndVar.Item1, Math.Sqrt(errorRateAndVar.Item2));
-                        }, newDataset
+                        },
+                        newDataset
                     );
                 }
 

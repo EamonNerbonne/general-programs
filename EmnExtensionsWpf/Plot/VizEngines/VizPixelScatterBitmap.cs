@@ -11,7 +11,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         Rect m_OuterDataBounds = Rect.Empty;
         uint[] m_image;
 
-        protected override Rect? OuterDataBound => m_OuterDataBounds;
+        protected override Rect? OuterDataBound
+            => m_OuterDataBounds;
+
         double m_CoverageRatio = 0.9999;
 
         public double CoverageRatio
@@ -37,9 +39,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         }
 
         public int? OverridePointCountEstimate { get; set; }
-
         public VizPixelScatterBitmap(IPlotMetaData metadata) : base(metadata) { }
-
 
         protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap, double viewAreaSize)
         {
@@ -72,7 +72,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         }
 
         #region UpdateBitmap Helpers
-
         void Make2dHistogramInRegion(int pW, int pH, Matrix dataToBitmap, bool useDiamondPoints)
         {
             MakeVisibleRegionEmpty(pW, pH);
@@ -136,13 +135,14 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             }
         }
 
-        void CopyImageRegionToWriteableBitmap(int pW, int pH) => m_bmp.WritePixels(
-            new(0, 0, pW, pH),
-            m_image,
-            pW * sizeof(uint),
-            0,
-            0
-        );
+        void CopyImageRegionToWriteableBitmap(int pW, int pH)
+            => m_bmp.WritePixels(
+                new(0, 0, pW, pH),
+                m_image,
+                pW * sizeof(uint),
+                0,
+                0
+            );
 
         static uint[] PregenerateAlphaLookup(double alpha, uint[] image, int numPixels, double overallAlpha)
         {
@@ -173,7 +173,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
             return maxCount;
         }
-
         #endregion
 
         protected override void OnDataChanged(Point[] oldData)
@@ -183,10 +182,13 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             TriggerChange(GraphChange.Projection); //because we need to relayout the points in the plot
         }
 
-        protected override Rect ComputeBounds() => VizPixelScatterHelpers.ComputeInnerBoundsByRatio(Data, CoverageRatio, CoverageRatio, CoverageGradient, m_OuterDataBounds);
+        protected override Rect ComputeBounds()
+            => VizPixelScatterHelpers.ComputeInnerBoundsByRatio(Data, CoverageRatio, CoverageRatio, CoverageGradient, m_OuterDataBounds);
 
-        public override void OnRenderOptionsChanged() => TriggerChange(GraphChange.Projection); // because we need to relayout the points in the plot.
+        public override void OnRenderOptionsChanged()
+            => TriggerChange(GraphChange.Projection); // because we need to relayout the points in the plot.
 
-        public override bool SupportsColor => true;
+        public override bool SupportsColor
+            => true;
     }
 }

@@ -48,62 +48,71 @@ namespace LvqGui.LvqPlotting
             return model.CurrentProjectionAndImage(dataset, widthHeight?.Item1 ?? 0, widthHeight?.Item2 ?? 0, classBoundaries != null && classBoundaries.MetaData.Hidden, selectedSubModel, showTestEmbedding);
         }
 
+        public void SetScatterBounds(Rect bounds)
+            => ((IPlotMetaDataWriteable)dataClouds.MetaData).OverrideBounds = bounds; //foreach (IPlotMetaDataWriteable metadata in dataClouds.Select(viz => viz.Plot.MetaData)) metadata.OverrideBounds = bounds;
 
-        public void SetScatterBounds(Rect bounds) => ((IPlotMetaDataWriteable)dataClouds.MetaData).OverrideBounds = bounds; //foreach (IPlotMetaDataWriteable metadata in dataClouds.Select(viz => viz.Plot.MetaData)) metadata.OverrideBounds = bounds;
+        static IVizEngine<LvqStatPlots>[] ExtractDataSinksFromPlots(IEnumerable<PlotControl> plots)
+            => plots.SelectMany(plot => plot.Graphs).Cast<IVizEngine<LvqStatPlots>>().ToArray();
 
-        static IVizEngine<LvqStatPlots>[] ExtractDataSinksFromPlots(IEnumerable<PlotControl> plots) => plots.SelectMany(plot => plot.Graphs).Cast<IVizEngine<LvqStatPlots>>().ToArray();
-
-        static PlotControl[] MakeDataPlots(LvqDatasetCli dataset, LvqMultiModel model) => (
-            from statname in model.TrainingStatNames.Select(LvqStatName.Create)
-            where statname.StatGroup != null
-            group statname by statname.StatGroup
-            into statGroup
-            select new PlotControl {
-                ShowGridLines = true,
-                //Title = statGroup.Key,
-                Tag = statGroup.Key,
-                GraphsEnumerable = LvqStatPlotFactory.Create(statGroup.Key, statGroup, model.IsMultiModel, dataset.IsFolded() || dataset.HasTestSet(), dataset.ClassColors, model.OriginalSettings.PrototypesPerClass).ToArray(),
-                PlotName = statGroup.Key,
-                Visibility = statGroup.First().HideByDefault ? Visibility.Collapsed : Visibility.Visible,
-            }
-        ).ToArray();
-
-        static PlotControl MakeScatterPlotControl(IEnumerable<IVizEngine> graphs) => new() {
-            ShowAxes = false,
-            AttemptBorderTicks = false,
-            //ShowGridLines = true,
-            UniformScaling = true,
-            //Title = "ScatterPlot: " + model.ModelLabel,
-            GraphsEnumerable = graphs,
-            PlotName = "embed",
-        };
-
-        static IVizEngine<Point[]>[] MakePerClassScatterGraph(LvqDatasetCli dataset, float colorIntensity, int? PointCount = null, int? zIndex = null) => (
-            from classColor in dataset.ClassColors //.Select((color,index)=>new{color,index})
-            let darkColor = Color.FromScRgb(1.0f, classColor.ScR * colorIntensity, classColor.ScG * colorIntensity, classColor.ScB * colorIntensity)
-            select PlotHelpers.CreatePixelScatter(
-                new PlotMetaData {
-                    RenderColor = darkColor,
-                    ZIndex = zIndex ?? 0,
-                    OverrideMargin = new Thickness(0),
+        static PlotControl[] MakeDataPlots(LvqDatasetCli dataset, LvqMultiModel model)
+            => (
+                from statname in model.TrainingStatNames.Select(LvqStatName.Create)
+                where statname.StatGroup != null
+                group statname by statname.StatGroup
+                into statGroup
+                select new PlotControl {
+                    ShowGridLines = true,
+                    //Title = statGroup.Key,
+                    Tag = statGroup.Key,
+                    GraphsEnumerable = LvqStatPlotFactory.Create(statGroup.Key, statGroup, model.IsMultiModel, dataset.IsFolded() || dataset.HasTestSet(), dataset.ClassColors, model.OriginalSettings.PrototypesPerClass).ToArray(),
+                    PlotName = statGroup.Key,
+                    Visibility = statGroup.First().HideByDefault ? Visibility.Collapsed : Visibility.Visible,
                 }
-            ).Update(plot => {
-                    plot.CoverageRatio = 0.95;
-                    plot.OverridePointCountEstimate = PointCount ?? dataset.PointCount(0);
-                    plot.CoverageGradient = 5.0;
-                }
-            )
-        ).ToArray();
+            ).ToArray();
 
-        static IVizEngine<LabelledPoint[]> MakePointCloudGraph(LvqDatasetCli dataset, int? zIndex = null) => PlotHelpers.CreatePointCloud(new PlotMetaData { ZIndex = zIndex ?? 0 })
-            .Update(plot => {
-                    plot.CoverageRatio = 0.95;
-                    plot.CoverageGradient = 5.0;
-                    plot.ClassColors = dataset.ClassColors;
-                }
-            );
+        static PlotControl MakeScatterPlotControl(IEnumerable<IVizEngine> graphs)
+            => new() {
+                ShowAxes = false,
+                AttemptBorderTicks = false,
+                //ShowGridLines = true,
+                UniformScaling = true,
+                //Title = "ScatterPlot: " + model.ModelLabel,
+                GraphsEnumerable = graphs,
+                PlotName = "embed",
+            };
 
-        IVizEngine<LvqMultiModel.ModelProjectionAndImage> MakeClassBoundaryGraph() => PlotHelpers.CreateBitmapDelegate<LvqMultiModel.ModelProjectionAndImage>(UpdateClassBoundaries, new PlotMetaData { ZIndex = -1, OverrideBounds = Rect.Empty });
+        static IVizEngine<Point[]>[] MakePerClassScatterGraph(LvqDatasetCli dataset, float colorIntensity, int? PointCount = null, int? zIndex = null)
+            => (
+                from classColor in dataset.ClassColors //.Select((color,index)=>new{color,index})
+                let darkColor = Color.FromScRgb(1.0f, classColor.ScR * colorIntensity, classColor.ScG * colorIntensity, classColor.ScB * colorIntensity)
+                select PlotHelpers.CreatePixelScatter(
+                    new PlotMetaData {
+                        RenderColor = darkColor,
+                        ZIndex = zIndex ?? 0,
+                        OverrideMargin = new Thickness(0),
+                    }
+                ).Update(
+                    plot => {
+                        plot.CoverageRatio = 0.95;
+                        plot.OverridePointCountEstimate = PointCount ?? dataset.PointCount(0);
+                        plot.CoverageGradient = 5.0;
+                    }
+                )
+            ).ToArray();
+
+        static IVizEngine<LabelledPoint[]> MakePointCloudGraph(LvqDatasetCli dataset, int? zIndex = null)
+            => PlotHelpers.CreatePointCloud(new PlotMetaData { ZIndex = zIndex ?? 0 })
+                .Update(
+                    plot => {
+                        plot.CoverageRatio = 0.95;
+                        plot.CoverageGradient = 5.0;
+                        plot.ClassColors = dataset.ClassColors;
+                    }
+                );
+
+        IVizEngine<LvqMultiModel.ModelProjectionAndImage> MakeClassBoundaryGraph()
+            => PlotHelpers.CreateBitmapDelegate<LvqMultiModel.ModelProjectionAndImage>(UpdateClassBoundaries, new PlotMetaData { ZIndex = -1, OverrideBounds = Rect.Empty });
+
         Tuple<int, int> LastWidthHeight { get; set; }
 
         void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqMultiModel.ModelProjectionAndImage lastProjection)

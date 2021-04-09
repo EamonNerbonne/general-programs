@@ -9,7 +9,9 @@ namespace EmnExtensions
         where T : XmlSerializableBase<T>
     {
         static readonly XmlSerializer serializer = new(typeof(T));
-        public static T Deserialize(XmlReader from) => (T)serializer.Deserialize(from);
+
+        public static T Deserialize(XmlReader from)
+            => (T)serializer.Deserialize(from);
 
         public static T Deserialize(XDocument from)
         {
@@ -18,8 +20,13 @@ namespace EmnExtensions
             }
         }
 
-        public void SerializeTo(Stream s) => serializer.Serialize(s, this);
-        public void SerializeTo(TextWriter w) => serializer.Serialize(w, this);
-        public void SerializeTo(XmlWriter xw) => serializer.Serialize(xw, this);
+        public void SerializeTo(Stream s)
+            => serializer.Serialize(s, this);
+
+        public void SerializeTo(TextWriter w)
+            => serializer.Serialize(w, this);
+
+        public void SerializeTo(XmlWriter xw)
+            => serializer.Serialize(xw, this);
     }
 }

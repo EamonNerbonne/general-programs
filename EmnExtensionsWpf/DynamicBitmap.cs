@@ -14,14 +14,19 @@ namespace EmnExtensions.Wpf
         //Dependency Property "BitmapGenerator":==========================
 
         public static readonly DependencyProperty BitmapGeneratorProperty =
-            DependencyProperty.Register("BitmapGenerator", typeof(Func<int, int, uint[]>), typeof(DynamicBitmap),
-                new FrameworkPropertyMetadata(null,
+            DependencyProperty.Register(
+                "BitmapGenerator",
+                typeof(Func<int, int, uint[]>),
+                typeof(DynamicBitmap),
+                new FrameworkPropertyMetadata(
+                    null,
                     FrameworkPropertyMetadataOptions.AffectsRender,
                     BitmapGeneratorSet
                 )
             );
 
-        static void BitmapGeneratorSet(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((DynamicBitmap)d).InvalidateVisual();
+        static void BitmapGeneratorSet(DependencyObject d, DependencyPropertyChangedEventArgs e)
+            => ((DynamicBitmap)d).InvalidateVisual();
 
         public Func<int, int, uint[]> BitmapGenerator
         {
@@ -52,11 +57,12 @@ namespace EmnExtensions.Wpf
 
         const int maxWidthHeight = 4096;
 
-        void MakeBitmap() => bitmap = new(
-            Math.Min((int)Math.Ceiling(ActualWidth), maxWidthHeight),
-            Math.Min((int)Math.Ceiling(ActualHeight), maxWidthHeight),
-            96, 96, PixelFormats.Bgr32, null
-        );
+        void MakeBitmap()
+            => bitmap = new(
+                Math.Min((int)Math.Ceiling(ActualWidth), maxWidthHeight),
+                Math.Min((int)Math.Ceiling(ActualHeight), maxWidthHeight),
+                96, 96, PixelFormats.Bgr32, null
+            );
 
         void UpdateBitmap()
         {

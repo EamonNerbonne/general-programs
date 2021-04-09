@@ -16,17 +16,13 @@ namespace EmnExtensions.Wpf.Plot
         string YUnitLabel { get; }
         string DataLabel { get; }
         int ZIndex { get; }
-
         TickedAxisLocation AxisBindings { get; set; }
         bool Hidden { get; set; }
-
         void TriggerChange(GraphChange changeType);
         void GraphChanged(GraphChange changeType);
-
         Rect? OverrideBounds { get; }
         Thickness? OverrideMargin { get; }
         Rect? MinimalBounds { get; }
-
         Color? RenderColor { get; set; }
         double? RenderThickness { get; }
         object Tag { get; }

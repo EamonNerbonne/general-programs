@@ -6,8 +6,11 @@ namespace EmnExtensions.DebugTools
 {
     public sealed class DTimer : IDisposable
     {
-        public DTimer(string actionLabel) => Start(actionLabel);
-        public DTimer(Action<TimeSpan> resultSink) => Start(resultSink);
+        public DTimer(string actionLabel)
+            => Start(actionLabel);
+
+        public DTimer(Action<TimeSpan> resultSink)
+            => Start(resultSink);
 
         public void NextAction(string newActionLabel)
         {
@@ -21,7 +24,8 @@ namespace EmnExtensions.DebugTools
             Start(nextResultSink);
         }
 
-        public void Start(string actionLabel) => Start(ts => Console.WriteLine("{0} took {1}", actionLabel, ts));
+        public void Start(string actionLabel)
+            => Start(ts => Console.WriteLine("{0} took {1}", actionLabel, ts));
 
         public void Start(Action<TimeSpan> resultSink)
         {
@@ -43,14 +47,21 @@ namespace EmnExtensions.DebugTools
 
         Action<TimeSpan> m_resultSink;
         Stopwatch underlyingTimer;
-        public static Task TimeTask(Func<Task> f, string actionLabel) => TimeTask(f, new DTimer(actionLabel));
-        public static Task TimeTask(Func<Task> f, Action<TimeSpan> resultSink) => TimeTask(f, new DTimer(resultSink));
 
-        static Task TimeTask(Func<Task> f, DTimer timer) => f().ContinueWith(t => {
-                ((IDisposable)timer).Dispose();
-                t.Wait();
-            }, TaskContinuationOptions.ExecuteSynchronously
-        );
+        public static Task TimeTask(Func<Task> f, string actionLabel)
+            => TimeTask(f, new DTimer(actionLabel));
+
+        public static Task TimeTask(Func<Task> f, Action<TimeSpan> resultSink)
+            => TimeTask(f, new DTimer(resultSink));
+
+        static Task TimeTask(Func<Task> f, DTimer timer)
+            => f().ContinueWith(
+                t => {
+                    ((IDisposable)timer).Dispose();
+                    t.Wait();
+                },
+                TaskContinuationOptions.ExecuteSynchronously
+            );
 
         public static T TimeFunc<T>(Func<T> f, string actionLabel)
         {
@@ -96,8 +107,13 @@ namespace EmnExtensions.DebugTools
 
     public static class DTimerExtensions
     {
-        public static T TimeFunc<T>(this Func<T> f, string actionLabel) => DTimer.TimeFunc(f, actionLabel);
-        public static T TimeFunc<T>(this Func<T> f, Action<TimeSpan> resultSink) => DTimer.TimeFunc(f, resultSink);
-        public static T TimeFunc<T, M>(this Func<T> f, M key, Action<M, TimeSpan> resultsSink) => DTimer.TimeFunc(f, key, resultsSink);
+        public static T TimeFunc<T>(this Func<T> f, string actionLabel)
+            => DTimer.TimeFunc(f, actionLabel);
+
+        public static T TimeFunc<T>(this Func<T> f, Action<TimeSpan> resultSink)
+            => DTimer.TimeFunc(f, resultSink);
+
+        public static T TimeFunc<T, M>(this Func<T> f, M key, Action<M, TimeSpan> resultsSink)
+            => DTimer.TimeFunc(f, key, resultsSink);
     }
 }

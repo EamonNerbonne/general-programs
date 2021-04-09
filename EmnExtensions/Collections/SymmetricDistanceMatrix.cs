@@ -14,9 +14,7 @@ namespace EmnExtensions.Collections
         const double resizefactor = 1.5;
         T[] distances = new T[0];
         int elementCount;
-
         public T DefaultElement { get; set; }
-
 
         public int ElementCount
         {
@@ -37,13 +35,17 @@ namespace EmnExtensions.Collections
             get => elementCount;
         }
 
-        public int DistCount => matSize(elementCount);
+        public int DistCount
+            => matSize(elementCount);
 
-        public void TrimCapacityToFit() => Array.Resize(ref distances, matSize(elementCount));
+        public void TrimCapacityToFit()
+            => Array.Resize(ref distances, matSize(elementCount));
 
-        public IEnumerable<T> Values => distances.Take(DistCount);
+        public IEnumerable<T> Values
+            => distances.Take(DistCount);
 
-        static int matSize(int elemCount) => elemCount * (elemCount - 1) >> 1;
+        static int matSize(int elemCount)
+            => elemCount * (elemCount - 1) >> 1;
 
         int calcOffset(int i, int j)
         {
@@ -70,7 +72,8 @@ namespace EmnExtensions.Collections
         /// Access to this array is read/write.  element i,j is at location i + ((j * (j - 1)) >> 1) given that i is less than j.
         /// </summary>
         /// <returns></returns>
-        public T[] DirectArrayAccess() => distances;
+        public T[] DirectArrayAccess()
+            => distances;
 
         /// <summary>
         /// It is an error to access the diagonal which must be 0!
@@ -93,7 +96,6 @@ namespace EmnExtensions.Collections
             return ind < 0 ? default(T) : distances[ind];
         }
     }
-
 
     public class SymmetricDistanceMatrix : SymmetricDistanceMatrixGen<float>
     {
@@ -166,14 +168,17 @@ namespace EmnExtensions.Collections
             get => elementCount;
         }
 
-        public int DistCount => matSize(elementCount);
+        public int DistCount
+            => matSize(elementCount);
 
-        public void TrimCapacityToFit() => Array.Resize(ref distances, matSize(elementCount));
+        public void TrimCapacityToFit()
+            => Array.Resize(ref distances, matSize(elementCount));
 
+        public IEnumerable<T> Values
+            => distances.Take(DistCount);
 
-        public IEnumerable<T> Values => distances.Take(DistCount);
-
-        static int matSize(int elemCount) => elemCount * (elemCount + 1) >> 1;
+        static int matSize(int elemCount)
+            => elemCount * (elemCount + 1) >> 1;
 
         int calcOffset(int i, int j)
         {
@@ -198,7 +203,8 @@ namespace EmnExtensions.Collections
         /// Access to this array is read/write.  element i,j is at location i + ((j * (j + 1)) >> 1) given that i is less than j.
         /// </summary>
         /// <returns></returns>
-        public T[] DirectArrayAccess() => distances;
+        public T[] DirectArrayAccess()
+            => distances;
 
         /// <summary>
         /// It is an error to access the diagonal which must be 0!

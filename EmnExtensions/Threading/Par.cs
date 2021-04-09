@@ -6,7 +6,8 @@ namespace EmnExtensions.Threading
 {
     public static class Par
     {
-        public static void Invoke(params Action[] actions) => Task.WaitAll(actions.Select(Task.Factory.StartNew).ToArray());
+        public static void Invoke(params Action[] actions)
+            => Task.WaitAll(actions.Select(Task.Factory.StartNew).ToArray());
 
         public static Task Then(this Task t, Func<Task> startnext)
         {

@@ -45,7 +45,8 @@ namespace EmnExtensions.DebugTools
                 Console.WriteLine("ToString(): " + stringrep);
 
                 var printedvals = new HashSet<string>();
-                foreach (var prop in from type in new[] { runtimeType, compileType }
+                foreach (var prop in
+                    from type in new[] { runtimeType, compileType }
                     from pi in type.GetProperties()
                     where pi.CanRead && pi.GetIndexParameters().Length == 0
                     select new { Prop = pi, ContainingType = type }) {
@@ -63,7 +64,8 @@ namespace EmnExtensions.DebugTools
                     }
                 }
 
-                foreach (var field in from type in new[] { runtimeType, compileType }
+                foreach (var field in
+                    from type in new[] { runtimeType, compileType }
                     from fi in type.GetFields(BindingFlags.Instance | BindingFlags.Public)
                     select new { FieldInfo = fi, ContainingType = type }) {
                     var fieldname = field.FieldInfo.Name;

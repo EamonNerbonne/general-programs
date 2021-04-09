@@ -17,7 +17,8 @@ namespace EmnExtensions.Algorithms
             return QuickSelect(list, (list.Length - 1) / 2);
         }
 
-        public static double QuickSelect(double[] list, int k) => QuickSelect(list, k, 0, list.Length);
+        public static double QuickSelect(double[] list, int k)
+            => QuickSelect(list, k, 0, list.Length);
 
         public static double QuickSelect(double[] list, int k, int startI, int endI)
         {

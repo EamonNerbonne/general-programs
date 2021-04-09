@@ -17,42 +17,60 @@ namespace EmnExtensions.Text
     {
         //no idea, of course, but could be, certainly!
 
-        public override void Write(bool value) => WriteString(value.ToString(FormatProvider));
+        public override void Write(bool value)
+            => WriteString(value.ToString(FormatProvider));
 
-        public override void Write(char value) => WriteString(value.ToString(FormatProvider));
+        public override void Write(char value)
+            => WriteString(value.ToString(FormatProvider));
 
-        public override void Write(char[] buffer) => WriteString(new(buffer));
+        public override void Write(char[] buffer)
+            => WriteString(new(buffer));
 
-        public override void Write(char[] buffer, int index, int count) => WriteString(new(buffer, index, count));
+        public override void Write(char[] buffer, int index, int count)
+            => WriteString(new(buffer, index, count));
 
-        public override void Write(decimal value) => WriteString(value.ToString(FormatProvider));
+        public override void Write(decimal value)
+            => WriteString(value.ToString(FormatProvider));
 
-        public override void Write(double value) => WriteString(value.ToString(FormatProvider));
+        public override void Write(double value)
+            => WriteString(value.ToString(FormatProvider));
 
-        public override void Write(float value) => WriteString(value.ToString(FormatProvider));
+        public override void Write(float value)
+            => WriteString(value.ToString(FormatProvider));
 
-        public override void Write(int value) => WriteString(value.ToString(FormatProvider));
+        public override void Write(int value)
+            => WriteString(value.ToString(FormatProvider));
 
-        public override void Write(long value) => WriteString(value.ToString(FormatProvider));
+        public override void Write(long value)
+            => WriteString(value.ToString(FormatProvider));
 
-        public override void Write(object value) => WriteString(value.ToString());
+        public override void Write(object value)
+            => WriteString(value.ToString());
 
-        public override void Write(string format, object arg0) => WriteString(string.Format(FormatProvider, format, arg0));
+        public override void Write(string format, object arg0)
+            => WriteString(string.Format(FormatProvider, format, arg0));
 
-        public override void Write(string format, object arg0, object arg1) => WriteString(string.Format(FormatProvider, format, arg0, arg1));
+        public override void Write(string format, object arg0, object arg1)
+            => WriteString(string.Format(FormatProvider, format, arg0, arg1));
 
-        public override void Write(string format, object arg0, object arg1, object arg2) => WriteString(string.Format(FormatProvider, format, arg0, arg1, arg2));
+        public override void Write(string format, object arg0, object arg1, object arg2)
+            => WriteString(string.Format(FormatProvider, format, arg0, arg1, arg2));
 
-        public override void Write(string format, params object[] arg) => WriteString(string.Format(FormatProvider, format, arg));
+        public override void Write(string format, params object[] arg)
+            => WriteString(string.Format(FormatProvider, format, arg));
 
-        public override void Write(string value) => WriteString(value.ToString(FormatProvider));
+        public override void Write(string value)
+            => WriteString(value.ToString(FormatProvider));
 
-        public override void Write(uint value) => WriteString(value.ToString(FormatProvider));
+        public override void Write(uint value)
+            => WriteString(value.ToString(FormatProvider));
 
-        public override void Write(ulong value) => WriteString(value.ToString(FormatProvider));
+        public override void Write(ulong value)
+            => WriteString(value.ToString(FormatProvider));
 
         protected abstract void WriteString(string value);
 
-        public override Encoding Encoding => Encoding.Unicode;
+        public override Encoding Encoding
+            => Encoding.Unicode;
     }
 }

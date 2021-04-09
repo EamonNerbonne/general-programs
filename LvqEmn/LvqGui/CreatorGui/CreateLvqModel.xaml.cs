@@ -9,15 +9,21 @@ namespace LvqGui.CreatorGui
     {
         // ReSharper disable MemberCanBeMadeStatic.Global
         // ReSharper disable MemberCanBePrivate.Global
-        public IEnumerable<LvqModelType> ModelTypes => (LvqModelType[])Enum.GetValues(typeof(LvqModelType));
+        public IEnumerable<LvqModelType> ModelTypes
+            => (LvqModelType[])Enum.GetValues(typeof(LvqModelType));
         // ReSharper restore MemberCanBePrivate.Global
         // ReSharper restore MemberCanBeMadeStatic.Global
 
-        public CreateLvqModel() => InitializeComponent();
+        public CreateLvqModel()
+            => InitializeComponent();
 
-        void ReseedParam(object sender, RoutedEventArgs e) => ((IHasSeed)DataContext).ReseedParam();
-        void ReseedInst(object sender, RoutedEventArgs e) => ((IHasSeed)DataContext).ReseedInst();
+        void ReseedParam(object sender, RoutedEventArgs e)
+            => ((IHasSeed)DataContext).ReseedParam();
 
-        void InitializeModel(object sender, RoutedEventArgs e) => ((CreateLvqModelValues)DataContext).ConfirmCreation();
+        void ReseedInst(object sender, RoutedEventArgs e)
+            => ((IHasSeed)DataContext).ReseedInst();
+
+        void InitializeModel(object sender, RoutedEventArgs e)
+            => ((CreateLvqModelValues)DataContext).ConfirmCreation();
     }
 }

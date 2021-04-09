@@ -9,7 +9,8 @@ namespace EmnExtensions.Wpf.WpfTools
         {
             using (var sem = new SemaphoreSlim(0)) {
                 Dispatcher retval = null;
-                var winThread = new Thread(() => {
+                var winThread = new Thread(
+                    () => {
                         retval = Dispatcher.CurrentDispatcher;
                         sem.Release();
                         Dispatcher.Run();

@@ -8,7 +8,8 @@ namespace EmnExtensions.Wpf.OldGraph
 {
     public abstract class GraphableResizeableBitmap : GraphableData
     {
-        protected GraphableResizeableBitmap() => BitmapScalingMode = BitmapScalingMode.Linear;
+        protected GraphableResizeableBitmap()
+            => BitmapScalingMode = BitmapScalingMode.Linear;
 
         public BitmapScalingMode BitmapScalingMode
         {
@@ -22,7 +23,6 @@ namespace EmnExtensions.Wpf.OldGraph
         }
 
         BitmapScalingMode m_scalingMode;
-
         const int EXTRA_RESIZE_PIX = 256;
         readonly double m_dpiX = 96.0;
         readonly double m_dpiY = 96.0;
@@ -39,7 +39,8 @@ namespace EmnExtensions.Wpf.OldGraph
 
         protected abstract Rect? OuterDataBound { get; }
 
-        static Rect SnapRect(Rect r, double multX, double multY) => new(new(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY));
+        static Rect SnapRect(Rect r, double multX, double multY)
+            => new(new(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY));
 
         public override void SetTransform(Matrix dataToDisplay, Rect displayClip)
         {

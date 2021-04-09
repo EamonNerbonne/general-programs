@@ -5,9 +5,13 @@ namespace LvqGui.CreatorGui
 {
     public sealed partial class LoadDataset
     {
-        public LoadDataset() => InitializeComponent();
-        void ReseedInst(object sender, RoutedEventArgs e) => ((IHasSeed)DataContext).ReseedInst();
+        public LoadDataset()
+            => InitializeComponent();
 
-        void ConfirmLoadDataset(object sender, RoutedEventArgs e) => ThreadPool.QueueUserWorkItem(o => ((LoadDatasetValues)o).ConfirmCreation(), DataContext);
+        void ReseedInst(object sender, RoutedEventArgs e)
+            => ((IHasSeed)DataContext).ReseedInst();
+
+        void ConfirmLoadDataset(object sender, RoutedEventArgs e)
+            => ThreadPool.QueueUserWorkItem(o => ((LoadDatasetValues)o).ConfirmCreation(), DataContext);
     }
 }

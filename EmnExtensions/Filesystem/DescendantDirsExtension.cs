@@ -6,18 +6,23 @@ namespace EmnExtensions.Filesystem
 {
     public static class DescendantDirsExtension
     {
-        public static IEnumerable<DirectoryInfo> TryGetDirectories(this DirectoryInfo dir) => F.Swallow(() => dir.GetDirectories(), () => new DirectoryInfo[] { });
-        public static IEnumerable<FileInfo> TryGetFiles(this DirectoryInfo dir) => F.Swallow(() => dir.GetFiles(), () => new FileInfo[] { });
+        public static IEnumerable<DirectoryInfo> TryGetDirectories(this DirectoryInfo dir)
+            => F.Swallow(() => dir.GetDirectories(), () => new DirectoryInfo[] { });
 
-        public static IEnumerable<DirectoryInfo> DescendantDirs(this DirectoryInfo dir) => Enumerable.Repeat(dir, 1).Concat(
-            from kid in dir.TryGetDirectories()
-            where (kid.Attributes & FileAttributes.ReparsePoint) == 0
-            from desc in kid.DescendantDirs()
-            select desc
-        );
+        public static IEnumerable<FileInfo> TryGetFiles(this DirectoryInfo dir)
+            => F.Swallow(() => dir.GetFiles(), () => new FileInfo[] { });
+
+        public static IEnumerable<DirectoryInfo> DescendantDirs(this DirectoryInfo dir)
+            => Enumerable.Repeat(dir, 1).Concat(
+                from kid in dir.TryGetDirectories()
+                where (kid.Attributes & FileAttributes.ReparsePoint) == 0
+                from desc in kid.DescendantDirs()
+                select desc
+            );
 
         //dir.GetDirectories("*",SearchOption.AllDirectories));//maybe this is symlink safe?//except that I get access denied errors :-(
-        public static IEnumerable<FileInfo> DescendantFiles(this DirectoryInfo dir) => dir.DescendantDirs().SelectMany(subdir => subdir.TryGetFiles());
+        public static IEnumerable<FileInfo> DescendantFiles(this DirectoryInfo dir)
+            => dir.DescendantDirs().SelectMany(subdir => subdir.TryGetFiles());
 
         public static IEnumerable<DirectoryInfo> ParentDirs(this DirectoryInfo dir)
         {

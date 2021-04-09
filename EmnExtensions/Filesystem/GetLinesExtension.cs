@@ -15,7 +15,10 @@ namespace EmnExtensions.Filesystem
             }
         }
 
-        public static IEnumerable<string> GetLines(this FileInfo fi) => fi.OpenText().Lines();
-        public static IEnumerable<string> GetLines(this FileInfo fi, Encoding encoding) => new StreamReader(fi.FullName, encoding).Lines();
+        public static IEnumerable<string> GetLines(this FileInfo fi)
+            => fi.OpenText().Lines();
+
+        public static IEnumerable<string> GetLines(this FileInfo fi, Encoding encoding)
+            => new StreamReader(fi.FullName, encoding).Lines();
     }
 }

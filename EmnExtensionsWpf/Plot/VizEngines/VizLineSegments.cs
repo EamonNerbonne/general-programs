@@ -14,13 +14,14 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
     public sealed class VizLineSegments : VizTransformed<Point[], StreamGeometry>, IVizLineSegments
     {
         readonly VizGeometry impl;
-
         StreamGeometry geomCache;
         Point[] currentPoints;
 
-        public VizLineSegments(IPlotMetaData owner) => impl = new(owner) { AutosizeBounds = false };
+        public VizLineSegments(IPlotMetaData owner)
+            => impl = new(owner) { AutosizeBounds = false };
 
-        protected override IVizEngine<StreamGeometry> Implementation => impl;
+        protected override IVizEngine<StreamGeometry> Implementation
+            => impl;
 
         double m_CoverageRatioY = 0.9999;
 
@@ -85,6 +86,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         }
 
         Rect m_InnerBounds;
-        public override Rect DataBounds => m_InnerBounds;
+
+        public override Rect DataBounds
+            => m_InnerBounds;
     }
 }

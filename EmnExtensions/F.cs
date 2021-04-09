@@ -7,7 +7,8 @@ namespace EmnExtensions
 {
     public static class F
     {
-        public static IEnumerable<T> EmptyIfNull<T>(this IEnumerable<T> enumerable) => enumerable ?? Enumerable.Empty<T>();
+        public static IEnumerable<T> EmptyIfNull<T>(this IEnumerable<T> enumerable)
+            => enumerable ?? Enumerable.Empty<T>();
 
         public static IEnumerable<IEnumerable<T>> SplitWhen<T>(this IEnumerable<T> iter, Func<T, bool> splitMark)
         {
@@ -83,7 +84,8 @@ namespace EmnExtensions
 
         //}
 
-        public static string ToStringOrNull(this object value) => value?.ToString();
+        public static string ToStringOrNull(this object value)
+            => value?.ToString();
 
         public static int IndexOfMax<T>(this IEnumerable<T> sequence, Func<int, T, bool> filter)
             where T : IComparable<T>
@@ -104,8 +106,11 @@ namespace EmnExtensions
             }
         }
 
-        public static bool IsFinite(this float f) => !(float.IsInfinity(f) || float.IsNaN(f));
-        public static bool IsFinite(this double f) => !(double.IsInfinity(f) || double.IsNaN(f));
+        public static bool IsFinite(this float f)
+            => !(float.IsInfinity(f) || float.IsNaN(f));
+
+        public static bool IsFinite(this double f)
+            => !(double.IsInfinity(f) || double.IsNaN(f));
 
         [SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "1#")]
         public static bool GetNext<T>(this IEnumerator<T> enumerator, out T nextValue)
@@ -118,7 +123,6 @@ namespace EmnExtensions
             nextValue = default(T);
             return false;
         }
-
 
         public static IEnumerable<T> AsEnumerable<T>(Func<T> func)
         {
@@ -133,19 +137,35 @@ namespace EmnExtensions
             return AsEnumerable(func);
         }
 
-
         //no-op functions to support C# type inference:
-        public static Func<T> Create<T>(Func<T> func) => func;
-        public static Func<A, T> Create<A, T>(Func<A, T> func) => func;
-        public static Func<A, B, T> Create<A, B, T>(Func<A, B, T> func) => func;
-        public static Func<A, B, C, T> Create<A, B, C, T>(Func<A, B, C, T> func) => func;
-        public static Action<A> Create<A>(Action<A> action) => action;
-        public static Action<A, B> Create<A, B>(Action<A, B> action) => action;
-        public static Action<A, B, C> Create<A, B, C>(Action<A, B, C> action) => action;
+        public static Func<T> Create<T>(Func<T> func)
+            => func;
 
+        public static Func<A, T> Create<A, T>(Func<A, T> func)
+            => func;
 
-        public static Func<T> Curry<A, T>(Func<A, T> func, A a) => () => func(a);
-        public static Func<B, T> Curry<A, B, T>(Func<A, B, T> func, A a) => b => func(a, b);
-        public static Func<B, C, T> Curry<A, B, C, T>(Func<A, B, C, T> func, A a) => (b, c) => func(a, b, c);
+        public static Func<A, B, T> Create<A, B, T>(Func<A, B, T> func)
+            => func;
+
+        public static Func<A, B, C, T> Create<A, B, C, T>(Func<A, B, C, T> func)
+            => func;
+
+        public static Action<A> Create<A>(Action<A> action)
+            => action;
+
+        public static Action<A, B> Create<A, B>(Action<A, B> action)
+            => action;
+
+        public static Action<A, B, C> Create<A, B, C>(Action<A, B, C> action)
+            => action;
+
+        public static Func<T> Curry<A, T>(Func<A, T> func, A a)
+            => () => func(a);
+
+        public static Func<B, T> Curry<A, B, T>(Func<A, B, T> func, A a)
+            => b => func(a, b);
+
+        public static Func<B, C, T> Curry<A, B, C, T>(Func<A, B, C, T> func, A a)
+            => (b, c) => func(a, b, c);
     }
 }

@@ -12,11 +12,11 @@ namespace EmnExtensions.Web
         public Uri Uri { get; private set; }
         public string EncodingName { get; private set; }
         public Encoding Encoding { get; private set; }
-        public string ContentAsString => Encoding.GetString(Content);
 
+        public string ContentAsString
+            => Encoding.GetString(Content);
 
         const int BUFSIZE = 4096;
-
         UriRequest() { }
         static readonly Encoding FallbackEncoding = Encoding.UTF8;
 
@@ -74,7 +74,6 @@ namespace EmnExtensions.Web
 
                     retval.EncodingName = encodingName;
                 }
-
 
                 var buf = new byte[BUFSIZE];
                 using (var stream = httpResponse.GetResponseStream()) {

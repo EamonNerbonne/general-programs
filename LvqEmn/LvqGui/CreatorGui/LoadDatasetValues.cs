@@ -68,7 +68,6 @@ namespace LvqGui.CreatorGui
 
         int _Folds;
 
-
         public LoadDatasetValues(LvqWindowValues owner)
         {
             this.owner = owner;
@@ -122,11 +121,13 @@ namespace LvqGui.CreatorGui
             return null;
         }
 
-        LvqDatasetCli LoadDataset(FileInfo dataFile, uint seed, int folds, FileInfo testFile = null) => LoadDatasetImpl.LoadData(dataFile, testFile, new() { TestFilename = testFile?.Name, ExtendDataByCorrelation = owner.ExtendDataByCorrelation, NormalizeDimensions = owner.NormalizeDimensions, NormalizeByScaling = owner.NormalizeByScaling, InstanceSeed = seed, Folds = folds });
+        LvqDatasetCli LoadDataset(FileInfo dataFile, uint seed, int folds, FileInfo testFile = null)
+            => LoadDatasetImpl.LoadData(dataFile, testFile, new() { TestFilename = testFile?.Name, ExtendDataByCorrelation = owner.ExtendDataByCorrelation, NormalizeDimensions = owner.NormalizeDimensions, NormalizeByScaling = owner.NormalizeByScaling, InstanceSeed = seed, Folds = folds });
 
         public void ConfirmCreation()
         {
-            var fileOpenThread = new Thread(o => {
+            var fileOpenThread = new Thread(
+                o => {
                     var t = (Tuple<uint, int>)o;
                     var dataset = CreateDataset(t.Item1, t.Item2);
                     if (dataset != null) {

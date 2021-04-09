@@ -7,7 +7,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
     {
         readonly MatrixTransform m_trans = new();
         readonly RectangleGeometry m_clip = new();
-
         public VizDrawing(IPlotMetaData owner) : base(owner) { }
 
         public override void DrawGraph(DrawingContext context)
@@ -34,9 +33,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             TriggerChange(GraphChange.Drawing);
         }
 
-        protected override Rect ComputeBounds() => Data.Bounds;
+        protected override Rect ComputeBounds()
+            => Data.Bounds;
 
         public override void OnRenderOptionsChanged() { } //doesn't use primary color at all.
-        public override bool SupportsColor => false;
+
+        public override bool SupportsColor
+            => false;
     }
 }

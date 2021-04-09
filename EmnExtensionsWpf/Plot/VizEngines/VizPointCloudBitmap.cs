@@ -36,16 +36,18 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
                 B += other.B;
             }
 
-            public uint RawDiv(uint divisor) => divisor == 0 ? 0u : (R / divisor << 16) + (G / divisor << 8) + B / divisor;
+            public uint RawDiv(uint divisor)
+                => divisor == 0 ? 0u : (R / divisor << 16) + (G / divisor << 8) + B / divisor;
         }
 
         Rect m_OuterDataBounds = Rect.Empty;
         uint[] m_image;
         UintColor[] m_accumulator;
-
         public VizPointCloudBitmap(IPlotMetaData metadata) : base(metadata) { }
 
-        protected override Rect? OuterDataBound => m_OuterDataBounds;
+        protected override Rect? OuterDataBound
+            => m_OuterDataBounds;
+
         double m_CoverageRatio = 0.9999;
 
         public double CoverageRatio
@@ -150,7 +152,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         }
 
         #region UpdateBitmap Helpers
-
         void Make2dHistogramInRegion(int pW, int pH, Matrix dataToBitmap, int addpixelMode)
         {
             MakeVisibleRegionEmpty(pW, pH);
@@ -183,7 +184,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
                 }
             }
         }
-
 
         void MakeSinglePoint2dHistogram(int pW, int pH, Matrix dataToBitmap)
         {
@@ -300,7 +300,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
                     AddPixel(offset + 2 * pW, label);
                     AddPixel(offset + 1 + 2 * pW, label);
 
-
                     AddPixel(offset - 1 - pW, label);
                     AddPixel(offset - pW, label);
                     AddPixel(offset + 1 - pW, label);
@@ -377,7 +376,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
             return maxCount;
         }
-
         #endregion
 
         protected override void OnDataChanged(LabelledPoint[] oldData)
@@ -388,10 +386,13 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             TriggerChange(GraphChange.Projection); //because we need to relayout the points in the plot
         }
 
-        protected override Rect ComputeBounds() => m_OuterDataBounds.IsEmpty ? m_OuterDataBounds : VizPixelScatterHelpers.ComputeInnerBoundsByRatio(Data.Select(lp => lp.point).ToArray(), CoverageRatio, CoverageRatio, CoverageGradient, m_OuterDataBounds);
+        protected override Rect ComputeBounds()
+            => m_OuterDataBounds.IsEmpty ? m_OuterDataBounds : VizPixelScatterHelpers.ComputeInnerBoundsByRatio(Data.Select(lp => lp.point).ToArray(), CoverageRatio, CoverageRatio, CoverageGradient, m_OuterDataBounds);
 
-        public override void OnRenderOptionsChanged() => TriggerChange(GraphChange.Projection); // because we need to relayout the points in the plot.
+        public override void OnRenderOptionsChanged()
+            => TriggerChange(GraphChange.Projection); // because we need to relayout the points in the plot.
 
-        public override bool SupportsColor => false;
+        public override bool SupportsColor
+            => false;
     }
 }

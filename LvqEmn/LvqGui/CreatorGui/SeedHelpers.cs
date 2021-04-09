@@ -18,7 +18,10 @@ namespace LvqGui.CreatorGui
             seededObj.ReseedInst();
         }
 
-        public static void ReseedParam(this IHasSeed seededObj) => seededObj.ParamsSeed = RndHelper.MakeSecureUInt();
-        public static void ReseedInst(this IHasSeed seededObj) => seededObj.InstanceSeed = RndHelper.MakeSecureUInt();
+        public static void ReseedParam(this IHasSeed seededObj)
+            => seededObj.ParamsSeed = RndHelper.MakeSecureUInt();
+
+        public static void ReseedInst(this IHasSeed seededObj)
+            => seededObj.InstanceSeed = RndHelper.MakeSecureUInt();
     }
 }

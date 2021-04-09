@@ -18,16 +18,30 @@ namespace EmnExtensions.Wpf.Plot
     {
         public double Start { get; set; }
         public double End { get; set; }
-        public bool FlippedOrder => End < Start;
-        public double Min => Math.Min(Start, End);
-        public double Max => Math.Max(Start, End);
-        public bool IsEmpty => double.IsPositiveInfinity(Start) && double.IsPositiveInfinity(End);
-        public double Length => Math.Abs(End - Start);
 
-        public bool EncompassesValue(double value) => value >= Start && value <= End || value >= End && value <= Start;
-        public bool HasNoOverlap(DimensionBounds other) => Max < other.Min || Min > other.Max;
+        public bool FlippedOrder
+            => End < Start;
 
-        public DimensionBounds UnionWith(params double[] vals) => UnionWith(vals.AsEnumerable());
+        public double Min
+            => Math.Min(Start, End);
+
+        public double Max
+            => Math.Max(Start, End);
+
+        public bool IsEmpty
+            => double.IsPositiveInfinity(Start) && double.IsPositiveInfinity(End);
+
+        public double Length
+            => Math.Abs(End - Start);
+
+        public bool EncompassesValue(double value)
+            => value >= Start && value <= End || value >= End && value <= Start;
+
+        public bool HasNoOverlap(DimensionBounds other)
+            => Max < other.Min || Min > other.Max;
+
+        public DimensionBounds UnionWith(params double[] vals)
+            => UnionWith(vals.AsEnumerable());
 
         public DimensionBounds UnionWith(IEnumerable<double> vals)
         {
@@ -65,17 +79,23 @@ namespace EmnExtensions.Wpf.Plot
             End *= factor;
         }
 
-        public static DimensionBounds Empty => new() { Start = double.PositiveInfinity, End = double.PositiveInfinity };
-        public static DimensionBounds FromRectX(Rect r) => r.IsEmpty ? Empty : new() { Start = r.X, End = r.Right };
-        public static DimensionBounds FromRectY(Rect r) => r.IsEmpty ? Empty : new() { Start = r.Y, End = r.Bottom };
+        public static DimensionBounds Empty
+            => new() { Start = double.PositiveInfinity, End = double.PositiveInfinity };
 
-        public static DimensionBounds Merge(DimensionBounds a, DimensionBounds b) => a.IsEmpty
-            ? b
-            : b.IsEmpty
-                ? a
-                : a.FlippedOrder
-                    ? new() { Start = Math.Max(a.Max, b.Max), End = Math.Min(a.Min, b.Min) }
-                    : new DimensionBounds { Start = Math.Min(a.Min, b.Min), End = Math.Max(a.Max, b.Max) };
+        public static DimensionBounds FromRectX(Rect r)
+            => r.IsEmpty ? Empty : new() { Start = r.X, End = r.Right };
+
+        public static DimensionBounds FromRectY(Rect r)
+            => r.IsEmpty ? Empty : new() { Start = r.Y, End = r.Bottom };
+
+        public static DimensionBounds Merge(DimensionBounds a, DimensionBounds b)
+            => a.IsEmpty
+                ? b
+                : b.IsEmpty
+                    ? a
+                    : a.FlippedOrder
+                        ? new() { Start = Math.Max(a.Max, b.Max), End = Math.Min(a.Min, b.Min) }
+                        : new DimensionBounds { Start = Math.Min(a.Min, b.Min), End = Math.Max(a.Max, b.Max) };
 
         public static double MergeQuality(DimensionBounds a, DimensionBounds b)
         {
@@ -83,10 +103,17 @@ namespace EmnExtensions.Wpf.Plot
             return double.IsNaN(mergedLength) ? 0.0 : a.Length * b.Length / mergedLength / mergedLength;
         }
 
-        public static bool operator ==(DimensionBounds a, DimensionBounds b) => a.Start == b.Start && a.End == b.End;
-        public static bool operator !=(DimensionBounds a, DimensionBounds b) => a.Start != b.Start || a.End != b.End;
-        public override int GetHashCode() => base.GetHashCode();
-        public override bool Equals(object obj) => obj is DimensionBounds bounds && this == bounds;
+        public static bool operator ==(DimensionBounds a, DimensionBounds b)
+            => a.Start == b.Start && a.End == b.End;
+
+        public static bool operator !=(DimensionBounds a, DimensionBounds b)
+            => a.Start != b.Start || a.End != b.End;
+
+        public override int GetHashCode()
+            => base.GetHashCode();
+
+        public override bool Equals(object obj)
+            => obj is DimensionBounds bounds && this == bounds;
 
         internal void ScaleFromCenter(double p)
         {
@@ -97,7 +124,6 @@ namespace EmnExtensions.Wpf.Plot
         }
     }
 
-
     public sealed class DimensionBoundsConverter : TypeConverter
     {
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
@@ -107,7 +133,8 @@ namespace EmnExtensions.Wpf.Plot
                 return null;
             }
 
-            var parameters = (from segment in strval.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+            var parameters = (
+                from segment in strval.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                 select segment.ParseAsDouble()).ToArray();
             if (parameters.Length != 1 && parameters.Length != 2 || parameters.Contains(null)) {
                 return null;
@@ -125,8 +152,10 @@ namespace EmnExtensions.Wpf.Plot
             return dim.Start == dim.End ? dim.Start.ToString(culture) : dim.Start.ToString(culture) + "," + dim.End.ToString(culture);
         }
 
-        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) => sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
+        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+            => sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
 
-        public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) => destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
+        public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
+            => destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
     }
 }

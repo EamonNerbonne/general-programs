@@ -46,14 +46,13 @@ namespace EmnExtensions.Wpf
             return brush;
         }
 
-
-        protected override Size MeasureOverride(Size constraint) => new(
-            constraint.Width.IsFinite() ? constraint.Width : 150,
-            constraint.Height.IsFinite() ? constraint.Height : 150
-        );
+        protected override Size MeasureOverride(Size constraint)
+            => new(
+                constraint.Width.IsFinite() ? constraint.Width : 150,
+                constraint.Height.IsFinite() ? constraint.Height : 150
+            );
 
         public event Action<GraphControl, Rect> GraphBoundsUpdated;
-
         Rect oldBounds = Rect.Empty;
         Rect graphBoundsPrivate = Rect.Empty;
 
@@ -114,7 +113,6 @@ namespace EmnExtensions.Wpf
             translateThenScale.ScaleAt(1.0, -1.0, 0.0, ActualHeight / 2.0);
             graphGeom2.Transform = new MatrixTransform(translateThenScale);
 
-
             InvalidateVisual();
             if (oldBounds == graphBoundsPrivate) {
                 return;
@@ -126,7 +124,6 @@ namespace EmnExtensions.Wpf
                 GraphBoundsUpdated(this, graphBoundsPrivate);
             }
         }
-
 
         Pen graphLinePen;
 
@@ -208,7 +205,8 @@ namespace EmnExtensions.Wpf
             }
         }
 
-        public GraphControl() => GraphLineColor = RandomGraphColor();
+        public GraphControl()
+            => GraphLineColor = RandomGraphColor();
 
         protected override void OnRender(DrawingContext drawingContext)
         {

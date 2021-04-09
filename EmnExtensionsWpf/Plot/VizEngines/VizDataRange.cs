@@ -17,7 +17,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         StreamGeometry geomCache;
         Tuple<Point[], Point[]> currentPoints;
 
-        public VizDataRange(IPlotMetaData owner) => Implementation = new VizGeometry(owner) { AutosizeBounds = false, IsStroked = false, IsFilled = true };
+        public VizDataRange(IPlotMetaData owner)
+            => Implementation = new VizGeometry(owner) { AutosizeBounds = false, IsStroked = false, IsFilled = true };
 
         protected override IVizEngine<StreamGeometry> Implementation { get; }
         double m_CoverageRatioY = 0.9999;
@@ -83,6 +84,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         }
 
         Rect m_InnerBounds;
-        public override Rect DataBounds => m_InnerBounds;
+
+        public override Rect DataBounds
+            => m_InnerBounds;
     }
 }

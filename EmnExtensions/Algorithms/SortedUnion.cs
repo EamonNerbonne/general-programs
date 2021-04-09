@@ -17,7 +17,6 @@ namespace EmnExtensions.Algorithms
 
                 var gens = new CostHeap<IEnumerator<int>>();
 
-
                 foreach (var gen in generators) {
                     if (gen.MoveNext()) {
                         gens.Add(gen, gen.Current);

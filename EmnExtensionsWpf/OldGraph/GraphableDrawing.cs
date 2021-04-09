@@ -27,7 +27,9 @@ namespace EmnExtensions.Wpf.OldGraph
             }
         }
 
-        public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip) => m_drawingToDisplay.Matrix = GraphUtils.TransformShape(DrawingRect, DataBounds, false) * dataToDisplay;
+        public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip)
+            => m_drawingToDisplay.Matrix = GraphUtils.TransformShape(DrawingRect, DataBounds, false) * dataToDisplay;
+
         protected abstract void DrawUntransformedIntoDrawingRect(DrawingContext context);
         protected abstract Rect DrawingRect { get; }
     }

@@ -19,7 +19,9 @@ namespace LvqGui.CoreGui
     public sealed partial class LvqWindow
     {
         readonly CancellationTokenSource cts = new();
-        public CancellationToken ClosingToken => cts.Token;
+
+        public CancellationToken ClosingToken
+            => cts.Token;
 
         public LvqWindow()
         {
@@ -33,14 +35,17 @@ namespace LvqGui.CoreGui
             InitializeComponent();
             windowValues.TrainingControlValues.SelectedModelUpdatedInBackgroundThread += TrainingControlValues_SelectedModelUpdatedInBackgroundThread;
             windowValues.TrainingControlValues.PropertyChanged += TrainingControlValues_PropertyChanged;
-            Closing += (o, e) => { windowValues.TrainingControlValues.AnimateTraining = false; };
+            Closing += (o, e) => {
+                windowValues.TrainingControlValues.AnimateTraining = false;
+            };
 #if BENCHMARK
             this.Loaded += (o, e) => DoBenchmark();
 #endif
             Closed += LvqWindow_Closed;
         }
 
-        LvqWindowValues Values => (LvqWindowValues)DataContext;
+        LvqWindowValues Values
+            => (LvqWindowValues)DataContext;
 
         void LvqWindow_Closed(object sender, EventArgs e)
         {
@@ -59,27 +64,34 @@ namespace LvqGui.CoreGui
         }
 
         // ReSharper disable UnusedMember.Local
-        void DoBenchmark() => ThreadPool.QueueUserWorkItem(o => {
-                var values = (LvqWindowValues)o;
-                values.CreateStarDatasetValues.ParamsSeed = 1337;
-                values.CreateStarDatasetValues.InstanceSeed = 37;
+        void DoBenchmark()
+            => ThreadPool.QueueUserWorkItem(
+                o => {
+                    var values = (LvqWindowValues)o;
+                    values.CreateStarDatasetValues.ParamsSeed = 1337;
+                    values.CreateStarDatasetValues.InstanceSeed = 37;
 
-                values.CreateLvqModelValues.ParamsSeed = 42;
-                values.CreateLvqModelValues.InstanceSeed = 1234;
+                    values.CreateLvqModelValues.ParamsSeed = 42;
+                    values.CreateLvqModelValues.InstanceSeed = 1234;
 
-                values.CreateStarDatasetValues.ConfirmCreation().Completed +=
-                    (s, e) => Dispatcher.BeginInvokeBackground(
-                        () => values.CreateLvqModelValues.ConfirmCreation().ContinueWith(
-                            creationTask => Dispatcher.BeginInvokeBackground(
-                                () => { values.TrainingControlValues.AnimateTraining = true; }
+                    values.CreateStarDatasetValues.ConfirmCreation().Completed +=
+                        (s, e) => Dispatcher.BeginInvokeBackground(
+                            () => values.CreateLvqModelValues.ConfirmCreation().ContinueWith(
+                                creationTask => Dispatcher.BeginInvokeBackground(
+                                    () => {
+                                        values.TrainingControlValues.AnimateTraining = true;
+                                    }
+                                )
                             )
-                        )
-                    );
-            }, DataContext
-        );
+                        );
+                },
+                DataContext
+            );
 
         LvqStatPlotsContainer lvqPlotContainer;
-        void TrainingControlValues_SelectedModelUpdatedInBackgroundThread() => LvqStatPlotsContainer.QueueUpdateIfCurrent(lvqPlotContainer);
+
+        void TrainingControlValues_SelectedModelUpdatedInBackgroundThread()
+            => LvqStatPlotsContainer.QueueUpdateIfCurrent(lvqPlotContainer);
 
         void TrainingControlValues_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -112,7 +124,6 @@ namespace LvqGui.CoreGui
             }
         }
 
-
         void ModelChanged()
         {
             if (lvqPlotContainer == null && Values.TrainingControlValues.SelectedDataset != null && Values.TrainingControlValues.SelectedLvqModel != null) {
@@ -134,7 +145,13 @@ namespace LvqGui.CoreGui
 
         // Using a DependencyProperty as the backing store for Fullscreen.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty FullscreenProperty =
-            DependencyProperty.RegisterAttached("Fullscreen", typeof(bool), typeof(LvqWindow), new UIPropertyMetadata(false, (o, e) => {
+            DependencyProperty.RegisterAttached(
+                "Fullscreen",
+                typeof(bool),
+                typeof(LvqWindow),
+                new UIPropertyMetadata(
+                    false,
+                    (o, e) => {
                         var win = (LvqWindow)o;
                         if ((bool)e.NewValue) {
                             win.lastState = win.WindowState;
@@ -152,11 +169,12 @@ namespace LvqGui.CoreGui
             );
 
         // ReSharper disable MemberCanBeMadeStatic.Global
-        public IEnumerable<LvqModelType> ModelTypes => (LvqModelType[])Enum.GetValues(typeof(LvqModelType));
+        public IEnumerable<LvqModelType> ModelTypes
+            => (LvqModelType[])Enum.GetValues(typeof(LvqModelType));
 
-        public IEnumerable<long> Iters => new[] { 100000L, 1000000L, 10000000L, };
+        public IEnumerable<long> Iters
+            => new[] { 100000L, 1000000L, 10000000L, };
         // ReSharper restore MemberCanBeMadeStatic.Global
-
 
         public Task SaveAllGraphs()
         {
@@ -172,18 +190,22 @@ namespace LvqGui.CoreGui
             var counter = 0;
             Console.WriteLine("Saving " + allmodels.Length + " model graphs:");
             return
-                allmodels.Aggregate(doneTask, (task, model) =>
-                    task.Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.CurrentOnly, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding, graphSettings.ShowTestErrorRates))
-                        .Then(() => lvqInnerPlotContainer.SaveAllGraphs(true))
-                        .Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
-                        .Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.MeanAndStderr, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding, graphSettings.ShowTestErrorRates))
-                        .Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
-                        .ContinueWith(previousTask => {
-                                _ = Interlocked.Increment(ref counter);
-                                Console.WriteLine(counter + "/" + allmodels.Length);
-                            }
-                        )
-                ).ContinueWith(t => {
+                allmodels.Aggregate(
+                    doneTask,
+                    (task, model) =>
+                        task.Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.CurrentOnly, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding, graphSettings.ShowTestErrorRates))
+                            .Then(() => lvqInnerPlotContainer.SaveAllGraphs(true))
+                            .Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
+                            .Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.MeanAndStderr, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding, graphSettings.ShowTestErrorRates))
+                            .Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
+                            .ContinueWith(
+                                previousTask => {
+                                    _ = Interlocked.Increment(ref counter);
+                                    Console.WriteLine(counter + "/" + allmodels.Length);
+                                }
+                            )
+                ).ContinueWith(
+                    t => {
                         if (t.Status == TaskStatus.Faulted) {
                             Console.WriteLine(t.Exception);
                         }

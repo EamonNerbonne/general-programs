@@ -15,7 +15,6 @@ namespace EmnExtensions.Wpf.OldGraph
         Matrix m_geomToAxis = Matrix.Identity;
 
         //public GraphableGeometry
-
         static readonly Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness = 1.5 }.GetAsFrozen();
 
         public Brush Fill
@@ -80,7 +79,8 @@ namespace EmnExtensions.Wpf.OldGraph
             }
         }
 
-        void m_Pen_Changed(object sender, EventArgs e) => RecomputeBoundsIfAuto();
+        void m_Pen_Changed(object sender, EventArgs e)
+            => RecomputeBoundsIfAuto();
 
         void m_Geometry_Changed(object sender, EventArgs e)
         {
@@ -111,6 +111,7 @@ namespace EmnExtensions.Wpf.OldGraph
             changingGeometry = false;
         }
 
-        public override void DrawGraph(DrawingContext context) => context.DrawGeometry(m_Fill, m_Pen, m_Geometry);
+        public override void DrawGraph(DrawingContext context)
+            => context.DrawGeometry(m_Fill, m_Pen, m_Geometry);
     }
 }

@@ -8,7 +8,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 {
     public abstract class VizDynamicBitmap<T> : PlotVizBase<T>
     {
-        protected VizDynamicBitmap(IPlotMetaData owner) : base(owner) => BitmapScalingMode = BitmapScalingMode.Linear;
+        protected VizDynamicBitmap(IPlotMetaData owner) : base(owner)
+            => BitmapScalingMode = BitmapScalingMode.Linear;
 
         public BitmapScalingMode BitmapScalingMode
         {
@@ -36,7 +37,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             context.DrawDrawing(m_drawing);
         }
 
-        static Rect SnapRect(Rect r, double multX, double multY) => new(new(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY));
+        static Rect SnapRect(Rect r, double multX, double multY)
+            => new(new(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY));
 
         public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip, double dpiX, double dpiY)
         {
@@ -59,7 +61,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             m_clipGeom.Rect = snappedDrawingClip;
             //This clips to nearest pixel boundary; but a tighter clip is possible to sub-pixel accuracy:
             //m_clipGeom.Rect = drawingClip;
-
 
             var pW = (int)(0.5 + snappedDrawingClip.Width * scaleX);
             var pH = (int)(0.5 + snappedDrawingClip.Height * scaleY);
@@ -117,6 +118,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         //if you don't provide an OuterDataBound, the entire display clip will be available as a WriteableBitmap.
         protected abstract Rect? OuterDataBound { get; }
 
-        public override bool SupportsColor => false;
+        public override bool SupportsColor
+            => false;
     }
 }

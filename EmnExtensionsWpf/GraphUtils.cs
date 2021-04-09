@@ -12,10 +12,11 @@ namespace EmnExtensions.Wpf
 {
     public static class GraphUtils
     {
-        public static Color BlendWith(this Color a, Color b) => Color.FromArgb((byte)(a.A + b.A + 1 >> 1), (byte)(a.R + b.R + 1 >> 1), (byte)(a.G + b.G + 1 >> 1), (byte)(a.B + b.B + 1 >> 1));
+        public static Color BlendWith(this Color a, Color b)
+            => Color.FromArgb((byte)(a.A + b.A + 1 >> 1), (byte)(a.R + b.R + 1 >> 1), (byte)(a.G + b.G + 1 >> 1), (byte)(a.B + b.B + 1 >> 1));
 
-
-        public static bool IsFiniteNonEmpty(this Rect rect) => rect.Width.IsFinite() && rect.Height.IsFinite() && rect.Height * rect.Width > 0;
+        public static bool IsFiniteNonEmpty(this Rect rect)
+            => rect.Width.IsFinite() && rect.Height.IsFinite() && rect.Height * rect.Width > 0;
 
         public static PathGeometry LineWithErrorBars(Point[] lineOfPoints, double[] ErrBars)
         {
@@ -168,10 +169,8 @@ namespace EmnExtensions.Wpf
                         point.Offset(-2 * radius, 0.0);
                         context.LineTo(point, true, false);
 
-
                         //point.Offset(radius, 0);
                         //context.BeginFigure(point, true, true);
-
 
                         //point.Offset(-2 * radius, 0);
                         //context.ArcTo(point, new Size(radius, radius), 0.0, true, SweepDirection.Clockwise, true, true);
@@ -237,7 +236,8 @@ namespace EmnExtensions.Wpf
             }
         }
 
-        public static void AddPoint(PathFigure fig, Point point) => fig.Segments.Add(new LineSegment(point, true));
+        public static void AddPoint(PathFigure fig, Point point)
+            => fig.Segments.Add(new LineSegment(point, true));
 
         /// <summary>
         /// Extends the line made by the last figure in the geometry to the given point.
@@ -261,8 +261,11 @@ namespace EmnExtensions.Wpf
             }
         }
 
-        public static Rect ExpandRect(this Rect src, Thickness withMargin) => new(src.X - withMargin.Left, src.Y - withMargin.Top, src.Width + withMargin.Left + withMargin.Right, src.Height + withMargin.Top + withMargin.Bottom);
-        public static Rect ShrinkRect(this Rect src, Thickness withMargin) => new(src.X + withMargin.Left, src.Y + withMargin.Top, src.Width - withMargin.Left - withMargin.Right, src.Height - withMargin.Top - withMargin.Bottom);
+        public static Rect ExpandRect(this Rect src, Thickness withMargin)
+            => new(src.X - withMargin.Left, src.Y - withMargin.Top, src.Width + withMargin.Left + withMargin.Right, src.Height + withMargin.Top + withMargin.Bottom);
+
+        public static Rect ShrinkRect(this Rect src, Thickness withMargin)
+            => new(src.X + withMargin.Left, src.Y + withMargin.Top, src.Width - withMargin.Left - withMargin.Right, src.Height - withMargin.Top - withMargin.Bottom);
 
         public static Matrix TransformShape(Rect fromPosition, Rect toPosition, bool flipVertical)
         {
@@ -282,7 +285,8 @@ namespace EmnExtensions.Wpf
             return translateThenScale;
         }
 
-        static bool IsOK(Point p) => p.X.IsFinite() && p.Y.IsFinite();
+        static bool IsOK(Point p)
+            => p.X.IsFinite() && p.Y.IsFinite();
 
         public static BitmapSource MakeGreyBitmap(byte[,] image)
         {
@@ -298,7 +302,8 @@ namespace EmnExtensions.Wpf
             return BitmapSource.Create(w, h, 96.0, 96.0, PixelFormats.Gray8, null, inlinearray, w);
         }
 
-        public static uint ToNativeColor(this Color colorstruct) => (uint)colorstruct.A << 24 | (uint)colorstruct.R << 16 | (uint)colorstruct.G << 8 | colorstruct.B;
+        public static uint ToNativeColor(this Color colorstruct)
+            => (uint)colorstruct.A << 24 | (uint)colorstruct.R << 16 | (uint)colorstruct.G << 8 | colorstruct.B;
 
         public static BitmapSource MakeColormappedBitmap<T>(T[,] image, Func<T, Color> colormap, int sampleFactor = 1)
         {

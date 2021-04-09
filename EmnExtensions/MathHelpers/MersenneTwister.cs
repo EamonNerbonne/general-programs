@@ -4,7 +4,6 @@
 // Copyright 2007-2008 Rory Plaire (codekaizen@gmail.com)
 
 // Adapted from:
-
 /* C# Version Copyright (C) 2001-2004 Akihilo Kramot (Takel).  */
 /* C# porting from a C-program for MT19937, originaly coded by */
 /* Takuji Nishimura and Makoto Matsumoto, considering the suggestions by */
@@ -75,7 +74,6 @@
    email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
 */
 
-
 using System;
 
 namespace EmnExtensions.MathHelpers
@@ -97,7 +95,8 @@ namespace EmnExtensions.MathHelpers
         /// Creates a new pseudo-random number generator with a given seed.
         /// </summary>
         /// <param name="seed">A value to use as a seed.</param>
-        public MersenneTwister(int seed) => init((uint)seed);
+        public MersenneTwister(int seed)
+            => init((uint)seed);
 
         /// <summary>
         /// Creates a new pseudo-random number generator with a default seed.
@@ -139,7 +138,8 @@ namespace EmnExtensions.MathHelpers
         /// Returns the next pseudo-random <see cref="UInt32" />.
         /// </summary>
         /// <returns>A pseudo-random <see cref="UInt32" /> value.</returns>
-        public uint NextUInt32() => GenerateUInt32();
+        public uint NextUInt32()
+            => GenerateUInt32();
 
         /// <summary>
         /// Returns the next pseudo-random <see cref="UInt32" />
@@ -151,7 +151,8 @@ namespace EmnExtensions.MathHelpers
         /// <returns>
         /// A pseudo-random <see cref="UInt32" /> value which is at most <paramref name="maxValue" />.
         /// </returns>
-        public uint NextUInt32(uint maxValue) => (uint)(GenerateUInt32() / ((double)uint.MaxValue / maxValue));
+        public uint NextUInt32(uint maxValue)
+            => (uint)(GenerateUInt32() / ((double)uint.MaxValue / maxValue));
 
         /// <summary>
         /// Returns the next pseudo-random <see cref="UInt32" /> at least
@@ -179,7 +180,8 @@ namespace EmnExtensions.MathHelpers
         /// Returns the next pseudo-random <see cref="Int32" />.
         /// </summary>
         /// <returns>A pseudo-random <see cref="Int32" /> value.</returns>
-        public override int Next() => Next(int.MaxValue);
+        public override int Next()
+            => Next(int.MaxValue);
 
         /// <summary>
         /// Returns the next pseudo-random <see cref="Int32" /> up to <paramref name="maxValue" />.
@@ -203,7 +205,6 @@ namespace EmnExtensions.MathHelpers
 
             return (int)(NextDouble() * maxValue);
         }
-
 
         /// <summary>
         /// Returns the next pseudo-random <see cref="Int32" />
@@ -281,7 +282,8 @@ namespace EmnExtensions.MathHelpers
         /// </code>
         ///     </para>
         /// </remarks>
-        public override double NextDouble() => compute53BitRandom(0, InverseOnePlus53BitsOf1s);
+        public override double NextDouble()
+            => compute53BitRandom(0, InverseOnePlus53BitsOf1s);
 
         /// <summary>
         /// Returns a pseudo-random number greater than or equal to zero, and
@@ -301,13 +303,15 @@ namespace EmnExtensions.MathHelpers
         /// returns a double-precision pseudo-random number greater than or equal to zero and
         /// strictly less than one.
         /// </returns>
-        public double NextDouble(bool includeOne) => includeOne ? compute53BitRandom(0, Inverse53BitsOf1s) : NextDouble();
+        public double NextDouble(bool includeOne)
+            => includeOne ? compute53BitRandom(0, Inverse53BitsOf1s) : NextDouble();
 
         /// <summary>
         /// Returns a pseudo-random number greater than 0.0 and less than 1.0.
         /// </summary>
         /// <returns>A pseudo-random number greater than 0.0 and less than 1.0.</returns>
-        public double NextDoublePositive() => compute53BitRandom(0.5, Inverse53BitsOf1s);
+        public double NextDoublePositive()
+            => compute53BitRandom(0.5, Inverse53BitsOf1s);
 
         /// <summary>
         /// Returns a pseudo-random number between 0.0 and 1.0.
@@ -316,7 +320,8 @@ namespace EmnExtensions.MathHelpers
         /// A single-precision floating point number greater than or equal to 0.0,
         /// and less than 1.0.
         /// </returns>
-        public float NextSingle() => (float)NextDouble();
+        public float NextSingle()
+            => (float)NextDouble();
 
         /// <summary>
         /// Returns a pseudo-random number greater than or equal to zero, and either strictly
@@ -335,13 +340,15 @@ namespace EmnExtensions.MathHelpers
         /// this method returns a single-precision pseudo-random number greater than or equal to zero and
         /// strictly less than one.
         /// </returns>
-        public float NextSingle(bool includeOne) => (float)NextDouble(includeOne);
+        public float NextSingle(bool includeOne)
+            => (float)NextDouble(includeOne);
 
         /// <summary>
         /// Returns a pseudo-random number greater than 0.0 and less than 1.0.
         /// </summary>
         /// <returns>A pseudo-random number greater than 0.0 and less than 1.0.</returns>
-        public float NextSinglePositive() => (float)NextDoublePositive();
+        public float NextSinglePositive()
+            => (float)NextDoublePositive();
 
         /// <summary>
         /// Generates a new pseudo-random <see cref="UInt32" />.
@@ -391,17 +398,20 @@ namespace EmnExtensions.MathHelpers
         const uint TemperingMaskB = 0x9d2c5680;
         const uint TemperingMaskC = 0xefc60000;
 
-        static uint temperingShiftU(uint y) => y >> 11;
+        static uint temperingShiftU(uint y)
+            => y >> 11;
 
-        static uint temperingShiftS(uint y) => y << 7;
+        static uint temperingShiftS(uint y)
+            => y << 7;
 
-        static uint temperingShiftT(uint y) => y << 15;
+        static uint temperingShiftT(uint y)
+            => y << 15;
 
-        static uint temperingShiftL(uint y) => y >> 18;
+        static uint temperingShiftL(uint y)
+            => y >> 18;
 
         readonly uint[] _mt = new uint[N]; /* the array for the state vector  */
         short _mti;
-
         static readonly uint[] _mag01 = { 0x0, MatrixA };
 
         void init(uint seed)
@@ -459,7 +469,6 @@ namespace EmnExtensions.MathHelpers
             _mt[0] = 0x80000000U; // MSB is 1; assuring non-zero initial array
         }
 
-
         // 9007199254740991.0 is the maximum double value which the 53 significand
         // can hold when the exponent is 0.
         const double FiftyThreeBitsOf1s = 9007199254740991.0;
@@ -488,11 +497,13 @@ namespace EmnExtensions.MathHelpers
         /// <summary>
         /// Generates a double in the half-open interval [0,1) just like NextDouble(), but slightly faster non-virtual.
         /// </summary>
-        public double NextDouble0To1() => compute53BitRandom(0, InverseOnePlus53BitsOf1s);
+        public double NextDouble0To1()
+            => compute53BitRandom(0, InverseOnePlus53BitsOf1s);
 
         /// <summary>
         /// Generates a normally distributed double with mean 0 and variance 1.
         /// </summary>
-        public double NextNormal() => RndHelper.MakeNormal(NextDouble0To1(), NextDouble0To1());
+        public double NextNormal()
+            => RndHelper.MakeNormal(NextDouble0To1(), NextDouble0To1());
     }
 }

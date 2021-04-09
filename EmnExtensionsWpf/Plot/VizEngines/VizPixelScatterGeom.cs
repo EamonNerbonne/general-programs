@@ -23,7 +23,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             InvalidateBounds();
         }
 
-        public VizPixelScatterGeom(IPlotMetaData metadata) => impl = new(metadata) { AutosizeBounds = false };
+        public VizPixelScatterGeom(IPlotMetaData metadata)
+            => impl = new(metadata) { AutosizeBounds = false };
 
         void InvalidateBounds()
         {
@@ -34,7 +35,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         }
 
         public int? OverridePointCountEstimate { get; set; }
-
         double lastAreaScale = 1.0;
 
         void SetPenSize()
@@ -98,8 +98,10 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             return innerBounds;
         }
 
-        public override Rect DataBounds => computedInnerBounds ?? (computedInnerBounds = RecomputeBounds()).Value;
+        public override Rect DataBounds
+            => computedInnerBounds ?? (computedInnerBounds = RecomputeBounds()).Value;
 
-        protected override IVizEngine<StreamGeometry> Implementation => impl;
+        protected override IVizEngine<StreamGeometry> Implementation
+            => impl;
     }
 }

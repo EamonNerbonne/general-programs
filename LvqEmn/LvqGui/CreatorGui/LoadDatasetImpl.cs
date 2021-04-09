@@ -14,7 +14,8 @@ namespace LvqGui.CreatorGui
 {
     public sealed class LoadedDatasetSettings : DatasetCreatorBase<LoadedDatasetSettings>
     {
-        protected override string RegexText => @"^
+        protected override string RegexText
+            => @"^
                 (?<Filename>.*?)
                 (\,(?<TestFilename>.*?))?
                 \-(?<DimCount>[0-9]+)D
@@ -28,12 +29,15 @@ namespace LvqGui.CreatorGui
         public string Filename, TestFilename;
         public int DimCount, ClassCount, PointCount;
 
-
-        protected override string GetShorthand() => Filename + (TestFilename != null ? "," + TestFilename : "") + "-" + DimCount + "D" + (ExtendDataByCorrelation ? "x" : "") + (!NormalizeDimensions ? "" : NormalizeByScaling ? "S" : "n") + "-"
-            + ClassCount + "," + PointCount
-            + (InstanceSeed == defaults.InstanceSeed ? "" : "[" + InstanceSeed.ToString("x") + "]")
-            + (Folds == defaults.Folds ? "" : "^" + Folds);
-
+        protected override string GetShorthand()
+            => Filename + (TestFilename != null ? "," + TestFilename : "") + "-" + DimCount + "D" + (ExtendDataByCorrelation ? "x" : "") + (!NormalizeDimensions
+                    ? ""
+                    : NormalizeByScaling
+                        ? "S"
+                        : "n") + "-"
+                + ClassCount + "," + PointCount
+                + (InstanceSeed == defaults.InstanceSeed ? "" : "[" + InstanceSeed.ToString("x") + "]")
+                + (Folds == defaults.Folds ? "" : "^" + Folds);
 
         public override LvqDatasetCli CreateDataset()
         {
@@ -61,7 +65,6 @@ namespace LvqGui.CreatorGui
             var dataFile = dataDir.GetFiles(name).FirstOrDefault();
             return LoadData(dataFile, null, new() { InstanceSeed = rngInst, Folds = folds });
         }
-
 
         static readonly char[] dimSep = { ',' };
         static readonly char[] spaceSep = { ' ' };
@@ -91,7 +94,6 @@ namespace LvqGui.CreatorGui
             return retval;
         }
 
-
         public static LvqDatasetCli LoadData(FileInfo dataFile, FileInfo testFile, LoadedDatasetSettings settings)
         {
             settings = settings.Clone();
@@ -115,24 +117,24 @@ namespace LvqGui.CreatorGui
             settings.ClassCount = trainingdata.Item3.Length;
             settings.PointCount = pointArray.GetLength(0);
 
-
             var testPointArray = testdata.Item1;
             var testLabelArray = testdata.Item2;
             if (testPointArray != null) {
                 if (settings.DimCount != testPointArray.GetLength(1)) {
-                    throw new InvalidOperationException("training file " + dataFile.Name + " has " + settings.DimCount +
+                    throw new InvalidOperationException(
+                        "training file " + dataFile.Name + " has " + settings.DimCount +
                         " dimensions, but test file " + testFile.Name + " has " +
                         testPointArray.GetLength(1)
                     );
                 }
 
                 if (!trainingdata.Item3.SequenceEqual(testdata.Item3)) {
-                    throw new InvalidOperationException("training file " + dataFile.Name + " has classes: " + string.Join(",", trainingdata.Item3) +
+                    throw new InvalidOperationException(
+                        "training file " + dataFile.Name + " has classes: " + string.Join(",", trainingdata.Item3) +
                         " classes, but test file " + testFile.Name + " has " + string.Join(",", testdata.Item3)
                     );
                 }
             }
-
 
             return LvqDatasetCli.ConstructFromArray(
                 rngInstSeed: settings.InstanceSeed,
@@ -184,7 +186,9 @@ namespace LvqGui.CreatorGui
                 }
 
                 var dim0 = reader.ReadInt32BigEndian();
-                var dimsRest = Enumerable.Range(1, dimCount - 1).Select(_ => reader.ReadInt32BigEndian()).Aggregate(1, (product, num) => {
+                var dimsRest = Enumerable.Range(1, dimCount - 1).Select(_ => reader.ReadInt32BigEndian()).Aggregate(
+                    1,
+                    (product, num) => {
                         checked {
                             return product * num;
                         }
@@ -214,7 +218,8 @@ namespace LvqGui.CreatorGui
             var dataVectors =
                 datafile.Extension.ToLowerInvariant() == ".gz"
                     ? (double[,])ReadGzIdx(datafile)
-                    : (from dataline in datafile.GetLines()
+                    : (
+                        from dataline in datafile.GetLines()
                         select (
                             from dataDim in dataline.Split(dimSep)
                             select double.Parse(dataDim, CultureInfo.InvariantCulture)
@@ -250,7 +255,8 @@ namespace LvqGui.CreatorGui
             return Tuple.Create(
                 itemLabels
                     .Select(oldlabel => denseLabelLookup[oldlabel])
-                    .ToArray(), denseLabelLookup.OrderBy(kv => kv.Value).Select(kv => kv.Key.ToString(CultureInfo.InvariantCulture)).ToArray()
+                    .ToArray(),
+                denseLabelLookup.OrderBy(kv => kv.Value).Select(kv => kv.Key.ToString(CultureInfo.InvariantCulture)).ToArray()
             );
         }
 
@@ -283,17 +289,17 @@ namespace LvqGui.CreatorGui
             var lastColClass = splitLines.Take(10).All(splitLine => Regex.IsMatch(splitLine[^1], @"^[a-zA-Z]\w*$"));
             var firstColClass = !lastColClass && splitLines.Take(10).All(splitLine => Regex.IsMatch(splitLine[0], @"^[a-zA-Z]\w*$"));
 
-
             var labelledVectors =
-                (from splitLine in splitLines
-                    select new {
-                        Label = splitLine[firstColClass ? 0 : splitLine.Length - 1],
-                        Data = (
-                            from dataDim in firstColClass ? splitLine.Skip(1) : splitLine.Take(splitLine.Length - 1)
-                            select double.Parse(dataDim, CultureInfo.InvariantCulture)
-                        ).ToArray()
-                    }
-                ).ToArray();
+            (
+                from splitLine in splitLines
+                select new {
+                    Label = splitLine[firstColClass ? 0 : splitLine.Length - 1],
+                    Data = (
+                        from dataDim in firstColClass ? splitLine.Skip(1) : splitLine.Take(splitLine.Length - 1)
+                        select double.Parse(dataDim, CultureInfo.InvariantCulture)
+                    ).ToArray()
+                }
+            ).ToArray();
 
             var itemLabels = (
                 from labelline in labelledVectors
@@ -316,7 +322,6 @@ namespace LvqGui.CreatorGui
                 itemLabels
                     .Select(oldlabel => denseLabelLookup[oldlabel])
                     .ToArray();
-
 
             var labelSet = new HashSet<int>(itemIntLabels);
             var minLabel = labelSet.Min();

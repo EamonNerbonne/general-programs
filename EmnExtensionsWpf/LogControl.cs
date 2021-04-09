@@ -46,7 +46,6 @@ namespace EmnExtensions.Wpf
             return disp.Invoke(() => ShowNewLogWindow(windowTitle, width, height));
         }
 
-
         readonly StringBuilder curLine = new();
         readonly DelegateTextWriter logger;
 
@@ -67,11 +66,12 @@ namespace EmnExtensions.Wpf
             ContextMenu = new() { Items = { clearLogMenuItem } };
         }
 
-        void Reset() => Document = new() {
-            TextAlignment = TextAlignment.Left,
-            FontFamily = new("Consolas"),
-            FontSize = 10.0
-        };
+        void Reset()
+            => Document = new() {
+                TextAlignment = TextAlignment.Left,
+                FontFamily = new("Consolas"),
+                FontSize = 10.0
+            };
 
         bool wantsStdOut, wantsStdErr;
 
@@ -92,9 +92,11 @@ namespace EmnExtensions.Wpf
         bool redraw;
         TextWriter oldOut, oldError;
 
-        public void AppendLineThreadSafe(string line) => AppendThreadSafe(line + "\n");
+        public void AppendLineThreadSafe(string line)
+            => AppendThreadSafe(line + "\n");
 
-        public TextWriter Writer => logger;
+        public TextWriter Writer
+            => logger;
 
         void Invalidate()
         {
@@ -180,19 +182,21 @@ namespace EmnExtensions.Wpf
             }
         }
 
-        static void RedirectNativeStream(LogControl toControl, RestoringReadStream fromNative, string name) => new Thread(() => {
-                using (var reader = new StreamReader(fromNative.ReadStream)) {
-                    var buffer = new char[4096];
-                    while (true) {
-                        var actuallyRead = reader.Read(buffer, 0, buffer.Length);
-                        if (actuallyRead <= 0) {
-                            break;
-                        }
+        static void RedirectNativeStream(LogControl toControl, RestoringReadStream fromNative, string name)
+            => new Thread(
+                () => {
+                    using (var reader = new StreamReader(fromNative.ReadStream)) {
+                        var buffer = new char[4096];
+                        while (true) {
+                            var actuallyRead = reader.Read(buffer, 0, buffer.Length);
+                            if (actuallyRead <= 0) {
+                                break;
+                            }
 
-                        toControl.AppendThreadSafe(new(buffer, 0, actuallyRead));
+                            toControl.AppendThreadSafe(new(buffer, 0, actuallyRead));
+                        }
                     }
                 }
-            }
-        ) { IsBackground = true }.Start();
+            ) { IsBackground = true }.Start();
     }
 }

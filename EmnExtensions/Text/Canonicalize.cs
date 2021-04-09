@@ -36,25 +36,29 @@ namespace EmnExtensions.Text
             reasonablechar['\t'] = true;
         }
 
-        public static UnicodeCategory FastGetUnicodeCategory(char c) => (UnicodeCategory)categorycache[c];
+        public static UnicodeCategory FastGetUnicodeCategory(char c)
+            => (UnicodeCategory)categorycache[c];
 
         /// <summary>
         /// Determines whether a character is safe to use, essentially meaning "can be present in an XML file".
         /// This allows the surrogate pair ranges, though they aren't necessarily valid in xml (they must come in pairs) and simply bans really bad things you don't ever want,
         /// being control characters below 0x20 (except tab, carriage return and newline), 0xfffe and 0xffff.
         /// </summary>
-        public static bool IsSafeChar(char c) => c >= 0x20 && c < 0xfffe || c == '\n' || c == '\t' || c == '\r';
+        public static bool IsSafeChar(char c)
+            => c >= 0x20 && c < 0xfffe || c == '\n' || c == '\t' || c == '\r';
 
         /// <summary>
         /// Determines whether a character is safe to use and not ' ','\t','\r' or '\n' - see IsSafeChar.
         /// </summary>
-        public static bool IsSafeNonWhitespaceChar(char c) => c > 0x20 && c < 0xfffe;
+        public static bool IsSafeNonWhitespaceChar(char c)
+            => c > 0x20 && c < 0xfffe;
 
         /// <summary>
         /// Determines whether a character is a "reasonable" text character.  Basically, this means any kind of symbol, spacing, surrogate or newline,
         /// but not unassigned, format, control or private characters (except newline and tab, which are OK).
         /// </summary>
-        public static bool IsReasonableChar(char c) => reasonablechar[c];
+        public static bool IsReasonableChar(char c)
+            => reasonablechar[c];
 
         /// <summary>
         /// Strips all characters deemed unsafe by IsSafeChar.  Returns null if the input is null or empty.
@@ -87,7 +91,8 @@ namespace EmnExtensions.Text
             return pos == 0 ? null : new string(retval, 0, pos);
         }
 
-        public static string CanonicalizeBasic(this string input) => Basic(input);
+        public static string CanonicalizeBasic(this string input)
+            => Basic(input);
 
         [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         public static string Basic(string input)

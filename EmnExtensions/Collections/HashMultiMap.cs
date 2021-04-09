@@ -7,7 +7,6 @@ namespace EmnExtensions.Collections
     {
         readonly Dictionary<T1, HashSet<T2>> forwardLookup = new();
         readonly Dictionary<T2, HashSet<T1>> reverseLookup = new();
-
         public HashMultiMap() { }
 
         public HashMultiMap(IEnumerable<Edge<T1, T2>> edges)
@@ -48,11 +47,14 @@ namespace EmnExtensions.Collections
             reverseLookup[to].Add(from);
         }
 
-        public bool ContainsEdge(T1 from, T2 to) => forwardLookup.ContainsKey(from) && forwardLookup[from].Contains(to);
+        public bool ContainsEdge(T1 from, T2 to)
+            => forwardLookup.ContainsKey(from) && forwardLookup[from].Contains(to);
 
-        public IEnumerable<Edge<T1, T2>> Edges => from edS in forwardLookup
-            from edE in edS.Value
-            select Edge.Create(edS.Key, edE);
+        public IEnumerable<Edge<T1, T2>> Edges
+            =>
+                from edS in forwardLookup
+                from edE in edS.Value
+                select Edge.Create(edS.Key, edE);
 
         public IEnumerable<T1> NodesFrom
         {
@@ -72,8 +74,11 @@ namespace EmnExtensions.Collections
             }
         }
 
-        public IEnumerable<T2> ReachableFrom(T1 node) => LookIn(forwardLookup, node);
-        public IEnumerable<T1> ReachesTo(T2 node) => LookIn(reverseLookup, node);
+        public IEnumerable<T2> ReachableFrom(T1 node)
+            => LookIn(forwardLookup, node);
+
+        public IEnumerable<T1> ReachesTo(T2 node)
+            => LookIn(reverseLookup, node);
 
         public void RemoveEdge(T1 from, T2 to)
         {

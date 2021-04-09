@@ -61,7 +61,6 @@ namespace EmnExtensions.Wpf.OldGraph
         }
 
         BitmapScalingMode m_scalingMode;
-
         WriteableBitmap m_bmp;
         readonly RectangleGeometry m_clipGeom = new();
         readonly TranslateTransform m_offsetTransform = new();
@@ -157,7 +156,8 @@ namespace EmnExtensions.Wpf.OldGraph
 #endif
         }
 
-        static Rect SnapRect(Rect r, double multX, double multY) => new(new(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY));
+        static Rect SnapRect(Rect r, double multX, double multY)
+            => new(new(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY));
 
         uint[] image;
 
@@ -245,7 +245,6 @@ namespace EmnExtensions.Wpf.OldGraph
             } finally {
                 m_bmp.Unlock();
             }
-
 
             if (m_offsetTransform.X != outerDispBounds.X || m_offsetTransform.Y != outerDispBounds.Y) {
                 m_offsetTransform.X = outerDispBounds.X;

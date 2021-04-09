@@ -18,11 +18,20 @@ namespace EmnExtensions.Wpf.Plot
             return plot;
         }
 
-        public static VizLineSegments CreateLine(IPlotMetaData metadata = null) => HelpCreate(md => new VizLineSegments(md), metadata);
-        public static VizDataRange CreateDataRange(IPlotMetaData metadata = null) => HelpCreate(md => new VizDataRange(md), metadata);
-        public static VizPixelScatterSmart CreatePixelScatter(IPlotMetaData metadata = null) => HelpCreate(md => new VizPixelScatterSmart(md), metadata);
-        public static VizPointCloudBitmap CreatePointCloud(IPlotMetaData metadata = null) => HelpCreate(md => new VizPointCloudBitmap(md), metadata);
-        public static VizDelegateBitmap<T> CreateBitmapDelegate<T>(Action<WriteableBitmap, Matrix, int, int, T> bitmapDelegate, IPlotMetaData metadata = null) => HelpCreate(md => new VizDelegateBitmap<T>(md), metadata).Update(plot => plot.UpdateBitmapDelegate = bitmapDelegate);
+        public static VizLineSegments CreateLine(IPlotMetaData metadata = null)
+            => HelpCreate(md => new VizLineSegments(md), metadata);
+
+        public static VizDataRange CreateDataRange(IPlotMetaData metadata = null)
+            => HelpCreate(md => new VizDataRange(md), metadata);
+
+        public static VizPixelScatterSmart CreatePixelScatter(IPlotMetaData metadata = null)
+            => HelpCreate(md => new VizPixelScatterSmart(md), metadata);
+
+        public static VizPointCloudBitmap CreatePointCloud(IPlotMetaData metadata = null)
+            => HelpCreate(md => new VizPointCloudBitmap(md), metadata);
+
+        public static VizDelegateBitmap<T> CreateBitmapDelegate<T>(Action<WriteableBitmap, Matrix, int, int, T> bitmapDelegate, IPlotMetaData metadata = null)
+            => HelpCreate(md => new VizDelegateBitmap<T>(md), metadata).Update(plot => plot.UpdateBitmapDelegate = bitmapDelegate);
     }
 
     public static class PlotExtensions
@@ -34,9 +43,16 @@ namespace EmnExtensions.Wpf.Plot
             return plot;
         }
 
-        public static Rect EffectiveDataBounds(this IVizEngine plot) => plot.MetaData.OverrideBounds ?? Rect.Union(plot.DataBounds, plot.MetaData.MinimalBounds ?? Rect.Empty);
-        public static IVizEngine<TIn> Map<TOut, TIn>(this IVizEngine<TOut> impl, Func<TIn, TOut> map) => new VizMapped<TIn, TOut>(impl, map);
-        public static DispatcherOperation BeginDataChange<T>(this IVizEngine<T> sink, T data, DispatcherPriority priority = DispatcherPriority.Background) => sink.MetaData.Container.Dispatcher.BeginInvoke((Action<T>)sink.ChangeData, priority, data);
-        public static Dispatcher GetDispatcher<T>(this IVizEngine<T> sink) => sink == null || sink.MetaData == null || sink.MetaData.Container == null ? null : sink.MetaData.Container.Dispatcher;
+        public static Rect EffectiveDataBounds(this IVizEngine plot)
+            => plot.MetaData.OverrideBounds ?? Rect.Union(plot.DataBounds, plot.MetaData.MinimalBounds ?? Rect.Empty);
+
+        public static IVizEngine<TIn> Map<TOut, TIn>(this IVizEngine<TOut> impl, Func<TIn, TOut> map)
+            => new VizMapped<TIn, TOut>(impl, map);
+
+        public static DispatcherOperation BeginDataChange<T>(this IVizEngine<T> sink, T data, DispatcherPriority priority = DispatcherPriority.Background)
+            => sink.MetaData.Container.Dispatcher.BeginInvoke((Action<T>)sink.ChangeData, priority, data);
+
+        public static Dispatcher GetDispatcher<T>(this IVizEngine<T> sink)
+            => sink == null || sink.MetaData == null || sink.MetaData.Container == null ? null : sink.MetaData.Container.Dispatcher;
     }
 }

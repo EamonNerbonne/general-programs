@@ -2,7 +2,8 @@
 {
     public static class StringFeatures
     {
-        public static bool IsNullOrEmpty(this string str) => string.IsNullOrEmpty(str);
+        public static bool IsNullOrEmpty(this string str)
+            => string.IsNullOrEmpty(str);
 
         public static string SubstringAfterFirst(this string haystack, string needle)
         {

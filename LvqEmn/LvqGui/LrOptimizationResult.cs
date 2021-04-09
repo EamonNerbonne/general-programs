@@ -56,22 +56,25 @@ namespace LvqGui
             return resultLines.Select(resLine => LrAndError.ParseLine(resLine, lr0range, lrPrange, lrBrange));
         }
 
-
         static readonly char[] comma = { ',' };
-        static double[] ExtractLrs(string line) => line.SubstringAfterFirst("{").SubstringUntil("}").Split(comma).Select(double.Parse).ToArray();
 
+        static double[] ExtractLrs(string line)
+            => line.SubstringAfterFirst("{").SubstringUntil("}").Split(comma).Select(double.Parse).ToArray();
 
-        public static IEnumerable<LrOptimizationResult> FromDataset(LvqDatasetCli dataset, string settingsStr) => from creator in MaybeGetCreator(dataset)
-            from parsedResults in FromDataset(creator, settingsStr)
-            select parsedResults;
+        public static IEnumerable<LrOptimizationResult> FromDataset(LvqDatasetCli dataset, string settingsStr)
+            =>
+                from creator in MaybeGetCreator(dataset)
+                from parsedResults in FromDataset(creator, settingsStr)
+                select parsedResults;
 
-        public static IEnumerable<LrOptimizationResult> FromDataset(IDatasetCreator dataset, string settingsStr = null) => from datasetResultsDir in GetDatasetResultDir(dataset)
-            from resultFile in datasetResultsDir.GetFiles("*" + (settingsStr == null ? "" : settingsStr + "*") + ".txt")
-            where resultFile.Length > 0
-            let parsedResults = ProcFile(resultFile)
-            where parsedResults != null
-            select parsedResults;
-
+        public static IEnumerable<LrOptimizationResult> FromDataset(IDatasetCreator dataset, string settingsStr = null)
+            =>
+                from datasetResultsDir in GetDatasetResultDir(dataset)
+                from resultFile in datasetResultsDir.GetFiles("*" + (settingsStr == null ? "" : settingsStr + "*") + ".txt")
+                where resultFile.Length > 0
+                let parsedResults = ProcFile(resultFile)
+                where parsedResults != null
+                select parsedResults;
 
         public static LrOptimizationResult ProcFile(FileInfo resultFile)
         {
@@ -86,7 +89,6 @@ namespace LvqGui
 
             return new(resultFile, itersAndSettings.Item2, itersAndSettings.Item3);
         }
-
 
         /// <summary>
         /// Gets the lr-optimized result for the given dataset and settings with the largest number of iterations, or null if no results have been done for this settings+dataset combination.
@@ -113,13 +115,15 @@ namespace LvqGui
             return Enumerable.Repeat(CreateDataset.CreateFactory(dataset.DatasetLabel), 1);
         }
 
-        static IEnumerable<DirectoryInfo> GetDatasetResultDir(IDatasetCreator basicExample) => from dir in LrGuesser.resultsDir.GetDirectories()
-            where basicExample != null
-            let dirSplitName = CreateDataset.CreateFactory(dir.Name)
-            where dirSplitName != null && dirSplitName.GetType() == basicExample.GetType() && basicExample.LrTrainingShorthand() == dirSplitName.LrTrainingShorthand()
-            orderby dirSplitName.HasTestfile() == basicExample.HasTestfile() descending
-                , dirSplitName.Folds == basicExample.Folds descending
-                , dirSplitName.InstanceSeed == basicExample.InstanceSeed descending
-            select dir;
+        static IEnumerable<DirectoryInfo> GetDatasetResultDir(IDatasetCreator basicExample)
+            =>
+                from dir in LrGuesser.resultsDir.GetDirectories()
+                where basicExample != null
+                let dirSplitName = CreateDataset.CreateFactory(dir.Name)
+                where dirSplitName != null && dirSplitName.GetType() == basicExample.GetType() && basicExample.LrTrainingShorthand() == dirSplitName.LrTrainingShorthand()
+                orderby dirSplitName.HasTestfile() == basicExample.HasTestfile() descending
+                    , dirSplitName.Folds == basicExample.Folds descending
+                    , dirSplitName.InstanceSeed == basicExample.InstanceSeed descending
+                select dir;
     }
 }

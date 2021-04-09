@@ -12,7 +12,6 @@ namespace LvqGui.CreatorGui
     public sealed class CreateStarDatasetValues : HasShorthandBase, IHasSeed
     {
         readonly LvqWindowValues owner;
-
         StarDatasetSettings settings = new();
 
         public StarDatasetSettings Settings
@@ -25,7 +24,6 @@ namespace LvqGui.CreatorGui
                 }
             }
         }
-
 
         public int Dimensions
         {
@@ -247,7 +245,6 @@ namespace LvqGui.CreatorGui
             }
         }
 
-
         public override string Shorthand
         {
             get => settings.Shorthand;
@@ -257,7 +254,8 @@ namespace LvqGui.CreatorGui
             }
         }
 
-        public override string ShorthandErrors => settings.ShorthandErrors;
+        public override string ShorthandErrors
+            => settings.ShorthandErrors;
 
         public CreateStarDatasetValues(LvqWindowValues owner)
         {
@@ -291,6 +289,7 @@ namespace LvqGui.CreatorGui
             return settings.CreateDataset();
         }
 
-        public DispatcherOperation ConfirmCreation() => owner.Dispatcher.BeginInvoke(owner.Datasets.Add, CreateDataset());
+        public DispatcherOperation ConfirmCreation()
+            => owner.Dispatcher.BeginInvoke(owner.Datasets.Add, CreateDataset());
     }
 }

@@ -25,11 +25,12 @@ namespace LvqGui.CreatorGui
         public bool NormalizeByScaling { get; set; }
         public int Folds { get; set; } = 10;
 
-        IDatasetCreator IDatasetCreator.Clone() => Clone();
+        IDatasetCreator IDatasetCreator.Clone()
+            => Clone();
+
         protected abstract string RegexText { get; }
         protected abstract string GetShorthand();
         protected static readonly T defaults = new();
-
         public static readonly Regex shR = new(defaults.RegexText, RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
         public string Shorthand
@@ -38,15 +39,22 @@ namespace LvqGui.CreatorGui
             set => ShorthandHelper.ParseShorthand(this, defaults, shR, value);
         }
 
-        public string ShorthandErrors => ShorthandHelper.VerifyShorthand(this, shR);
+        public string ShorthandErrors
+            => ShorthandHelper.VerifyShorthand(this, shR);
+
         public abstract LvqDatasetCli CreateDataset();
-        public static T ParseSettings(string shorthand) => new() { Shorthand = shorthand };
-        public static T TryParse(string shorthand) => ShorthandHelper.TryParseShorthand(defaults, shR, shorthand).AsNullable();
+
+        public static T ParseSettings(string shorthand)
+            => new() { Shorthand = shorthand };
+
+        public static T TryParse(string shorthand)
+            => ShorthandHelper.TryParseShorthand(defaults, shR, shorthand).AsNullable();
     }
 
     public static class CreateDataset
     {
-        public static void IncInstanceSeed(this IDatasetCreator obj) => obj.InstanceSeed++;
+        public static void IncInstanceSeed(this IDatasetCreator obj)
+            => obj.InstanceSeed++;
 
         public static IDatasetCreator BaseClone(this IDatasetCreator obj)
         {
@@ -58,7 +66,8 @@ namespace LvqGui.CreatorGui
             return obj;
         }
 
-        public static IDatasetCreator CreateFactory(string shorthand) => StarDatasetSettings.TryParse(shorthand) ?? GaussianCloudDatasetSettings.TryParse(shorthand) ?? (IDatasetCreator)LoadedDatasetSettings.TryParse(shorthand);
+        public static IDatasetCreator CreateFactory(string shorthand)
+            => StarDatasetSettings.TryParse(shorthand) ?? GaussianCloudDatasetSettings.TryParse(shorthand) ?? (IDatasetCreator)LoadedDatasetSettings.TryParse(shorthand);
 
         public static IEnumerable<IDatasetCreator> StandardDatasets()
         {
@@ -82,7 +91,6 @@ namespace LvqGui.CreatorGui
             }
         }
 
-
         public static string LrTrainingShorthand(this IDatasetCreator obj)
         {
             obj = obj.Clone();
@@ -95,8 +103,8 @@ namespace LvqGui.CreatorGui
             return obj.Shorthand;
         }
 
-        public static bool HasTestfile(this IDatasetCreator obj) => obj is LoadedDatasetSettings settings && settings.TestFilename != null;
-
+        public static bool HasTestfile(this IDatasetCreator obj)
+            => obj is LoadedDatasetSettings settings && settings.TestFilename != null;
 
         public static LvqDatasetCli CreateFromShorthand(string shorthand)
         {

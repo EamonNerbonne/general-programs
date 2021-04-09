@@ -79,7 +79,6 @@ namespace EmnExtensions.Wpf.OldGraph
         }
 
         public object Tag { get; set; }
-
         public event Action<GraphableData, GraphChange> Changed;
 
         protected void OnChange(GraphChange changeType)

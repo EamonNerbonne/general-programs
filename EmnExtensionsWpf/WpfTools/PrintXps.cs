@@ -70,7 +70,6 @@ namespace EmnExtensions.Wpf.WpfTools
                     el.Arrange(new(margin_compensating));
                 }
 
-
 #if USE_PAGED_XPS_SAVE
                 FixedPage page = new FixedPage();
                 page.Width = el.ActualWidth*scaleFactor;

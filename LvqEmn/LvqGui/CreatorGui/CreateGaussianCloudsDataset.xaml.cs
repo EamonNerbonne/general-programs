@@ -5,11 +5,16 @@ namespace LvqGui.CreatorGui
 {
     public sealed partial class CreateGaussianCloudDataset
     {
-        public CreateGaussianCloudDataset() => InitializeComponent();
+        public CreateGaussianCloudDataset()
+            => InitializeComponent();
 
-        void ReseedParam(object sender, RoutedEventArgs e) => ((IHasSeed)DataContext).ReseedParam();
-        void ReseedInst(object sender, RoutedEventArgs e) => ((IHasSeed)DataContext).ReseedInst();
+        void ReseedParam(object sender, RoutedEventArgs e)
+            => ((IHasSeed)DataContext).ReseedParam();
 
-        void CreateDatasetButtonPress(object sender, RoutedEventArgs e) => ThreadPool.QueueUserWorkItem(o => ((CreateGaussianCloudsDatasetValues)o).ConfirmCreation(), DataContext);
+        void ReseedInst(object sender, RoutedEventArgs e)
+            => ((IHasSeed)DataContext).ReseedInst();
+
+        void CreateDatasetButtonPress(object sender, RoutedEventArgs e)
+            => ThreadPool.QueueUserWorkItem(o => ((CreateGaussianCloudsDatasetValues)o).ConfirmCreation(), DataContext);
     }
 }

@@ -23,7 +23,6 @@ namespace EmnExtensions.Text
             return null;
         }
 
-
         public static int? ParseAsInt32(this string s)
         {
             if (int.TryParse(s, out var val)) {

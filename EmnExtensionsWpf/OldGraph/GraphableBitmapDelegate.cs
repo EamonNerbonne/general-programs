@@ -8,9 +8,13 @@ namespace EmnExtensions.Wpf.OldGraph
 {
     public class GraphableBitmapDelegate : GraphableResizeableBitmap
     {
-        public GraphableBitmapDelegate() => UpdateBitmapDelegate = DefaultUpdateBitmapDelegate;
+        public GraphableBitmapDelegate()
+            => UpdateBitmapDelegate = DefaultUpdateBitmapDelegate;
+
         static void DefaultUpdateBitmapDelegate(WriteableBitmap bmp, Matrix mat, int pixelWidth, int pixelHeight) { }
-        protected override Rect? OuterDataBound => m_OuterDataBound;
+
+        protected override Rect? OuterDataBound
+            => m_OuterDataBound;
 
         public Rect? MaximalDataBound
         {
@@ -31,6 +35,7 @@ namespace EmnExtensions.Wpf.OldGraph
         /// </summary>
         public Action<WriteableBitmap, Matrix, int, int> UpdateBitmapDelegate { get; set; }
 
-        protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap) => UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH);
+        protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap)
+            => UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH);
     }
 }

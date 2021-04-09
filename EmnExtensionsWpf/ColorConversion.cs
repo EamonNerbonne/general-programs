@@ -21,13 +21,21 @@ namespace EmnExtensions.Wpf
         public double S
         {
             get => _s;
-            set => _s = value > 1.0 ? 1.0 : value < 0.0 ? 0.0 : value;
+            set => _s = value > 1.0
+                ? 1.0
+                : value < 0.0
+                    ? 0.0
+                    : value;
         }
 
         public double L
         {
             get => _l;
-            set => _l = value > 1.0 ? 1.0 : value < 0.0 ? 0.0 : value;
+            set => _l = value > 1.0
+                ? 1.0
+                : value < 0.0
+                    ? 0.0
+                    : value;
         }
 
         public HSL(Color c)
@@ -110,9 +118,11 @@ namespace EmnExtensions.Wpf
             return Color.FromRgb(0, 0, 0);
         }
 
-        static byte RoundToByte(double d) => (byte)(d + 0.5);
+        static byte RoundToByte(double d)
+            => (byte)(d + 0.5);
 
-        public static Color Desaturize(Color c, double saturation) => new HSL(c) { S = saturation }.ToRGB();
+        public static Color Desaturize(Color c, double saturation)
+            => new HSL(c) { S = saturation }.ToRGB();
 
         public static Color HueShift(Color c, double shift)
         {

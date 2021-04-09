@@ -19,7 +19,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         public const double SquareSidePerThickness = Math.PI / 4.0;
 
         //public static double PointCountToThickness(int pointCount) { return 15.0 / (0.5 + Math.Log(Math.Max(pointCount, 1))); }
-        public static double PointCountToThickness(int pointCount) => 225.0 / Math.Sqrt(pointCount + 2500);
+        public static double PointCountToThickness(int pointCount)
+            => 225.0 / Math.Sqrt(pointCount + 2500);
 
         public static void RecomputeBounds(Point[] points, double coverageX, double coverageY, double coverageGrad, out Rect outerBounds, out Rect coveredBounds)
         {
@@ -32,8 +33,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         }
 
         #region RecomputeBounds Helpers
-
-        static bool HasPoints(Point[] points) => points != null && points.Length > 0;
+        static bool HasPoints(Point[] points)
+            => points != null && points.Length > 0;
 
         // ReSharper disable ParameterTypeCanBeEnumerable.Global
         public static Rect ComputeOuterBounds(Point[] points)
@@ -71,7 +72,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
                 System.IO.File.AppendAllText(@"D:\emnplot.log", "HitCount: " + hitcount + ", time:" + (DateTime.Now - start) + "\n");
         }
 #endif
-
 #if SHAREMEM
         static object sync = new object();
         static double[] vals = new double[0];
@@ -103,7 +103,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
                 }
 
                 var yBounds = TrimWithMinimumGradient(vals, points.Length, cutoffEachSideY, coverageGrad);
-
 
                 if (xBounds.IsEmpty || yBounds.IsEmpty) {
                     return Rect.Empty;
@@ -151,7 +150,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
                 ? new() { Start = data[startCutoff], End = data[datalen - 1 - endCutoff] }
                 : DimensionBounds.Empty;
         }
-
         #endregion
     }
 }

@@ -9,7 +9,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         readonly MatrixTransform m_ProjectionTransform = new();
         readonly GeometryGroup combinesGeom = new();
         readonly RectangleGeometry clipRectangle = new();
-
         bool m_AutosizeBounds = true;
         Brush m_Fill = Brushes.Black;
         Pen m_Pen = defaultPen;
@@ -98,8 +97,11 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             RecomputeMargin();
         }
 
-        void RecomputeMargin() => SetMargin(new(Pen.Thickness / 2.0));
-        void m_Geometry_Changed(object sender, EventArgs e) => RecomputeBoundsIfAuto();
+        void RecomputeMargin()
+            => SetMargin(new(Pen.Thickness / 2.0));
+
+        void m_Geometry_Changed(object sender, EventArgs e)
+            => RecomputeBoundsIfAuto();
 
         void RecomputeBoundsIfAuto()
         {
@@ -108,7 +110,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             }
         }
 
-        protected override Rect ComputeBounds() => Data.Bounds;
+        protected override Rect ComputeBounds()
+            => Data.Bounds;
 
         public override void SetTransform(Matrix axisToDisplay, Rect displayClip, double forDpiX, double forDpiY)
         {
@@ -123,7 +126,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             context.Pop();
         }
 
-        public override void OnRenderOptionsChanged() => RecreatePen();
+        public override void OnRenderOptionsChanged()
+            => RecreatePen();
 
         void RecreatePen()
         {
@@ -144,7 +148,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             }
         }
 
-        public override bool SupportsColor => true;
+        public override bool SupportsColor
+            => true;
+
         bool _isFilled;
 
         public bool IsFilled

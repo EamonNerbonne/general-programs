@@ -14,7 +14,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
         public IPlotMetaData MetaData { get; }
         Rect? m_DataBounds;
-        public Rect DataBounds => m_DataBounds ?? (m_DataBounds = ComputeBounds()).Value;
+
+        public Rect DataBounds
+            => m_DataBounds ?? (m_DataBounds = ComputeBounds()).Value;
 
         protected void InvalidateDataBounds()
         {
@@ -27,11 +29,13 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
         protected abstract Rect ComputeBounds();
 
-        protected void TriggerChange(GraphChange graphChange) => MetaData.TriggerChange(graphChange);
+        protected void TriggerChange(GraphChange graphChange)
+            => MetaData.TriggerChange(graphChange);
 
         Thickness m_Margin;
 
-        public Thickness Margin => MetaData.OverrideMargin ?? m_Margin;
+        public Thickness Margin
+            => MetaData.OverrideMargin ?? m_Margin;
 
         protected void SetMargin(Thickness newMargin)
         {
@@ -57,6 +61,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         public abstract void OnRenderOptionsChanged();
         public abstract bool SupportsColor { get; }
 
-        public virtual Drawing SampleDrawing => MetaData.RenderColor == null ? null : new GeometryDrawing(new SolidColorBrush(MetaData.RenderColor.Value).AsFrozen(), null, new RectangleGeometry(new(0, 0, 10, 10)));
+        public virtual Drawing SampleDrawing
+            => MetaData.RenderColor == null ? null : new GeometryDrawing(new SolidColorBrush(MetaData.RenderColor.Value).AsFrozen(), null, new RectangleGeometry(new(0, 0, 10, 10)));
     }
 }

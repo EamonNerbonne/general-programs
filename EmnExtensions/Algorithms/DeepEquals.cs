@@ -9,7 +9,8 @@ namespace EmnExtensions.Algorithms
 {
     public static class DeepEquals
     {
-        public static bool AreEqual(object object1, object object2) => Compare(new(), object1, object2);
+        public static bool AreEqual(object object1, object object2)
+            => Compare(new(), object1, object2);
 
         static bool Compare(HashSet<ReferencePair> assumeEquals, object object1, object object2)
         {
@@ -60,11 +61,20 @@ namespace EmnExtensions.Algorithms
                 b = o2;
             }
 
-            public override bool Equals(object obj) => Equals(obj as ReferencePair);
-            public bool Equals(ReferencePair other) => other != null && ReferenceEquals(a, other.a) && ReferenceEquals(b, other.b);
-            public override int GetHashCode() => RuntimeHelpers.GetHashCode(a) + 137 * RuntimeHelpers.GetHashCode(b);
-            public static bool operator ==(ReferencePair a, ReferencePair b) => ReferenceEquals(a, b) || !ReferenceEquals(a, null) && a.Equals(b);
-            public static bool operator !=(ReferencePair a, ReferencePair b) => !(a == b);
+            public override bool Equals(object obj)
+                => Equals(obj as ReferencePair);
+
+            public bool Equals(ReferencePair other)
+                => other != null && ReferenceEquals(a, other.a) && ReferenceEquals(b, other.b);
+
+            public override int GetHashCode()
+                => RuntimeHelpers.GetHashCode(a) + 137 * RuntimeHelpers.GetHashCode(b);
+
+            public static bool operator ==(ReferencePair a, ReferencePair b)
+                => ReferenceEquals(a, b) || !ReferenceEquals(a, null) && a.Equals(b);
+
+            public static bool operator !=(ReferencePair a, ReferencePair b)
+                => !(a == b);
         }
 
         public struct AccessibleMember
@@ -96,9 +106,11 @@ namespace EmnExtensions.Algorithms
             return true;
         }
 
-        static MethodInfo TypeBuiltinEquals(Type type) => type.GetMethod("Equals", BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public | BindingFlags.ExactBinding, null, new[] { type }, null);
+        static MethodInfo TypeBuiltinEquals(Type type)
+            => type.GetMethod("Equals", BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public | BindingFlags.ExactBinding, null, new[] { type }, null);
 
-        static bool CompareWithBuiltinEquals(MethodInfo builtinEquals, object o1_nonnull, object o2) => (bool)builtinEquals.Invoke(o1_nonnull, new[] { o2 });
+        static bool CompareWithBuiltinEquals(MethodInfo builtinEquals, object o1_nonnull, object o2)
+            => (bool)builtinEquals.Invoke(o1_nonnull, new[] { o2 });
 
         static bool CompareDictionaries(HashSet<ReferencePair> assumeEqual, IDictionary iDict1, IDictionary iDict2)
         {
@@ -109,6 +121,7 @@ namespace EmnExtensions.Algorithms
             return iDict1.Keys.Cast<object>().All(dict1key => iDict2.Contains(dict1key) && Compare(assumeEqual, iDict1[dict1key], iDict2[dict1key]));
         }
 
-        static bool CompareEnumerables(HashSet<ReferencePair> assumeEqual, IEnumerable ilist1, IEnumerable ilist2) => ilist1.Cast<object>().Zip(ilist2.Cast<object>(), (el1, el2) => Compare(assumeEqual, el1, el2)).All(b => b);
+        static bool CompareEnumerables(HashSet<ReferencePair> assumeEqual, IEnumerable ilist1, IEnumerable ilist2)
+            => ilist1.Cast<object>().Zip(ilist2.Cast<object>(), (el1, el2) => Compare(assumeEqual, el1, el2)).All(b => b);
     }
 }

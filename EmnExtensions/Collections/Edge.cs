@@ -2,7 +2,8 @@ namespace EmnExtensions.Collections
 {
     public static class Edge
     {
-        public static Edge<T1, T2> Create<T1, T2>(T1 from, T2 to) => new(from, to);
+        public static Edge<T1, T2> Create<T1, T2>(T1 from, T2 to)
+            => new(from, to);
     }
 
     public struct Edge<T1, T2>
@@ -16,6 +17,7 @@ namespace EmnExtensions.Collections
             To = to;
         }
 
-        public override int GetHashCode() => From.GetHashCode() + 137 * To.GetHashCode();
+        public override int GetHashCode()
+            => From.GetHashCode() + 137 * To.GetHashCode();
     }
 }

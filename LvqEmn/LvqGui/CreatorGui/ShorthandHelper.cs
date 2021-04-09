@@ -23,7 +23,8 @@ namespace LvqGui.CreatorGui
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        void raisePropertyChanged(string prop) => PropertyChanged(this, new(prop));
+        void raisePropertyChanged(string prop)
+            => PropertyChanged(this, new(prop));
 
         protected void _propertyChanged(string propertyName)
         {
@@ -62,7 +63,8 @@ namespace LvqGui.CreatorGui
     {
         readonly object val;
 
-        public bool HasValue => val != null;
+        public bool HasValue
+            => val != null;
 
         public T Value
         {
@@ -84,24 +86,28 @@ namespace LvqGui.CreatorGui
             val = pval;
         }
 
-        internal T AsNullable() => (T)val;
+        internal T AsNullable()
+            => (T)val;
 
         internal TS? AsNullableStruct<TS>()
-            where TS : struct => (TS?)val;
+            where TS : struct
+            => (TS?)val;
     }
 
     static class ShorthandHelper
     {
-        public static void ParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) => Create(shorthandObj).ParseShorthand(defaults, shR, newShorthand);
+        public static void ParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand)
+            => Create(shorthandObj).ParseShorthand(defaults, shR, newShorthand);
 
         //        public static bool TryParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
         //public static string VerifyShorthand(T shorthandObj, Regex shR) { IHasShorthand
         //        public static T TryParseShorthand<T>(T defaults, Regex shR, string newShorthand) where T : class,new() {
 
+        internal static string VerifyShorthand(object shorthandObj, Regex shR)
+            => Create(shorthandObj).VerifyShorthand(shR);
 
-        internal static string VerifyShorthand(object shorthandObj, Regex shR) => Create(shorthandObj).VerifyShorthand(shR);
-
-        static IShorthandHelper Create(object shorthandObj) => (IShorthandHelper)Activator.CreateInstance(typeof(ShorthandHelper<>).MakeGenericType(shorthandObj.GetType()), shorthandObj);
+        static IShorthandHelper Create(object shorthandObj)
+            => (IShorthandHelper)Activator.CreateInstance(typeof(ShorthandHelper<>).MakeGenericType(shorthandObj.GetType()), shorthandObj);
 
         internal static Optional<T> TryParseShorthand<T>(T defaults, Regex shR, string shorthand)
             where T : new()
@@ -118,10 +124,7 @@ namespace LvqGui.CreatorGui
     public interface IShorthandHelper
     {
         void ParseShorthand(object defaults, Regex shR, string newShorthand);
-
-
         string VerifyShorthand(Regex shR);
-
         bool TryParseShorthand(object defaults, Regex shR, string shorthand);
         object Value { get; }
     }
@@ -132,10 +135,12 @@ namespace LvqGui.CreatorGui
     sealed class ShorthandHelper<T> : IShorthandHelper
     {
         public T shorthandObj;
-        public object Value => shorthandObj;
 
-        public ShorthandHelper(T obj) => shorthandObj = obj;
+        public object Value
+            => shorthandObj;
 
+        public ShorthandHelper(T obj)
+            => shorthandObj = obj;
 
         //        public static void ParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
         //        public static bool TryParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
@@ -159,7 +164,8 @@ namespace LvqGui.CreatorGui
             }
         }
 
-        public bool TryParseShorthand(object defaults, Regex shR, string shorthand) => TryParseShorthandWithErrs((T)defaults, shR, shorthand).Any();
+        public bool TryParseShorthand(object defaults, Regex shR, string shorthand)
+            => TryParseShorthandWithErrs((T)defaults, shR, shorthand).Any();
 
         public List<string> TryParseShorthandWithErrs(T defaults, Regex shR, string newShorthand)
         {
@@ -180,14 +186,17 @@ namespace LvqGui.CreatorGui
         {
             var errs = new StringBuilder();
             var usedProperties = new bool[PropertyStore.properties.Length];
-            DecomposeShorthand(shR, ((IHasShorthand)shorthandObj).Shorthand,
+            DecomposeShorthand(
+                shR,
+                ((IHasShorthand)shorthandObj).Shorthand,
                 (prop, val) => {
                     usedProperties[prop.Index] = true;
                     var currVal = prop.Get(shorthandObj);
                     if (!Equals(currVal, val)) {
                         errs.AppendLine(prop.Name + ": " + val + " != " + currVal);
                     }
-                }, err => errs.AppendLine(err)
+                },
+                err => errs.AppendLine(err)
             );
             errs.AppendLine("defaulted: " + string.Join(", ", PropertyStore.properties.Where(prop => !usedProperties[prop.Index]).Select(prop => prop.Name)));
             return errs.ToString();
@@ -224,7 +233,10 @@ namespace LvqGui.CreatorGui
                             ? captureVal != "" ^ isHexEncodedOrNegated
                             : isHexEncodedOrNegated && prop.Type == typeof(uint)
                                 ? Convert.ToUInt32(captureVal, 16)
-                                : TypeDescriptor.GetConverter(prop.Type).ConvertFromString(Regex.Replace(captureVal, "ModelType$",
+                                : TypeDescriptor.GetConverter(prop.Type).ConvertFromString(
+                                    Regex.Replace(
+                                        captureVal,
+                                        "ModelType$",
                                         ""
                                     )
                                 );
@@ -238,7 +250,6 @@ namespace LvqGui.CreatorGui
                 registerError("Invalid Regex doesn't set properties: " + string.Join(", ", excludedProperties.ToArray()));
             }
         }
-
 
         static class PropertyStore
         {

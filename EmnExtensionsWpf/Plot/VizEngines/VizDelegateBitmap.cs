@@ -14,8 +14,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         }
 
         static void DefaultUpdateBitmapDelegate(WriteableBitmap bmp, Matrix mat, int pixelWidth, int pixelHeight, T data) { }
-        static Rect DefaultComputeBounds(T data) => Rect.Empty;
-        protected override Rect? OuterDataBound => m_OuterDataBound;
+
+        static Rect DefaultComputeBounds(T data)
+            => Rect.Empty;
+
+        protected override Rect? OuterDataBound
+            => m_OuterDataBound;
 
         public Rect? MaximalDataBound
         {
@@ -39,9 +43,11 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
         public Func<T, Rect> BoundsComputer { get; set; }
 
-        protected override Rect ComputeBounds() => BoundsComputer(Data);
+        protected override Rect ComputeBounds()
+            => BoundsComputer(Data);
 
-        protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap, double viewAreaSize) => UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, Data);
+        protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap, double viewAreaSize)
+            => UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, Data);
 
         protected override void OnDataChanged(T oldData)
         {

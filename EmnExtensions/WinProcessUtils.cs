@@ -46,9 +46,7 @@ namespace EmnExtensions
             }
 
             using (
-                var proc = Process.Start(
-                    processStartInfo
-                )) {
+                var proc = Process.Start(processStartInfo)) {
                 if (startOptions.Priority != null) {
                     proc.PriorityClass = startOptions.Priority.Value;
                 }

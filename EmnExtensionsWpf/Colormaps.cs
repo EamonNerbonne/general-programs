@@ -32,7 +32,8 @@ namespace EmnExtensions.Wpf
             }
 
             value = (6 - 2 * dx) * value + dx;
-            var c = Color.FromRgb((byte)(Math.Max(0.0f, (3 - Math.Abs(value - 4) - Math.Abs(value - 5)) / 2) * 255),
+            var c = Color.FromRgb(
+                (byte)(Math.Max(0.0f, (3 - Math.Abs(value - 4) - Math.Abs(value - 5)) / 2) * 255),
                 (byte)(Math.Max(0.0f, (4 - Math.Abs(value - 2) - Math.Abs(value - 4)) / 2) * 255),
                 (byte)(Math.Max(0.0f, (3 - Math.Abs(value - 1) - Math.Abs(value - 2)) / 2) * 255)
             );
@@ -72,17 +73,17 @@ namespace EmnExtensions.Wpf
                 hsl.H = 2.0 / 3.0;
             }
 
-
             var c = hsl.ToRGB();
 
             return c;
         }
 
-
-        public static Color BlueYellow(double value) => Color.FromRgb((byte)((1 - value) * 255),
-            (byte)((1 - value) * 255),
-            (byte)(value * 255)
-        );
+        public static Color BlueYellow(double value)
+            => Color.FromRgb(
+                (byte)((1 - value) * 255),
+                (byte)((1 - value) * 255),
+                (byte)(value * 255)
+            );
 
         public static Color BlueCyanWhite(double value)
         {

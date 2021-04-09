@@ -16,7 +16,8 @@ namespace EmnExtensions.MathHelpers
             Weight = _weightSum;
         }
 
-        public static MeanVarDistrib Init(double val, double weight = 1.0) => new(weight, 0.0, val); //equivalent to adding to an empty distribution.
+        public static MeanVarDistrib Init(double val, double weight = 1.0)
+            => new(weight, 0.0, val); //equivalent to adding to an empty distribution.
 
         public MeanVarDistrib Add(double val, double weight = 1.0)
         {
@@ -39,16 +40,27 @@ namespace EmnExtensions.MathHelpers
         }
 
         public double Mean { get; }
-        public double Var => sX / Weight;
-        public double StdDev => Math.Sqrt(Var);
-        public double SampleVar => sX / (Weight - 1.0);
-        public double SampleStdDev => Math.Sqrt(SampleVar);
+
+        public double Var
+            => sX / Weight;
+
+        public double StdDev
+            => Math.Sqrt(Var);
+
+        public double SampleVar
+            => sX / (Weight - 1.0);
+
+        public double SampleStdDev
+            => Math.Sqrt(SampleVar);
+
         public double Weight { get; }
-        public static MeanVarDistrib Of(IEnumerable<double> vals) => vals.Aggregate(new MeanVarDistrib(), (mv, v) => mv.Add(v));
 
-        public override string ToString() => Mean.ToString(CultureInfo.InvariantCulture) + " +/- " + StdDev.ToString(CultureInfo.InvariantCulture);
+        public static MeanVarDistrib Of(IEnumerable<double> vals)
+            => vals.Aggregate(new MeanVarDistrib(), (mv, v) => mv.Add(v));
+
+        public override string ToString()
+            => Mean.ToString(CultureInfo.InvariantCulture) + " +/- " + StdDev.ToString(CultureInfo.InvariantCulture);
     }
-
 
     /*    public struct MeanVarCalc
         {

@@ -28,20 +28,22 @@ namespace EmnExtensions.Collections
         void HeapIndexChanged(int newIndex);
     }
 
-
     public static class Heap
     {
-        public static HeapFactory<T> Factory<T>() => new();
+        public static HeapFactory<T> Factory<T>()
+            => new();
 
         public static IHeap<T> CreateSelfTracked<T>()
-            where T : IComparable<T>, IHeapIndexed => new Heap<T, SelfSink<T>, ComparableComparer<T>>(new(), new());
+            where T : IComparable<T>, IHeapIndexed
+            => new Heap<T, SelfSink<T>, ComparableComparer<T>>(new(), new());
 
         public static IHeap<T> CreateUntracked<T>()
-            where T : IComparable<T> => new Heap<T, NoSink<T>, ComparableComparer<T>>(new(), new());
+            where T : IComparable<T>
+            => new Heap<T, NoSink<T>, ComparableComparer<T>>(new(), new());
 
         public static IHeap<T> CreateTracked<T>(Action<T, int> indexChanged)
-            where T : IComparable<T> => new Heap<T, DelegateSink<T>, ComparableComparer<T>>(CreateDelegateSink(indexChanged), new());
-
+            where T : IComparable<T>
+            => new Heap<T, DelegateSink<T>, ComparableComparer<T>>(CreateDelegateSink(indexChanged), new());
 
         public struct HeapFactory<T>
         {
@@ -70,37 +72,55 @@ namespace EmnExtensions.Collections
 
             public IHeap<T> Create<TSink, TComp>(TComp customComparer, TSink sink)
                 where TComp : IComparer<T>
-                where TSink : IHeapIndexSink<T> => new Heap<T, TSink, TComp>(sink, customComparer);
+                where TSink : IHeapIndexSink<T>
+                => new Heap<T, TSink, TComp>(sink, customComparer);
         }
 
         public struct IntComparer : IComparer<int>
         {
-            public int Compare(int x, int y) => x < y ? -1 : x > y ? 1 : 0;
+            public int Compare(int x, int y)
+                => x < y
+                    ? -1
+                    : x > y
+                        ? 1
+                        : 0;
         }
 
         public struct FastIntComparer : IComparer<int>
         {
-            public int Compare(int x, int y) => x - y;
+            public int Compare(int x, int y)
+                => x - y;
         }
 
         public struct LongComparer : IComparer<long>
         {
-            public int Compare(long x, long y) => x < y ? -1 : x > y ? 1 : 0;
+            public int Compare(long x, long y)
+                => x < y
+                    ? -1
+                    : x > y
+                        ? 1
+                        : 0;
         }
 
         public struct ComparableComparer<T> : IComparer<T>
             where T : IComparable<T>
         {
-            public int Compare(T x, T y) => x.CompareTo(y);
+            public int Compare(T x, T y)
+                => x.CompareTo(y);
         }
 
-        static DelegateSink<T> CreateDelegateSink<T>(Action<T, int> sink) => new(sink);
+        static DelegateSink<T> CreateDelegateSink<T>(Action<T, int> sink)
+            => new(sink);
 
         struct DelegateSink<T> : IHeapIndexSink<T>
         {
             readonly Action<T, int> sink;
-            public DelegateSink(Action<T, int> sink) => this.sink = sink;
-            public void IndexChanged(T item, int newIndex) => sink(item, newIndex);
+
+            public DelegateSink(Action<T, int> sink)
+                => this.sink = sink;
+
+            public void IndexChanged(T item, int newIndex)
+                => sink(item, newIndex);
         }
 
         struct NoSink<T> : IHeapIndexSink<T>
@@ -111,10 +131,10 @@ namespace EmnExtensions.Collections
         struct SelfSink<T> : IHeapIndexSink<T>
             where T : IHeapIndexed
         {
-            public void IndexChanged(T item, int newIndex) => item.HeapIndexChanged(newIndex);
+            public void IndexChanged(T item, int newIndex)
+                => item.HeapIndexChanged(newIndex);
         }
     }
-
 
     public sealed class Heap<T, TSink, TComp> : IHeap<T>
         where TComp : IComparer<T>
@@ -141,7 +161,8 @@ namespace EmnExtensions.Collections
             Bubble(newIndex, elem);
         }
 
-        public int Count => backingCount;
+        public int Count
+            => backingCount;
 
         void Bubble(int newIndex, T elem)
         {
@@ -195,9 +216,11 @@ namespace EmnExtensions.Collections
             return retval;
         }
 
-        public T Top() => this[0];
+        public T Top()
+            => this[0];
 
-        public void TopChanged() => Sink(0, Top());
+        public void TopChanged()
+            => Sink(0, Top());
 
         public void Delete(int indexOfItem)
         {
@@ -239,7 +262,6 @@ namespace EmnExtensions.Collections
             indexSet.IndexChanged(backingStore[p] = elem, p);
         }
 
-
         public T this[int i]
         {
             get {
@@ -251,9 +273,9 @@ namespace EmnExtensions.Collections
             }
         }
 
-        public IEnumerable<T> ElementsInRoughOrder => backingStore.Take(backingCount);
+        public IEnumerable<T> ElementsInRoughOrder
+            => backingStore.Take(backingCount);
     }
-
 
     public sealed class CostHeap<T>
     {
@@ -278,7 +300,8 @@ namespace EmnExtensions.Collections
             Bubble(newIndex, new() { Cost = cost, Item = elem });
         }
 
-        public int Count => backingCount;
+        public int Count
+            => backingCount;
 
         void Bubble(int newIndex, Entry elem)
         {
@@ -334,7 +357,8 @@ namespace EmnExtensions.Collections
             return retval;
         }
 
-        public Entry Top() => this[0];
+        public Entry Top()
+            => this[0];
 
         public void TopCostChanged(int newCost)
         {
@@ -386,7 +410,6 @@ namespace EmnExtensions.Collections
             //indexSet.IndexChanged(backingStore[p], p);
         }
 
-
         public Entry this[int i]
         {
             get {
@@ -398,6 +421,7 @@ namespace EmnExtensions.Collections
             }
         }
 
-        public IEnumerable<Entry> ElementsInRoughOrder => backingStore.Take(backingCount);
+        public IEnumerable<Entry> ElementsInRoughOrder
+            => backingStore.Take(backingCount);
     }
 }

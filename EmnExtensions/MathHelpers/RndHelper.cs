@@ -5,7 +5,9 @@ namespace EmnExtensions.MathHelpers
 {
     public static class RndHelper
     {
-        public static double NextNorm(this Random r) => MakeNormal(r.NextDouble(), r.NextDouble());
+        public static double NextNorm(this Random r)
+            => MakeNormal(r.NextDouble(), r.NextDouble());
+
         static readonly RNGCryptoServiceProvider cryptGen = new();
         static readonly float MaxValF = ComputeMaxValF();
         static readonly double MaxValD = ComputeMaxValD();
@@ -30,12 +32,14 @@ namespace EmnExtensions.MathHelpers
             return ulong.MaxValue + (double)offset; //offset will be 0x801
         }
 
-        public static double MakeNormal(double randVal1, double randVal2) => Math.Sin(2 * Math.PI * randVal1) * Math.Sqrt(-2 * Math.Log(1 - randVal2));
+        public static double MakeNormal(double randVal1, double randVal2)
+            => Math.Sin(2 * Math.PI * randVal1) * Math.Sqrt(-2 * Math.Log(1 - randVal2));
 
         /// <summary>
         /// Returns a double normally distributed around 0 with standard deviation 1.
         /// </summary>
-        public static double MakeSecureNormal() => MakeNormal(MakeSecureDouble(), MakeSecureDouble());
+        public static double MakeSecureNormal()
+            => MakeNormal(MakeSecureDouble(), MakeSecureDouble());
 
         public static int usages;
 
@@ -60,12 +64,14 @@ namespace EmnExtensions.MathHelpers
         /// <summary>
         /// Returns a double on a uniform distribution over [0..1)
         /// </summary>
-        public static double MakeSecureDouble() => MakeSecureULong() / MaxValD;
+        public static double MakeSecureDouble()
+            => MakeSecureULong() / MaxValD;
 
         /// <summary>
         /// Returns a float on a uniform distribution over [0..1)
         /// </summary>
-        public static float MakeSecureSingle() => MakeSecureUInt() / MaxValF;
+        public static float MakeSecureSingle()
+            => MakeSecureUInt() / MaxValF;
 
         [ThreadStatic]
         static MersenneTwister randomImpl;

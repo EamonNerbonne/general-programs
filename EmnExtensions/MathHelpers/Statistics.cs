@@ -35,13 +35,15 @@ namespace EmnExtensions.MathHelpers
             // ReSharper restore FormatStringProblem
         }
 
+        public static double CentralMoment(IEnumerable<double> list, double average, int moment)
+            => list.Average(x => Math.Pow(x - average, moment));
 
-        public static double CentralMoment(IEnumerable<double> list, double average, int moment) => list.Average(x => Math.Pow(x - average, moment));
-        public static double Covariance(Statistics A, Statistics B) => A.Seq.ZipWith(B.Seq, (a, b) => (a - A.Mean) * (b - B.Mean)).Average() / Math.Sqrt(A.Var) / Math.Sqrt(B.Var);
+        public static double Covariance(Statistics A, Statistics B)
+            => A.Seq.ZipWith(B.Seq, (a, b) => (a - A.Mean) * (b - B.Mean)).Average() / Math.Sqrt(A.Var) / Math.Sqrt(B.Var);
+
         public readonly double Mean, Var, Skew, Kurtosis;
         public readonly int Count;
         public readonly IReadOnlyList<double> Seq;
-
 
         public Statistics(IReadOnlyList<double> seq)
         {
@@ -53,6 +55,7 @@ namespace EmnExtensions.MathHelpers
             Seq = seq;
         }
 
-        public override string ToString() => string.Format(CultureInfo.InvariantCulture, "Mean = {0}, Var = {1}, Skew = {2}, Kurtosis = {3}, Count = {4}", Mean, Var, Skew, Kurtosis, Count);
+        public override string ToString()
+            => string.Format(CultureInfo.InvariantCulture, "Mean = {0}, Var = {1}, Skew = {2}, Kurtosis = {3}, Count = {4}", Mean, Var, Skew, Kurtosis, Count);
     }
 }

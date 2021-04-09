@@ -11,8 +11,8 @@ namespace EmnExtensions.Algorithms
             public int targetNode;
             public float distance;
 
-
-            public int CompareTo(DistanceTo other) => distance.CompareTo(other.distance);
+            public int CompareTo(DistanceTo other)
+                => distance.CompareTo(other.distance);
         }
 
         public static void FindShortestPath(Func<int, IEnumerable<DistanceTo>> graph, int nodeCount, IEnumerable<int> startNodes, out float[] distance, out int[] comeFrom)
@@ -26,7 +26,11 @@ namespace EmnExtensions.Algorithms
                 comeFrom[i] = -1;
             }
 
-            var toProcess = Heap.Factory<DistanceTo>().Create((node, newIndex) => { nodeIndex[node.targetNode] = newIndex; });
+            var toProcess = Heap.Factory<DistanceTo>().Create(
+                (node, newIndex) => {
+                    nodeIndex[node.targetNode] = newIndex;
+                }
+            );
             var noStartNodes = true;
             foreach (var startNode in startNodes) {
                 toProcess.Add(new() { distance = 0.0f, targetNode = startNode });
