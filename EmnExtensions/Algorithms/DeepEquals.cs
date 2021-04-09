@@ -34,8 +34,8 @@ namespace EmnExtensions.Algorithms
                 return object1.Equals(object2);
             }
 
-            if (object1 is IDictionary && object2 is IDictionary) {
-                return CompareDictionaries(assumeEquals, (IDictionary)object1, (IDictionary)object2);
+            if (object1 is IDictionary dict1 && object2 is IDictionary dict2) {
+                return CompareDictionaries(assumeEquals, dict1, dict2);
             }
 
             if (type == object2.GetType()) {
@@ -47,7 +47,7 @@ namespace EmnExtensions.Algorithms
                 return CompareAccessibleMembers(assumeEquals, type, object1, object2);
             }
 
-            return object1 is IEnumerable && object2 is IEnumerable && CompareEnumerables(assumeEquals, (IEnumerable)object1, (IEnumerable)object2);
+            return object1 is IEnumerable enumerable1 && object2 is IEnumerable enumerable2 && CompareEnumerables(assumeEquals, enumerable1, enumerable2);
         }
 
         public sealed class ReferencePair : IEquatable<ReferencePair>

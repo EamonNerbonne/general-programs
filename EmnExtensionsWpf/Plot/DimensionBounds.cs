@@ -86,7 +86,7 @@ namespace EmnExtensions.Wpf
         public static bool operator ==(DimensionBounds a, DimensionBounds b) => a.Start == b.Start && a.End == b.End;
         public static bool operator !=(DimensionBounds a, DimensionBounds b) => a.Start != b.Start || a.End != b.End;
         public override int GetHashCode() => base.GetHashCode();
-        public override bool Equals(object obj) => obj is DimensionBounds && this == (DimensionBounds)obj;
+        public override bool Equals(object obj) => obj is DimensionBounds bounds && this == bounds;
 
         internal void ScaleFromCenter(double p)
         {
@@ -118,11 +118,10 @@ namespace EmnExtensions.Wpf
 
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
         {
-            if (destinationType != typeof(string) || !(value is DimensionBounds)) {
+            if (destinationType != typeof(string) || !(value is DimensionBounds dim)) {
                 return null;
             }
 
-            var dim = (DimensionBounds)value;
             return dim.Start == dim.End ? dim.Start.ToString(culture) : dim.Start.ToString(culture) + "," + dim.End.ToString(culture);
         }
 

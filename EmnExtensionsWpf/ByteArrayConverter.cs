@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Windows.Data;
@@ -14,11 +14,9 @@ namespace EmnExtensions.Wpf
                 return null;
             }
 
-            if (targetType != typeof(string) || !(value is uint[])) {
+            if (targetType != typeof(string) || !(value is uint[] seed)) {
                 throw new ArgumentException("Invalid input/output types: " + value.GetType().FullName + " -> " + targetType.FullName);
             }
-
-            var seed = (uint[])value;
 
             using (var ms = new MemoryStream())
             using (var bw = new BinaryWriter(ms)) {

@@ -1,4 +1,4 @@
-﻿//#define USE_PAGED_XPS_SAVE
+//#define USE_PAGED_XPS_SAVE
 
 using System.IO;
 using System.IO.Packaging;
@@ -96,9 +96,9 @@ namespace EmnExtensions.Wpf
                 el.InvalidateVisual();
                 // this item may be confused about it's position within the parent.  The following is probably imperfect, but
                 //a reasonable attempt to ensure the item is really relayouted.
-                if (el.Parent is UIElement) {
-                    ((UIElement)el.Parent).InvalidateArrange();
-                    ((UIElement)el.Parent).UpdateLayout();
+                if (el.Parent is UIElement element) {
+                    element.InvalidateArrange();
+                    element.UpdateLayout();
                 } else {
                     el.UpdateLayout();
                 }

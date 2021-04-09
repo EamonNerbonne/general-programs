@@ -23,7 +23,7 @@ namespace EmnExtensions.Wpf
         public static bool operator ==(DimensionMargins a, DimensionMargins b) => a.AtStart == b.AtStart && a.AtEnd == b.AtEnd;
         public static bool operator !=(DimensionMargins a, DimensionMargins b) => a.AtStart != b.AtStart || a.AtEnd != b.AtEnd;
         public override int GetHashCode() => base.GetHashCode();
-        public override bool Equals(object obj) => obj is DimensionMargins && this == (DimensionMargins)obj;
+        public override bool Equals(object obj) => obj is DimensionMargins margins && this == margins;
     }
 
     public sealed class DimensionMarginsConverter : TypeConverter
@@ -47,11 +47,10 @@ namespace EmnExtensions.Wpf
 
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
         {
-            if (destinationType != typeof(string) || !(value is DimensionMargins)) {
+            if (destinationType != typeof(string) || !(value is DimensionMargins dim)) {
                 return null;
             }
 
-            var dim = (DimensionMargins)value;
             return dim.AtEnd == dim.AtStart ? dim.AtStart.ToString(culture) : dim.AtStart.ToString(culture) + "," + dim.AtEnd.ToString(culture);
         }
 

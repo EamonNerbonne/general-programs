@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using LvqLibCli;
 
@@ -94,14 +94,14 @@ namespace LvqGui
             obj = obj.Clone();
             obj.InstanceSeed = 0;
             obj.Folds = 10;
-            if (obj is LoadedDatasetSettings) {
-                ((LoadedDatasetSettings)obj).TestFilename = null;
+            if (obj is LoadedDatasetSettings settings) {
+                settings.TestFilename = null;
             }
 
             return obj.Shorthand;
         }
 
-        public static bool HasTestfile(this IDatasetCreator obj) => obj is LoadedDatasetSettings && ((LoadedDatasetSettings)obj).TestFilename != null;
+        public static bool HasTestfile(this IDatasetCreator obj) => obj is LoadedDatasetSettings settings && settings.TestFilename != null;
 
 
         public static LvqDatasetCli CreateFromShorthand(string shorthand)
