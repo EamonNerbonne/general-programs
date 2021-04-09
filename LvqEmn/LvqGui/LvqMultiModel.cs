@@ -138,7 +138,7 @@ namespace LvqGui
                         statCache.RemoveRange(statCache.Count - 128, 128);
                     }
 
-                    return (cachedStatCache = statCache.ToArray());
+                    return cachedStatCache = statCache.ToArray();
                 }
             }
         }
@@ -453,10 +453,10 @@ namespace LvqGui
             width = Math.Max(width, 1);
             height = Math.Max(height, 1);
             if (rect.Width / width < rect.Height / height) {
-                var scale = (rect.Height / height) / (rect.Width / width);
+                var scale = rect.Height / height / (rect.Width / width);
                 return new Rect(rect.X - rect.Width * (scale - 1) / 2, rect.Y, rect.Width * scale, rect.Height);
             } else {
-                var scale = (rect.Width / width) / (rect.Height / height);
+                var scale = rect.Width / width / (rect.Height / height);
                 return new Rect(rect.X, rect.Y - rect.Height * (scale - 1) / 2, rect.Width, rect.Height * scale);
             }
         }

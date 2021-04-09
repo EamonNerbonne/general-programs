@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
@@ -99,8 +99,8 @@ namespace EmnExtensions.Wpf.VizEngines
         {
             foreach (var point in Data) {
                 var displaypoint = dataToBitmap.Transform(point);
-                var x = (int)(displaypoint.X);
-                var y = (int)(displaypoint.Y);
+                var x = (int)displaypoint.X;
+                var y = (int)displaypoint.Y;
                 if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1) {
                     m_image[x + pW * y]++;
                     m_image[x - 1 + pW * y]++;
@@ -115,8 +115,8 @@ namespace EmnExtensions.Wpf.VizEngines
         {
             foreach (var point in Data) {
                 var displaypoint = dataToBitmap.Transform(point);
-                var x = (int)(displaypoint.X);
-                var y = (int)(displaypoint.Y);
+                var x = (int)displaypoint.X;
+                var y = (int)displaypoint.Y;
                 if (x >= 0 && x < pW && y >= 0 && y < pH) {
                     m_image[x + pW * y]++;
                 }

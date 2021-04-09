@@ -1,4 +1,4 @@
-﻿// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedMember.Global
 
 using System;
@@ -426,7 +426,7 @@ namespace LvqGui
                 Console.WriteLine("Avg cpu seconds per iter: {0}{1}",
                     lastStat.Value[LvqTrainingStatCli.ElapsedSecondsI] / lastStat.Value[LvqTrainingStatCli.TrainingIterationI],
                     lastStat.StandardError != null
-                        ? " ~ " + (lastStat.StandardError[LvqTrainingStatCli.ElapsedSecondsI] / lastStat.Value[LvqTrainingStatCli.TrainingIterationI])
+                        ? " ~ " + lastStat.StandardError[LvqTrainingStatCli.ElapsedSecondsI] / lastStat.Value[LvqTrainingStatCli.TrainingIterationI]
                         : ""
                 );
             }

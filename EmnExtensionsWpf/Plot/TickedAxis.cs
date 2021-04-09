@@ -28,7 +28,7 @@ namespace EmnExtensions.Wpf
         static TickedAxis()
         {
             m_gridRankPen = Enumerable.Range(0, GridLineRanks)
-                .Select(rank => (GridLineRanks - rank) / (double)(GridLineRanks))
+                .Select(rank => (GridLineRanks - rank) / (double)GridLineRanks)
                 .Select(relevance => (Pen)new Pen {
                         Brush = (Brush)new SolidColorBrush(Color.FromScRgb(1.0f, (float)(1.0 - relevance), (float)(1.0 - relevance), (float)(1.0 - relevance))).GetAsFrozen(),
                         Thickness = BaseGridlineWidth * relevance * Math.Sqrt(relevance),
@@ -161,7 +161,7 @@ namespace EmnExtensions.Wpf
 
         public bool AttemptBorderTicks
         {
-            get => m_AttemptBorderTicks || (MatchOppositeTicks && OppositeAxis != null && !OppositeAxis.IsCollapsedOrEmpty);
+            get => m_AttemptBorderTicks || MatchOppositeTicks && OppositeAxis != null && !OppositeAxis.IsCollapsedOrEmpty;
             set {
                 m_AttemptBorderTicks = value;
                 InvalidateMeasure();
@@ -626,7 +626,7 @@ namespace EmnExtensions.Wpf
                 //if we're on bottom or right, data low values are towards the clockwise end.
                 var lowAtNext = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph; //flipped-vertical-relevant
 
-                var displayStart = (lowAtNext ? ThicknessOfNext : ThicknessOfPrev);
+                var displayStart = lowAtNext ? ThicknessOfNext : ThicknessOfPrev;
                 var displayEnd = (IsHorizontal ? m_bestGuessCurrentSize.Width : m_bestGuessCurrentSize.Height) - (lowAtNext ? ThicknessOfPrev : ThicknessOfNext);
 
                 if (!IsHorizontal) { //we need to "flip" the vertical ordering!

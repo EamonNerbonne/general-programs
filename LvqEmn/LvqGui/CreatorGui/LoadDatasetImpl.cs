@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -278,8 +278,8 @@ namespace LvqGui
             var commasplit = lines.Take(10).All(line => line.Contains(','));
 
             var splitLines =
-                (from dataline in lines
-                    select commasplit ? dataline.Split(dimSep) : dataline.Split(spaceSep, StringSplitOptions.RemoveEmptyEntries));
+                from dataline in lines
+                select commasplit ? dataline.Split(dimSep) : dataline.Split(spaceSep, StringSplitOptions.RemoveEmptyEntries);
 
             var lastColClass = splitLines.Take(10).All(splitLine => Regex.IsMatch(splitLine[splitLine.Length - 1], @"^[a-zA-Z]\w*$"));
             var firstColClass = !lastColClass && splitLines.Take(10).All(splitLine => Regex.IsMatch(splitLine[0], @"^[a-zA-Z]\w*$"));
@@ -290,7 +290,7 @@ namespace LvqGui
                     select new {
                         Label = splitLine[firstColClass ? 0 : splitLine.Length - 1],
                         Data = (
-                            from dataDim in (firstColClass ? splitLine.Skip(1) : splitLine.Take(splitLine.Length - 1))
+                            from dataDim in firstColClass ? splitLine.Skip(1) : splitLine.Take(splitLine.Length - 1)
                             select double.Parse(dataDim, CultureInfo.InvariantCulture)
                         ).ToArray()
                     }

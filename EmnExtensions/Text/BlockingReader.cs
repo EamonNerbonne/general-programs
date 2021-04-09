@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 namespace EmnExtensions.Text
@@ -48,7 +48,7 @@ namespace EmnExtensions.Text
                 throw new ArgumentOutOfRangeException("count");
             }
 
-            if ((buffer.Length - index) < count) {
+            if (buffer.Length - index < count) {
                 throw new ArgumentException("Buffer too small");
             }
 

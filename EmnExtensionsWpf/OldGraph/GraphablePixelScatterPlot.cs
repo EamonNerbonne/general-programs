@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
@@ -190,8 +190,8 @@ namespace EmnExtensions.Wpf.Plot
                 foreach (var point in Points) {
                     var displaypoint = matrix.Transform(point);
 
-                    var x = (int)(displaypoint.X); // - outerDispBounds.X) * m_dpiX / 96.0);
-                    var y = (int)(displaypoint.Y); // - outerDispBounds.Y) * m_dpiY / 96.0);
+                    var x = (int)displaypoint.X; // - outerDispBounds.X) * m_dpiX / 96.0);
+                    var y = (int)displaypoint.Y; // - outerDispBounds.Y) * m_dpiY / 96.0);
                     if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1) {
                         image[x + pW * y]++;
                         image[x - 1 + pW * y]++;
@@ -204,8 +204,8 @@ namespace EmnExtensions.Wpf.Plot
             {
                 foreach (var point in Points) {
                     var displaypoint = matrix.Transform(point);
-                    var x = (int)(displaypoint.X);
-                    var y = (int)(displaypoint.Y);
+                    var x = (int)displaypoint.X;
+                    var y = (int)displaypoint.Y;
                     if (x >= 0 && x < pW && y >= 0 && y < pH) {
                         image[x + pW * y]++;
                     }
@@ -221,7 +221,7 @@ namespace EmnExtensions.Wpf.Plot
 
             var alphaLookup = new uint[maxOverlap + 1];
             for (var i = 0; i < alphaLookup.Length; i++) {
-                alphaLookup[i] = ((uint)((1.0 - Math.Pow(1.0 - PointColor.ScA, i)) * 255.5) << 24);
+                alphaLookup[i] = (uint)((1.0 - Math.Pow(1.0 - PointColor.ScA, i)) * 255.5) << 24;
             }
 
             var nativeColor = PointColor.ToNativeColor() & 0x00ffffff;

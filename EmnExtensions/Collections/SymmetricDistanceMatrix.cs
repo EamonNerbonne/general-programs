@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -61,7 +61,7 @@ namespace EmnExtensions.Collections
                 throw new ArgumentOutOfRangeException("j", "j is out of range");
             }
 
-            return i + ((j * (j - 1)) >> 1);
+            return i + (j * (j - 1) >> 1);
         }
 
         /// <summary>
@@ -190,7 +190,7 @@ namespace EmnExtensions.Collections
                 throw new ArgumentOutOfRangeException("j", "j is out of range");
             }
 
-            return i + ((j * (j + 1)) >> 1);
+            return i + (j * (j + 1) >> 1);
         }
 
         /// <summary>

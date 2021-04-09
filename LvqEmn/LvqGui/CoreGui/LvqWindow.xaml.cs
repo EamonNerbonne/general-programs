@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 using System.Collections.Generic;
@@ -57,7 +57,7 @@ namespace LvqGui
 
         // ReSharper disable UnusedMember.Local
         void DoBenchmark() => ThreadPool.QueueUserWorkItem(o => {
-                var values = ((LvqWindowValues)o);
+                var values = (LvqWindowValues)o;
                 values.CreateStarDatasetValues.ParamsSeed = 1337;
                 values.CreateStarDatasetValues.InstanceSeed = 37;
 

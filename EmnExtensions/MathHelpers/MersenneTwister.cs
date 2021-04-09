@@ -266,7 +266,7 @@ namespace EmnExtensions.MathHelpers
         ///     </para>
         ///     <para>
         ///     In a newer measurement of the randomness of MT19937 published in the
-        ///     journal "Monte Carlo Methods and Applications, Vol. 12, No. 5-6, pp. 385 – 393 (2006)"
+        ///     journal "Monte Carlo Methods and Applications, Vol. 12, No. 5-6, pp. 385 â€“ 393 (2006)"
         ///     entitled "A Repetition Test for Pseudo-Random Number Generators",
         ///     it was found that the 32-bit version of generating a double fails at the 95%
         ///     confidence level when measuring for expected repetitions of a particular
@@ -356,17 +356,17 @@ namespace EmnExtensions.MathHelpers
                 short kk = 0;
 
                 for (; kk < N - M; ++kk) {
-                    y = (_mt[kk] & UpperMask) | (_mt[kk + 1] & LowerMask);
-                    _mt[kk] = _mt[kk + M] ^ (y >> 1) ^ _mag01[y & 0x1];
+                    y = _mt[kk] & UpperMask | _mt[kk + 1] & LowerMask;
+                    _mt[kk] = _mt[kk + M] ^ y >> 1 ^ _mag01[y & 0x1];
                 }
 
                 for (; kk < N - 1; ++kk) {
-                    y = (_mt[kk] & UpperMask) | (_mt[kk + 1] & LowerMask);
-                    _mt[kk] = _mt[kk + (M - N)] ^ (y >> 1) ^ _mag01[y & 0x1];
+                    y = _mt[kk] & UpperMask | _mt[kk + 1] & LowerMask;
+                    _mt[kk] = _mt[kk + (M - N)] ^ y >> 1 ^ _mag01[y & 0x1];
                 }
 
-                y = (_mt[N - 1] & UpperMask) | (_mt[0] & LowerMask);
-                _mt[N - 1] = _mt[M - 1] ^ (y >> 1) ^ _mag01[y & 0x1];
+                y = _mt[N - 1] & UpperMask | _mt[0] & LowerMask;
+                _mt[N - 1] = _mt[M - 1] ^ y >> 1 ^ _mag01[y & 0x1];
 
                 _mti = 0;
             }
@@ -391,13 +391,13 @@ namespace EmnExtensions.MathHelpers
         const uint TemperingMaskB = 0x9d2c5680;
         const uint TemperingMaskC = 0xefc60000;
 
-        static uint temperingShiftU(uint y) => (y >> 11);
+        static uint temperingShiftU(uint y) => y >> 11;
 
-        static uint temperingShiftS(uint y) => (y << 7);
+        static uint temperingShiftS(uint y) => y << 7;
 
-        static uint temperingShiftT(uint y) => (y << 15);
+        static uint temperingShiftT(uint y) => y << 15;
 
-        static uint temperingShiftL(uint y) => (y >> 18);
+        static uint temperingShiftL(uint y) => y >> 18;
 
         readonly uint[] _mt = new uint[N]; /* the array for the state vector  */
         short _mti;
@@ -409,7 +409,7 @@ namespace EmnExtensions.MathHelpers
             _mt[0] = seed & 0xffffffffU;
 
             for (_mti = 1; _mti < N; _mti++) {
-                _mt[_mti] = (uint)(1812433253U * (_mt[_mti - 1] ^ (_mt[_mti - 1] >> 30)) + _mti);
+                _mt[_mti] = (uint)(1812433253U * (_mt[_mti - 1] ^ _mt[_mti - 1] >> 30) + _mti);
                 // See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. 
                 // In the previous versions, MSBs of the seed affect   
                 // only MSBs of the array _mt[].                        
@@ -427,10 +427,10 @@ namespace EmnExtensions.MathHelpers
             var keyLength = key.Length;
             i = 1;
             j = 0;
-            k = (N > keyLength ? N : keyLength);
+            k = N > keyLength ? N : keyLength;
 
             for (; k > 0; k--) {
-                _mt[i] = (uint)((_mt[i] ^ ((_mt[i - 1] ^ (_mt[i - 1] >> 30)) * 1664525U)) + key[j] + j); /* non linear */
+                _mt[i] = (uint)((_mt[i] ^ (_mt[i - 1] ^ _mt[i - 1] >> 30) * 1664525U) + key[j] + j); /* non linear */
                 _mt[i] &= 0xffffffffU; // for WORDSIZE > 32 machines
                 i++;
                 j++;
@@ -445,7 +445,7 @@ namespace EmnExtensions.MathHelpers
             }
 
             for (k = N - 1; k > 0; k--) {
-                _mt[i] = (uint)((_mt[i] ^ ((_mt[i - 1] ^ (_mt[i - 1] >> 30)) * 1566083941U)) - i); /* non linear */
+                _mt[i] = (uint)((_mt[i] ^ (_mt[i - 1] ^ _mt[i - 1] >> 30) * 1566083941U) - i); /* non linear */
                 _mt[i] &= 0xffffffffU; // for WORDSIZE > 32 machines
                 i++;
 
@@ -479,7 +479,7 @@ namespace EmnExtensions.MathHelpers
 
             // shift the 27 pseudo-random bits (a) over by 26 bits (* 67108864.0) and
             // add another pseudo-random 26 bits (+ b).
-            return ((a * 67108864.0 + b) + translate) * scale;
+            return (a * 67108864.0 + b + translate) * scale;
 
             // What about the following instead of the above? Is the multiply better? 
             // Why? (Is it the FMUL instruction? Does this count in .Net? Will the JITter notice?)

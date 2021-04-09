@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,7 +24,7 @@ namespace LvqGui
                 let resSettings = tuple.Item1
                 let modeltype = resSettings.ModelType
                 where modeltype == settings.ModelType || settings.ModelType == LvqModelType.Lpq && resSettings.ModelType == LvqModelType.Lgm
-                where (settings.PrototypesPerClass == 1) == (resSettings.PrototypesPerClass == 1)
+                where settings.PrototypesPerClass == 1 == (resSettings.PrototypesPerClass == 1)
                 select resSettings
             ).ToArray();
             var myshorthand = settings.WithCanonicalizedDefaults().ToShorthand();

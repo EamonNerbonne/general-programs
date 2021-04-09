@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +27,7 @@ namespace LvqGui
             var colors = statisticGroup.StartsWith("Per-prototype:") && relevantStatistics.Length == classColors.Length * protosPerClass
                 ? classColors.SelectMany(color => Enumerable.Repeat(color, protosPerClass)).ToArray()
                 : GetColors(relevantStatistics.Length);
-            var isSpecialGroup = (statisticGroup == "Error Rates" || statisticGroup == "Cost Function");
+            var isSpecialGroup = statisticGroup == "Error Rates" || statisticGroup == "Cost Function";
             if (isSpecialGroup) {
                 Array.Reverse(relevantStatistics);
             }

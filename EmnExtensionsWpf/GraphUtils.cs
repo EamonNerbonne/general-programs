@@ -298,7 +298,7 @@ namespace EmnExtensions.Wpf
             return BitmapSource.Create(w, h, 96.0, 96.0, PixelFormats.Gray8, null, inlinearray, w);
         }
 
-        public static uint ToNativeColor(this Color colorstruct) => ((uint)colorstruct.A << 24) | ((uint)colorstruct.R << 16) | ((uint)colorstruct.G << 8) | colorstruct.B;
+        public static uint ToNativeColor(this Color colorstruct) => (uint)colorstruct.A << 24 | (uint)colorstruct.R << 16 | (uint)colorstruct.G << 8 | colorstruct.B;
 
         public static BitmapSource MakeColormappedBitmap<T>(T[,] image, Func<T, Color> colormap, int sampleFactor = 1)
         {

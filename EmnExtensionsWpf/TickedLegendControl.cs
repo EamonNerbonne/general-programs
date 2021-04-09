@@ -186,7 +186,7 @@ namespace EmnExtensions.Wpf
 
             if (ticksPixelsDim <= 0 ||
                 !ticksPixelsDim.IsFinite() ||
-                (endVal == startVal) ||
+                endVal == startVal ||
                 !endVal.IsFinite() ||
                 !startVal.IsFinite()) {
                 return; // no point!
@@ -212,7 +212,7 @@ namespace EmnExtensions.Wpf
                 ticksPixelsDim,
                 (val, pixPos) => {
                     var text = MakeText(val / Math.Pow(10, orderOfMagnitude));
-                    var textH = (IsHorizontal ? text.Height : text.Width);
+                    var textH = IsHorizontal ? text.Height : text.Width;
                     var altitudeCenter = 17 + textH / 2.0;
                     if (textH > textHMax) {
                         textHMax = textH;
@@ -259,7 +259,7 @@ namespace EmnExtensions.Wpf
 
         FormattedText MakeText(double val)
         {
-            var numericValueString = (val).ToString("g" + (orderOfMagnitude - orderOfMagnitudeDiff + 2));
+            var numericValueString = val.ToString("g" + (orderOfMagnitude - orderOfMagnitudeDiff + 2));
             return new(numericValueString, cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black, pixelsPerDip);
         }
 

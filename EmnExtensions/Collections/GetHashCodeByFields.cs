@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -46,7 +46,7 @@ namespace EmnExtensions.Collections
 
         static MethodInfo GetHashcodeMethod(Type type)
         {
-            var objectHashcodeMethod = ((Func<int>)(new object().GetHashCode)).Method;
+            var objectHashcodeMethod = ((Func<int>)new object().GetHashCode).Method;
             var method = type.GetMethod("GetHashCode", BindingFlags.Public | BindingFlags.Instance) ?? objectHashcodeMethod;
             return method.GetBaseDefinition() != objectHashcodeMethod ? objectHashcodeMethod : method;
         }

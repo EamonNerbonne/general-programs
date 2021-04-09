@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
@@ -36,7 +36,7 @@ namespace EmnExtensions.Wpf.VizEngines
                 B += other.B;
             }
 
-            public uint RawDiv(uint divisor) => divisor == 0 ? 0u : (R / divisor << 16) + (G / divisor << 8) + (B / divisor);
+            public uint RawDiv(uint divisor) => divisor == 0 ? 0u : (R / divisor << 16) + (G / divisor << 8) + B / divisor;
         }
 
         Rect m_OuterDataBounds = Rect.Empty;
@@ -190,8 +190,8 @@ namespace EmnExtensions.Wpf.VizEngines
             var data = Data;
             for (var i = 0; i < data.Length; i++) {
                 var displaypoint = dataToBitmap.Transform(data[i].point);
-                var x = (int)(displaypoint.X);
-                var y = (int)(displaypoint.Y);
+                var x = (int)displaypoint.X;
+                var y = (int)displaypoint.Y;
                 if (x >= 0 && x < pW && y >= 0 && y < pH) {
                     AddPixel(x + pW * y, data[i].label);
                 }
@@ -204,8 +204,8 @@ namespace EmnExtensions.Wpf.VizEngines
             for (var i = 0; i < data.Length; i++) {
                 var displaypoint = dataToBitmap.Transform(data[i].point);
                 var label = data[i].label;
-                var x = (int)(displaypoint.X);
-                var y = (int)(displaypoint.Y);
+                var x = (int)displaypoint.X;
+                var y = (int)displaypoint.Y;
                 if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1) {
                     AddPixel(x + pW * y, label);
                     AddPixel(x + pW * y, label);
@@ -224,8 +224,8 @@ namespace EmnExtensions.Wpf.VizEngines
             for (var i = 0; i < data.Length; i++) {
                 var label = data[i].label;
                 var displaypoint = dataToBitmap.Transform(data[i].point);
-                var x = (int)(displaypoint.X);
-                var y = (int)(displaypoint.Y);
+                var x = (int)displaypoint.X;
+                var y = (int)displaypoint.Y;
                 if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1) {
                     AddPixel(x + pW * y, label);
                     AddPixel(x - 1 + pW * y, label);
@@ -242,8 +242,8 @@ namespace EmnExtensions.Wpf.VizEngines
             for (var i = 0; i < data.Length; i++) {
                 var label = data[i].label;
                 var displaypoint = dataToBitmap.Transform(data[i].point);
-                var x = (int)(displaypoint.X);
-                var y = (int)(displaypoint.Y);
+                var x = (int)displaypoint.X;
+                var y = (int)displaypoint.Y;
                 if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1) {
                     AddPixel(x + pW * y, label);
                     AddPixel(x - 1 + pW * y, label);
@@ -270,8 +270,8 @@ namespace EmnExtensions.Wpf.VizEngines
             for (var i = 0; i < data.Length; i++) {
                 var label = data[i].label;
                 var displaypoint = dataToBitmap.Transform(data[i].point);
-                var x = (int)(displaypoint.X);
-                var y = (int)(displaypoint.Y);
+                var x = (int)displaypoint.X;
+                var y = (int)displaypoint.Y;
                 if (x >= 2 && x < pW - 2 && y >= 2 && y < pH - 2) {
                     var offset = x + pW * y;
                     AddPixel(offset - 1 - 2 * pW, label);
@@ -356,10 +356,10 @@ namespace EmnExtensions.Wpf.VizEngines
         static uint[] PregenerateAlphaLookup(double alpha, uint[] image, int numPixels)
         {
             var maximalOverlapCount = ValueOfMax(image, 0, numPixels);
-            var transparencyPerOverlap = (1.0 - alpha);
+            var transparencyPerOverlap = 1.0 - alpha;
             var alphaLookup = new uint[maximalOverlapCount + 1];
             for (var overlap = 0; overlap < alphaLookup.Length; overlap++) {
-                var overlappingAlpha = (1.0 - Math.Pow(transparencyPerOverlap, overlap / 2.0));
+                var overlappingAlpha = 1.0 - Math.Pow(transparencyPerOverlap, overlap / 2.0);
                 alphaLookup[overlap] = (uint)(overlappingAlpha * 255.5) << 24;
             }
 

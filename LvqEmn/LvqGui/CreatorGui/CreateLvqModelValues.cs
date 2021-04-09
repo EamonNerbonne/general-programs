@@ -1,4 +1,4 @@
-﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 
 using System;
@@ -63,7 +63,7 @@ namespace LvqGui
         {
             get => settings.Dimensionality;
             set {
-                if (value < 0 || (ForDataset != null && value > ForDataset.Dimensions)) {
+                if (value < 0 || ForDataset != null && value > ForDataset.Dimensions) {
                     throw new ArgumentException("Internal dimensionality must be 0 (auto) or between 1 and the dimensions of the data.");
                 }
 

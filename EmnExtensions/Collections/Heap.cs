@@ -48,11 +48,11 @@ namespace EmnExtensions.Collections
             public IHeap<T> Create(Action<T, int> indexSet = null)
             {
                 if (typeof(T) == typeof(int)) {
-                    return (IHeap<T>)new HeapFactory<int>().Create(new IntComparer(), (Action<int, int>)((object)indexSet));
+                    return (IHeap<T>)new HeapFactory<int>().Create(new IntComparer(), (Action<int, int>)(object)indexSet);
                 }
 
                 if (typeof(T) == typeof(long)) {
-                    return (IHeap<T>)new HeapFactory<long>().Create(new LongComparer(), (Action<long, int>)((object)indexSet));
+                    return (IHeap<T>)new HeapFactory<long>().Create(new LongComparer(), (Action<long, int>)(object)indexSet);
                 }
 
                 return Create(Comparer<T>.Default, indexSet);

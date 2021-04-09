@@ -24,7 +24,7 @@ namespace EmnExtensions.MathHelpers
             } else {
                 var digitEstimate = Math.Abs(mean) <= stderr
                     ? 1.0
-                    : (Math.Log10(Math.Abs(mean) / stderr) + 1.5);
+                    : Math.Log10(Math.Abs(mean) / stderr) + 1.5;
                 var digits = (int)(digitEstimate + extraprecision);
                 numF = "g" + digits;
                 errF = " ~ {1:g2}";
