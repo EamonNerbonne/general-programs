@@ -342,7 +342,7 @@ namespace LvqGui
             );
         }
 
-        string DatasetLabel
+        protected string DatasetLabel
             => _dataset != null ? _dataset.DatasetLabel : "base";
 
         void SaveLogFor(LvqModelSettingsCli settings, string logcontents)

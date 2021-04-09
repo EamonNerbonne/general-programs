@@ -80,27 +80,27 @@
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
-        <Label Grid.Row="2">Model Type</Label>
+        <Label Grid.Row="2" Grid.Column="0">Model Type</Label>
         <ComboBox Grid.Row="2"  Grid.Column="1"  Name="modelType" SelectedItem="{Binding ModelType, Mode=TwoWay, ValidatesOnExceptions=True}" ItemsSource="{Binding  RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type UserControl} }, Path=ModelTypes}"/>
-        <Label Grid.Row="3">Internal Dimensionality</Label>
+        <Label Grid.Row="3" Grid.Column="0">Internal Dimensionality</Label>
         <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Dimensionality, Mode=TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="4">Prototypes per class</Label>
+        <Label Grid.Row="4" Grid.Column="0">Prototypes per class</Label>
         <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding PrototypesPerClass, Mode=TwoWay, ValidatesOnExceptions=True}" />
-        <Label Grid.Row="5">Ppca</Label>
+        <Label Grid.Row="5" Grid.Column="0">Ppca</Label>
         <CheckBox Grid.Row="5" Grid.Column="1"  IsChecked="{Binding Ppca, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="6">Random initial boundaries (g2m, ggm)</Label>
+        <Label Grid.Row="6" Grid.Column="0">Random initial boundaries (g2m, ggm)</Label>
         <CheckBox Grid.Row="6" Grid.Column="1"  IsChecked="{Binding RandomInitialBorders, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="7">normalize every iteration: P (not ggm)</Label>
+        <Label Grid.Row="7" Grid.Column="0">normalize every iteration: P (not ggm)</Label>
         <CheckBox Grid.Row="7" Grid.Column="1"  IsChecked="{Binding neiP, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="8">noKP</Label>
+        <Label Grid.Row="8" Grid.Column="0">noKP</Label>
         <CheckBox Grid.Row="8" Grid.Column="1"  IsChecked="{Binding noKP, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="9">normalize every iteration: B (g2m, gpq)</Label>
+        <Label Grid.Row="9" Grid.Column="0">normalize every iteration: B (g2m, gpq)</Label>
         <CheckBox Grid.Row="9" Grid.Column="1"  IsChecked="{Binding neiB, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="10">Locally normalize (lgm, g2m, ggm)</Label>
+        <Label Grid.Row="10" Grid.Column="0">Locally normalize (lgm, g2m, ggm)</Label>
         <CheckBox Grid.Row="10" Grid.Column="1"  IsChecked="{Binding LocallyNormalize, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="11">NG-inspired updates (gsm, g2m, ggm)</Label>
+        <Label Grid.Row="11" Grid.Column="0">NG-inspired updates (gsm, g2m, ggm)</Label>
         <CheckBox Grid.Row="11" Grid.Column="1"  IsChecked="{Binding NGu, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="12">NG prototype initialization</Label>
+        <Label Grid.Row="12" Grid.Column="0">NG prototype initialization</Label>
         <StackPanel Orientation="Horizontal" Grid.Row="12" Grid.Column="1" >
         <CheckBox  IsChecked="{Binding NGi, Mode= TwoWay, ValidatesOnExceptions=True}"/>
             <Label>... and spread P: </Label>
@@ -108,60 +108,60 @@
             <Label>... and init B:</Label>
             <CheckBox  IsChecked="{Binding Bcov, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         </StackPanel>
-        <Label Grid.Row="13">Don't use B for point update (g2m)</Label>
+        <Label Grid.Row="13" Grid.Column="0">Don't use B for point update (g2m)</Label>
         <CheckBox Grid.Row="13" Grid.Column="1"  IsChecked="{Binding wGMu, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="14">Slow start LrBad</Label>
+        <Label Grid.Row="14" Grid.Column="0">Slow start LrBad</Label>
         <CheckBox Grid.Row="14" Grid.Column="1"  IsChecked="{Binding SlowK, Mode= TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Label Grid.Row="15">LR0</Label>
+        <Label Grid.Row="15" Grid.Column="0">LR0</Label>
         <TextBox Grid.Row="15" Grid.Column="1" Text="{Binding LR0, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
 
-        <Label Grid.Row="16">LrScaleP</Label>
+        <Label Grid.Row="16" Grid.Column="0">LrScaleP</Label>
         <TextBox Grid.Row="16" Grid.Column="1" Text="{Binding LrScaleP, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Label Grid.Row="17">LrScaleB</Label>
+        <Label Grid.Row="17" Grid.Column="0">LrScaleB</Label>
         <TextBox Grid.Row="17" Grid.Column="1" Text="{Binding LrScaleB, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Label Grid.Row="18">LrScaleBad</Label>
+        <Label Grid.Row="18" Grid.Column="0">LrScaleBad</Label>
         <TextBox Grid.Row="18" Grid.Column="1" Text="{Binding LrScaleBad, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Label Grid.Row="19">MuOffset</Label>
+        <Label Grid.Row="19" Grid.Column="0">MuOffset</Label>
         <TextBox Grid.Row="19" Grid.Column="1" Text="{Binding MuOffset, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Label Grid.Row="21">Scale-compensating P</Label>
+        <Label Grid.Row="21" Grid.Column="0">Scale-compensating P</Label>
         <CheckBox Grid.Row="21" Grid.Column="1"  IsChecked="{Binding scP, Mode= TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Label Grid.Row="22">decay</Label>
+        <Label Grid.Row="22" Grid.Column="0">decay</Label>
         <TextBox Grid.Row="22" Grid.Column="1" Text="{Binding decay, Mode=TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="23">iterScaleFactor</Label>
+        <Label Grid.Row="23" Grid.Column="0">iterScaleFactor</Label>
         <TextBox Grid.Row="23" Grid.Column="1" Text="{Binding iterScaleFactor, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Label Grid.Row="24">Unscaled LR</Label>
+        <Label Grid.Row="24" Grid.Column="0">Unscaled LR</Label>
         <CheckBox Grid.Row="24" Grid.Column="1"  IsChecked="{Binding LrRaw, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="25">LR decays per prototype</Label>
+        <Label Grid.Row="25" Grid.Column="0">LR decays per prototype</Label>
         <CheckBox Grid.Row="25" Grid.Column="1"  IsChecked="{Binding LrPp, Mode= TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Button Grid.Row="30" Content="Reset Initialization Seed" Click="ReseedParam" />
+        <Button Grid.Row="30" Grid.Column="0" Content="Reset Initialization Seed" Click="ReseedParam" />
         <TextBox Grid.Row="30" Grid.Column="1" Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}"  />
-        <Button Grid.Row="31" Content="Reset Iteration Seed" Click="ReseedInst" />
+        <Button Grid.Row="31" Grid.Column="0" Content="Reset Iteration Seed" Click="ReseedInst" />
         <TextBox Grid.Row="31" Grid.Column="1" Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
 
-        <Label Grid.Row="32">Parallel models</Label>
+        <Label Grid.Row="32" Grid.Column="0">Parallel models</Label>
         <TextBox Grid.Row="32" Grid.Column="1" Text="{Binding ParallelModels, Mode=TwoWay, ValidatesOnExceptions=True}" />
-        <Label Grid.Row="33">Fold offset</Label>
+        <Label Grid.Row="33" Grid.Column="0">Fold offset</Label>
         <TextBox Grid.Row="33" Grid.Column="1" Text="{Binding FoldOffset, Mode=TwoWay, ValidatesOnExceptions=True}" />
-        <Label Grid.Row="34">Don't plot Nn error rate (faster)</Label>
+        <Label Grid.Row="34" Grid.Column="0">Don't plot Nn error rate (faster)</Label>
         <CheckBox Grid.Row="34" Grid.Column="1"  IsChecked="{Binding NoNnErrorRateTracking, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         
-        <Label Grid.Row="35">Shorthand</Label>
+        <Label Grid.Row="35" Grid.Column="0">Shorthand</Label>
         <TextBox  Grid.Row="35" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />        <!--, UpdateSourceTrigger=PropertyChanged-->
 
-        <StackPanel Orientation="Horizontal" Grid.Row="40" Grid.ColumnSpan="2" FlowDirection="RightToLeft">
+        <StackPanel Orientation="Horizontal" Grid.Row="40" Grid.ColumnSpan="2" Grid.Column="0" FlowDirection="RightToLeft">
             <Button Click="InitializeModel" >Initialize Model</Button>
         </StackPanel>
-        <TextBlock Grid.Row="42" Grid.ColumnSpan="2" Text="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" TextWrapping="Wrap" />
-        <TextBlock VerticalAlignment="Center" Grid.Row="43" Grid.ColumnSpan="2" HorizontalAlignment="Left">
+        <TextBlock Grid.Row="42" Grid.ColumnSpan="2" Grid.Column="0" Text="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" TextWrapping="Wrap" />
+        <TextBlock VerticalAlignment="Center" Grid.Row="43" Grid.ColumnSpan="2" Grid.Column="0" HorizontalAlignment="Left">
             Estimated iteration cost: <Run Text="{Binding EstCost, Mode=OneWay}"/>;
             Reasonable animation step: <Run Text="{Binding AnimEpochSuggestion, Mode=OneWay}"/> epochs.
         </TextBlock>

@@ -45,7 +45,7 @@
             </ComboBox.ItemTemplate>
         </ComboBox>
 
-        <Label Grid.Row="1">Select Model</Label>
+        <Label Grid.Row="1" Grid.Column="0">Select Model</Label>
         <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding MatchingLvqModels, Mode=OneWay}" SelectedItem="{Binding SelectedLvqModel}">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
@@ -53,10 +53,10 @@
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
-        <Label Grid.Row="2">Shorthand</Label>
+        <Label Grid.Row="2" Grid.Column="0">Shorthand</Label>
         <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SelectedLvqModel.ModelLabel, Mode=OneWay}" IsReadOnly="true"/>
 
-        <Label Grid.Row="3">Select Sub-Model</Label>
+        <Label Grid.Row="3" Grid.Column="0">Select Sub-Model</Label>
         <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding ModelIndexes, Mode=OneWay}" SelectedItem="{Binding SubModelIndex}">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
@@ -65,7 +65,7 @@
             </ComboBox.ItemTemplate>
         </ComboBox>
 
-        <StackPanel Grid.Row="4"  Orientation="Horizontal" HorizontalAlignment="Right">
+        <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Train" Click="StartTraining" />
             <Label Content="for"/>
         </StackPanel>
@@ -99,7 +99,7 @@
             <CheckBox Content="Show Test error rates" IsChecked="{Binding ShowTestErrorRates}"/>
             <CheckBox Content="Show Nn error rates" IsChecked="{Binding ShowNnErrorRates}"/>
         </StackPanel>
-        <ListView ItemsSource="{Binding ModelClasses, Mode=OneWay}" Grid.Row="9" Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0">
+        <ListView ItemsSource="{Binding ModelClasses, Mode=OneWay}" Grid.Row="9" Grid.ColumnSpan="2" Grid.Column="0" Background="Transparent" BorderThickness="0">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Label Content="{Binding ClassLabel}" Background="{Binding ClassColor}" Foreground="White"/>

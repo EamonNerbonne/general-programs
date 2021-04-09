@@ -46,42 +46,42 @@
         <Label Grid.Row="0">Dimensions</Label>
         <TextBox Grid.Row="0"  Grid.Column="1"  Text="{Binding Dimensions, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="1" >Number of Classes</Label>
+        <Label Grid.Row="1" Grid.Column="0">Number of Classes</Label>
         <TextBox Grid.Row="1"  Grid.Column="1"  Text="{Binding NumberOfClasses, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="2"   Name="label2">Points per Class</Label>
+        <Label Grid.Row="2" Grid.Column="0" Name="label2">Points per Class</Label>
         <TextBox  Grid.Row="2" Grid.Column="1" Text="{Binding PointsPerClass, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="3" >Number of Clusters</Label>
+        <Label Grid.Row="3" Grid.Column="0">Number of Clusters</Label>
         <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding NumberOfClusters, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="4" >Dimensionality of Clusters</Label>
+        <Label Grid.Row="4" Grid.Column="0">Dimensionality of Clusters</Label>
         <TextBox Grid.Row="4"  Grid.Column="1"  Text="{Binding ClusterDimensionality, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="10"  >Inter-cluster distance</Label>
+        <Label Grid.Row="10" Grid.Column="0">Inter-cluster distance</Label>
         <TextBox Grid.Row="10"  Grid.Column="1"  Text="{Binding ClusterCenterDeviation, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="11"  >Relative inter-class distance</Label>
+        <Label Grid.Row="11" Grid.Column="0">Relative inter-class distance</Label>
         <TextBox Grid.Row="11"  Grid.Column="1"  Text="{Binding IntraClusterClassRelDev, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="12"  >Randomly transform dataset</Label>
+        <Label Grid.Row="12" Grid.Column="0">Randomly transform dataset</Label>
         <CheckBox  Grid.Row="12" Grid.Column="1" IsChecked="{Binding RandomlyTransformFirst, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="13">Noise dimensions deviation</Label>
+        <Label Grid.Row="13" Grid.Column="0">Noise dimensions deviation</Label>
         <TextBox  Grid.Row="13" Grid.Column="1" Text="{Binding NoiseSigma, Mode=TwoWay, ValidatesOnExceptions=True}" />
-        <Label Grid.Row="14">Extra global noise</Label>
+        <Label Grid.Row="14" Grid.Column="0">Extra global noise</Label>
         <TextBox  Grid.Row="14" Grid.Column="1" Text="{Binding GlobalNoiseMaxSigma, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="15">Fold count</Label>
+        <Label Grid.Row="15" Grid.Column="0">Fold count</Label>
         <TextBox  Grid.Row="15" Grid.Column="1" Text="{Binding Folds, Mode=TwoWay, ValidatesOnExceptions=True}" />
-        <Button Grid.Row="16" Content="Reset Parameter Seed"  Click="ReseedParam" />
+        <Button Grid.Row="16" Grid.Column="0" Content="Reset Parameter Seed"  Click="ReseedParam" />
         <TextBox Grid.Row="16"  Grid.Column="1"  Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
-        <Button  Grid.Row="17" Content="Reset Instantiation Seed" Click="ReseedInst"/>
+        <Button  Grid.Row="17" Grid.Column="0" Content="Reset Instantiation Seed" Click="ReseedInst"/>
         <TextBox Grid.Row="17"  Grid.Column="1"  Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
-        <Label Grid.Row="18">Shorthand</Label>
+        <Label Grid.Row="18" Grid.Column="0">Shorthand</Label>
         <TextBox  Grid.Row="18" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
 
         <Button  Grid.Row="19" Grid.Column="0" Grid.ColumnSpan="2" Click="buttonGenerateDataset_Click"  VerticalAlignment="Top">Generate Star Dataset</Button>
-        <Label Grid.Row="20" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
+        <Label Grid.Row="20" Grid.ColumnSpan="2" Grid.Column="0" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
     </Grid>
 </UserControl>

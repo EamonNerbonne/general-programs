@@ -23,7 +23,7 @@
         </Grid.RowDefinitions>
         <Button Content="Reset Shuffling Seed" Grid.Row="0" Click="ReseedInst"/>
         <TextBox  Grid.Row="0" Grid.Column="1" Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
-        <Label Grid.Row="1">Split folds</Label>
+        <Label Grid.Row="1" Grid.Column="0">Split folds</Label>
         <TextBox  Grid.Row="1" Grid.Column="1" Text="{Binding Folds, Mode=TwoWay, ValidatesOnExceptions=True}" />
         <Button  Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Click="ConfirmLoadDataset">Load Dataset</Button>
 

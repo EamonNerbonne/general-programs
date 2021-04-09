@@ -30,27 +30,27 @@
         <Label Grid.Row="0">Dimensions</Label>
         <TextBox Grid.Row="0"  Grid.Column="1" Text="{Binding Dimensions, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="1" >Number of Classes</Label>
+        <Label Grid.Row="1" Grid.Column="0">Number of Classes</Label>
         <TextBox Grid.Row="1"  Grid.Column="1"  Text="{Binding NumberOfClasses, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="2"   Name="label2">Points per Class</Label>
+        <Label Grid.Row="2" Grid.Column="0" Name="label2">Points per Class</Label>
         <TextBox  Grid.Row="2" Grid.Column="1" Text="{Binding PointsPerClass, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="3"  >Inter-class distance</Label>
+        <Label Grid.Row="3" Grid.Column="0">Inter-class distance</Label>
         <TextBox Grid.Row="3"  Grid.Column="1" Text="{Binding ClassCenterDeviation, Mode=TwoWay, ValidatesOnExceptions=True}" />
-        <Label Grid.Row="4">Fold count</Label>
+        <Label Grid.Row="4" Grid.Column="0">Fold count</Label>
         <TextBox  Grid.Row="4" Grid.Column="1" Text="{Binding Folds, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
 
-        <Button Content="Reset Parameter Seed" Grid.Row="5" Click="ReseedParam" />
+        <Button Content="Reset Parameter Seed" Grid.Row="5" Grid.Column="0" Click="ReseedParam" />
         <TextBox Grid.Row="5"  Grid.Column="1" Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
-        <Button Content="Reset Instantiation Seed" Grid.Row="6" Click="ReseedInst"/>
+        <Button Content="Reset Instantiation Seed" Grid.Row="6" Grid.Column="0" Click="ReseedInst"/>
         <TextBox Grid.Row="6"  Grid.Column="1" Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
-        <Label Grid.Row="7">Shorthand</Label>
+        <Label Grid.Row="7" Grid.Column="0">Shorthand</Label>
         <TextBox  Grid.Row="7" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
 
         <Button  Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" Click="CreateDatasetButtonPress" VerticalAlignment="Top">Generate Point Clouds</Button>
-        <Label Grid.Row="8" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left"/>
+        <Label Grid.Row="8" Grid.ColumnSpan="2" Grid.Column="0" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left"/>
 
     </Grid>
 </UserControl>
