@@ -15,7 +15,10 @@ using EmnExtensions;
 using EmnExtensions.Filesystem;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
-using EmnExtensions.Wpf.VizEngines;
+using EmnExtensions.Wpf.Plot;
+using EmnExtensions.Wpf.Plot.VizEngines;
+using LvqGui.CreatorGui;
+using LvqGui.LvqPlotting;
 using LvqLibCli;
 
 namespace LvqGui

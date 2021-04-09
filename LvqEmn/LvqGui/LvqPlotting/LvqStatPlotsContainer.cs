@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -11,10 +11,13 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using EmnExtensions.Filesystem;
 using EmnExtensions.Wpf;
-using EmnExtensions.Wpf.VizEngines;
+using EmnExtensions.Wpf.Plot;
+using EmnExtensions.Wpf.Plot.VizEngines;
+using EmnExtensions.Wpf.WpfTools;
+using LvqGui.CreatorGui;
 using LvqLibCli;
 
-namespace LvqGui
+namespace LvqGui.LvqPlotting
 {
     public sealed class LvqStatPlotsContainer : IDisposable
     {
@@ -67,7 +70,9 @@ namespace LvqGui
         {
             lock (plotsSync) {
                 if (subplots != null && subplots.classBoundaries != null) {
-                    lvqPlotDispatcher.BeginInvoke(() => {
+                    DispatcherUtils.BeginInvoke(
+                        lvqPlotDispatcher,
+                        () => {
                             if (subplots != null && subplots.classBoundaries != null) {
                                 subplots.classBoundaries.MetaData.Hidden = !visible;
                             }
@@ -86,7 +91,9 @@ namespace LvqGui
             Task retval = null;
             lock (plotsSync) {
                 if (subplots != null && subplots.statPlots != null) {
-                    retval = lvqPlotDispatcher.BeginInvoke(() => {
+                    retval = DispatcherUtils.BeginInvoke(
+                        lvqPlotDispatcher,
+                        () => {
                             foreach (var plot in subplots.statPlots) {
                                 if (LvqStatPlotFactory.IsCurrPlot(plot)) {
                                     plot.MetaData.Hidden = viewMode == StatisticsViewMode.MeanAndStderr
@@ -116,7 +123,9 @@ namespace LvqGui
         {
             lock (plotsSync) {
                 if (subplots != null && subplots.classBoundaries != null) {
-                    lvqPlotDispatcher.BeginInvoke(() => {
+                    DispatcherUtils.BeginInvoke(
+                        lvqPlotDispatcher,
+                        () => {
                             if (subplots != null && subplots.classBoundaries != null) {
                                 foreach (var protoPlot in subplots.prototypeClouds) {
                                     protoPlot.MetaData.Hidden = !visible;
@@ -147,7 +156,9 @@ namespace LvqGui
             currShowTestErrorRates = showTestErrorRates;
             lock (plotsSync) {
                 if (subplots != null && subplots.plots != null) {
-                    lvqPlotDispatcher.BeginInvoke(() => {
+                    DispatcherUtils.BeginInvoke(
+                        lvqPlotDispatcher,
+                        () => {
                             if (subplots != null && subplots.plots != null) {
                                 foreach (var plot in subplots.plots.SelectMany(plot => plot.Graphs).Where(LvqStatPlotFactory.IsTestPlot)) {
                                     plot.MetaData.Hidden = !showTestErrorRates
@@ -169,7 +180,9 @@ namespace LvqGui
             currShowNnErrorRates = showNnErrorRates;
             lock (plotsSync) {
                 if (subplots != null && subplots.plots != null) {
-                    lvqPlotDispatcher.BeginInvoke(() => {
+                    DispatcherUtils.BeginInvoke(
+                        lvqPlotDispatcher,
+                        () => {
                             if (subplots != null && subplots.plots != null) {
                                 foreach (var plot in subplots.plots.SelectMany(plot => plot.Graphs).Where(LvqStatPlotFactory.IsNnPlot)) {
                                     plot.MetaData.Hidden = !showNnErrorRates
@@ -293,7 +306,7 @@ namespace LvqGui
             this.hide = hide;
             lvqPlotDispatcher = WpfTools.StartNewDispatcher(ThreadPriority.BelowNormal);
             lvqPlotTaskScheduler = lvqPlotDispatcher.GetScheduler().Result;
-            lvqPlotDispatcher.BeginInvoke(MakeSubPlotWindow);
+            DispatcherUtils.BeginInvoke(lvqPlotDispatcher, MakeSubPlotWindow);
             exitToken.Register(() => lvqPlotDispatcher.InvokeShutdown());
         }
 
@@ -324,7 +337,9 @@ namespace LvqGui
 
             if (Application.Current != null) // just a little nicer layout; this won't work from F#
             {
-                Application.Current.Dispatcher.BeginInvoke(() => {
+                DispatcherUtils.BeginInvoke(
+                    Application.Current.Dispatcher,
+                    () => {
                         var mainWindow = Application.Current.MainWindow;
                         if (mainWindow != null && mainWindow.Left + mainWindow.Width > subWindowLeft) {
                             mainWindow.Left = Math.Max(0, subWindowLeft - +mainWindow.Width);

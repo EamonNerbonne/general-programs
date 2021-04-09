@@ -5,7 +5,7 @@ using System;
 using System.Windows;
 using EmnExtensions.Algorithms;
 
-namespace EmnExtensions.Wpf.VizEngines
+namespace EmnExtensions.Wpf.Plot.VizEngines
 {
     public interface IVizPixelScatter : IVizEngine<Point[]>
     {

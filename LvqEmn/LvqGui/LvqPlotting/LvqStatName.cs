@@ -1,6 +1,6 @@
 using System;
 
-namespace LvqGui
+namespace LvqGui.LvqPlotting
 {
     sealed class LvqStatName
     {

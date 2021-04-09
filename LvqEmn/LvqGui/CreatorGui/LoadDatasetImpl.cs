@@ -7,11 +7,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using EmnExtensions.Filesystem;
 using EmnExtensions.MathHelpers;
-using EmnExtensions.Wpf;
+using EmnExtensions.Wpf.WpfTools;
 using LvqLibCli; //using LvqFloat = System.Single;
-using LvqFloat = System.Double;
 
-namespace LvqGui
+namespace LvqGui.CreatorGui
 {
     public sealed class LoadedDatasetSettings : DatasetCreatorBase<LoadedDatasetSettings>
     {

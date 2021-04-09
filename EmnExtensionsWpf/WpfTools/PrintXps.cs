@@ -5,8 +5,9 @@ using System.IO.Packaging;
 using System.Printing;
 using System.Windows;
 using System.Windows.Xps.Packaging;
+using EmnExtensions.Wpf.Plot;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.WpfTools
 {
     public static partial class WpfTools
     {

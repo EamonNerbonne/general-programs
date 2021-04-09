@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.VizEngines
+namespace EmnExtensions.Wpf.Plot.VizEngines
 {
     public sealed class VizPointCloudBitmap : VizDynamicBitmap<LabelledPoint[]>
         //for efficiency reasons, accept data in a Point[] rather than the more general IEnumerable<Point>

@@ -1,1 +1,3 @@
-﻿public enum StatisticsViewMode { MeanAndStderr, CurrentOnly, CurrentAndMean }
+namespace LvqGui.LvqPlotting {
+    public enum StatisticsViewMode { MeanAndStderr, CurrentOnly, CurrentAndMean }
+}

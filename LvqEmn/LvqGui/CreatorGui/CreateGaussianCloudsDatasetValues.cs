@@ -2,9 +2,11 @@
 // ReSharper disable UnusedMember.Global
 
 using System;
+using EmnExtensions.Wpf;
+using LvqGui.CoreGui;
 using LvqLibCli;
 
-namespace LvqGui
+namespace LvqGui.CreatorGui
 {
     public sealed class CreateGaussianCloudsDatasetValues : HasShorthandBase, IHasSeed
     {

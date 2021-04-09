@@ -1,7 +1,7 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Windows.Threading;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.WpfTools
 {
     public static partial class WpfTools
     {

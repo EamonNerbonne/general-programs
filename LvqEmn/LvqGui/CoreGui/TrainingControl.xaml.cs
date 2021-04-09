@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace LvqGui
+namespace LvqGui.CoreGui
 {
     public sealed partial class TrainingControl
     {

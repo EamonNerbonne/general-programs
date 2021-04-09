@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.Plot
 {
     public sealed class PlotMetaData : IPlotMetaDataWriteable
     {

@@ -11,7 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace LvqGui
+namespace LvqGui.CreatorGui
 {
     public interface IHasShorthand
     {

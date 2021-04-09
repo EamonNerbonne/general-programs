@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace EmnExtensions.Wpf.VizEngines
+namespace EmnExtensions.Wpf.Plot.VizEngines
 {
     public sealed class VizPixelScatterSmart : VizTransformed<Point[], Point[]>, IVizPixelScatter
     {

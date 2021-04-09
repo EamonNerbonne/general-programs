@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace EmnExtensions.Wpf.VizEngines
+namespace EmnExtensions.Wpf.Plot.VizEngines
 {
     public abstract class VizDynamicBitmap<T> : PlotVizBase<T>
     {

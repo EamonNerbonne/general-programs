@@ -1,11 +1,13 @@
-﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 
 using System;
 using System.Windows.Threading;
+using EmnExtensions.Wpf;
+using LvqGui.CoreGui;
 using LvqLibCli;
 
-namespace LvqGui
+namespace LvqGui.CreatorGui
 {
     public sealed class CreateStarDatasetValues : HasShorthandBase, IHasSeed
     {

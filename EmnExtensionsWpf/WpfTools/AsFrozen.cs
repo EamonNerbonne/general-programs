@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Windows;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.WpfTools
 {
     public static partial class WpfTools
     {

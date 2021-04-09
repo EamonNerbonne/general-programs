@@ -10,7 +10,7 @@ using System.Linq;
 using System.Windows;
 using EmnExtensions.Text;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.Plot
 {
     [DebuggerDisplay("[{Start}, {End}]")]
     [TypeConverter(typeof(DimensionBoundsConverter))]

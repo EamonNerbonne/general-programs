@@ -42,7 +42,7 @@ namespace EmnExtensions.Wpf
         // ReSharper disable once UnusedMember.Local
         static Tuple<Window, LogControl> ShowNewLogWindow_NewDispatcher(string windowTitle = null, double? width = null, double? height = null)
         {
-            var disp = WpfTools.StartNewDispatcher();
+            var disp = WpfTools.WpfTools.StartNewDispatcher();
             return disp.Invoke(() => ShowNewLogWindow(windowTitle, width, height));
         }
 

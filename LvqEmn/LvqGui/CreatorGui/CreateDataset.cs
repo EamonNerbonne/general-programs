@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using LvqLibCli;
 
-namespace LvqGui
+namespace LvqGui.CreatorGui
 {
     public interface IDatasetCreator
     {

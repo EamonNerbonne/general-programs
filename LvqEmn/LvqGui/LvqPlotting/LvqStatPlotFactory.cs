@@ -6,11 +6,12 @@ using System.Windows;
 using System.Windows.Media;
 using EmnExtensions;
 using EmnExtensions.MathHelpers;
-using EmnExtensions.Wpf;
+using EmnExtensions.Wpf.Plot;
+using EmnExtensions.Wpf.WpfTools;
 using LvqLibCli;
 using Vector = System.Windows.Vector;
 
-namespace LvqGui
+namespace LvqGui.LvqPlotting
 {
     static class LvqStatPlotFactory
     {

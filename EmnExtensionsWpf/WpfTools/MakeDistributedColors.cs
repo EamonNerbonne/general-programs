@@ -3,7 +3,7 @@ using System.Linq;
 using System.Windows.Media;
 using EmnExtensions.MathHelpers;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.WpfTools
 {
     public static partial class WpfTools
     {

@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using EmnExtensions.Wpf.VizEngines;
+using EmnExtensions.Wpf.Plot.VizEngines;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.Plot
 {
     public static class PlotHelpers
     {

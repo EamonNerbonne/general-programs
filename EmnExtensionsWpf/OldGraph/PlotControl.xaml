@@ -1,13 +1,13 @@
-﻿<UserControl x:Class="EmnExtensions.Wpf.Plot.PlotControl"
+<UserControl x:Class="EmnExtensions.Wpf.OldGraph.PlotControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:emnExt="clr-namespace:EmnExtensions.Wpf"
+    xmlns:plot="clr-namespace:EmnExtensions.Wpf.Plot"
     IsHitTestVisible="False"
 			 >
 	<Grid>
-		<emnExt:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph"/>
-		<emnExt:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph"/>
-		<emnExt:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph" />
-		<emnExt:TickedAxis x:Name="tickedAxisRgt" AxisPos="RightOfGraph"/>
+		<plot:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph"/>
+		<plot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph"/>
+		<plot:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph" />
+		<plot:TickedAxis x:Name="tickedAxisRgt" AxisPos="RightOfGraph"/>
 	</Grid>
 </UserControl>

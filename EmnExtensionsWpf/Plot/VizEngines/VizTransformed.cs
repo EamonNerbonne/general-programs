@@ -1,7 +1,7 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.VizEngines
+namespace EmnExtensions.Wpf.Plot.VizEngines
 {
     public abstract class VizTransformed<TIn, TOut> : IVizEngine<TIn>, ITranformed<TOut>
     {

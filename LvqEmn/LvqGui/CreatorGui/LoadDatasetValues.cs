@@ -6,10 +6,12 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using EmnExtensions.Wpf;
+using LvqGui.CoreGui;
 using LvqLibCli;
 using Microsoft.Win32;
 
-namespace LvqGui
+namespace LvqGui.CreatorGui
 {
     public sealed class LoadDatasetValues : INotifyPropertyChanged, IHasSeed
     {

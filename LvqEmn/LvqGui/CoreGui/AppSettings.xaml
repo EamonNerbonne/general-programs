@@ -1,10 +1,10 @@
-﻿<UserControl x:Class="LvqGui.AppSettings"
+<UserControl x:Class="LvqGui.CoreGui.AppSettings"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" 
-             xmlns:my="clr-namespace:LvqGui"
+             mc:Ignorable="d"
+             xmlns:coreGui="clr-namespace:LvqGui.CoreGui"
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
         <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
@@ -28,9 +28,9 @@
         </Grid.RowDefinitions>
         
         <Label Grid.Row="0">Full Screen</Label>
-        <CheckBox Grid.Row="0" Grid.Column="1"  HorizontalAlignment="Left" x:Name="FullscreenCheckbox"  IsChecked="{Binding Fullscreen, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=my:LvqWindow}}"/>
+        <CheckBox Grid.Row="0" Grid.Column="1"  HorizontalAlignment="Left" x:Name="FullscreenCheckbox"  IsChecked="{Binding Fullscreen, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=coreGui:LvqWindow}}"/>
 
-        <Label Grid.Row="1">Show Grid</Label>
+        <Label Grid.Row="1" Grid.Column="0">Show Grid</Label>
         <CheckBox Grid.Row="1" Grid.Column="1"   HorizontalAlignment="Left" x:Name="ShowGridCheckbox" />
 
     </Grid>

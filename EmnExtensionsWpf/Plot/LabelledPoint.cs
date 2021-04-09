@@ -1,6 +1,6 @@
-﻿using System.Windows;
+using System.Windows;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.Plot
 {
     public struct LabelledPoint
     {

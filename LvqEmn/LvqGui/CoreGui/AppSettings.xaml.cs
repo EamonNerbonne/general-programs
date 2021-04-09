@@ -1,4 +1,4 @@
-﻿namespace LvqGui
+namespace LvqGui.CoreGui
 {
     public partial class AppSettings
     {

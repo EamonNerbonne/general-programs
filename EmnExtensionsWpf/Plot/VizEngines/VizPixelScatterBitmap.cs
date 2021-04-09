@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.VizEngines
+namespace EmnExtensions.Wpf.Plot.VizEngines
 {
     public sealed class VizPixelScatterBitmap : VizDynamicBitmap<Point[]>, IVizPixelScatter
         //for efficiency reasons, accept data in a Point[] rather than the more general IEnumerable<Point>

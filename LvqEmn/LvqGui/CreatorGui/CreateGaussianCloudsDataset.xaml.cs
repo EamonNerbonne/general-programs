@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Windows;
 
-namespace LvqGui
+namespace LvqGui.CreatorGui
 {
     public sealed partial class CreateGaussianCloudDataset
     {

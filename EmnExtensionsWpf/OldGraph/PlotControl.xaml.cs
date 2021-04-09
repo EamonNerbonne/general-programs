@@ -4,10 +4,10 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
+using EmnExtensions.Wpf.Plot;
 
-namespace EmnExtensions.Wpf.Plot
+namespace EmnExtensions.Wpf.OldGraph
 {
     /// <summary>
     /// Interaction logic for PlotControl.xaml

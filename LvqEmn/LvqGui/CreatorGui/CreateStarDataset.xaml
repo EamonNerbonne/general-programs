@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="LvqGui.CreateStarDataset"
+<UserControl x:Class="LvqGui.CreatorGui.CreateStarDataset"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 

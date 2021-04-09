@@ -16,9 +16,10 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Xps.Packaging;
 using EmnExtensions.MathHelpers;
+using EmnExtensions.Wpf.WpfTools;
 using Microsoft.Win32;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.Plot
 {
     public sealed partial class PlotControl : IPlotContainer
     {
@@ -117,7 +118,7 @@ namespace EmnExtensions.Wpf
                 where graph != null && graph.SupportsColor
                 select graph
             ).ToArray();
-            var randomColors = WpfTools.MakeDistributedColors(ColoredPlots.Length, rnd);
+            var randomColors = WpfTools.WpfTools.MakeDistributedColors(ColoredPlots.Length, rnd);
             foreach (var plotAndColor in ColoredPlots.Zip(randomColors, Tuple.Create)) {
                 plotAndColor.Item1.MetaData.RenderColor = plotAndColor.Item2;
             }
@@ -459,7 +460,7 @@ namespace EmnExtensions.Wpf
                 //manualRender = true;
                 m_dpiX = 288.0;
                 m_dpiY = 288.0;
-                WpfTools.PrintXPS(this, 350, 350, writeTo, FileMode.Create, FileAccess.ReadWrite);
+                WpfTools.WpfTools.PrintXPS(this, 350, 350, writeTo, FileMode.Create, FileAccess.ReadWrite);
             } finally {
                 //manualRender = false;
                 m_dpiX = 96.0;

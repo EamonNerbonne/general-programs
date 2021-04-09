@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Windows;
 using LvqLibCli;
 
-namespace LvqGui
+namespace LvqGui.CreatorGui
 {
     public sealed partial class CreateLvqModel
     {

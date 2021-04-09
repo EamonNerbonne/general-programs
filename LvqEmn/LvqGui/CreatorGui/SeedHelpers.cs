@@ -1,8 +1,8 @@
-﻿// ReSharper disable UnusedMemberInSuper.Global
+// ReSharper disable UnusedMemberInSuper.Global
 
 using EmnExtensions.MathHelpers;
 
-namespace LvqGui
+namespace LvqGui.CreatorGui
 {
     public interface IHasSeed
     {

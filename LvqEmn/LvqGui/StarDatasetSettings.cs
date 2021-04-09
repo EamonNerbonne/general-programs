@@ -1,7 +1,9 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Linq;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
+using EmnExtensions.Wpf.WpfTools;
+using LvqGui.CreatorGui;
 using LvqLibCli;
 
 namespace LvqGui

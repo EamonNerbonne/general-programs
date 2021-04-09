@@ -10,9 +10,10 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Windows.Threading;
+using LvqGui.CreatorGui;
 using LvqLibCli;
 
-namespace LvqGui
+namespace LvqGui.CoreGui
 {
     public sealed class LvqWindowValues : INotifyPropertyChanged
     {

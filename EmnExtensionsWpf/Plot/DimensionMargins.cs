@@ -6,7 +6,7 @@ using System.Linq;
 using System.Windows;
 using EmnExtensions.Text;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.Plot
 {
     [DebuggerDisplay("{AtStart} [] {AtEnd}")]
     [TypeConverter(typeof(DimensionMarginsConverter))]

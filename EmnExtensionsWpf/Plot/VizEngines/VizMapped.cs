@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.VizEngines
+namespace EmnExtensions.Wpf.Plot.VizEngines
 {
     public sealed class VizMapped<TIn, TOut> : IVizEngine<TIn>, ITranformed<TOut>
     {

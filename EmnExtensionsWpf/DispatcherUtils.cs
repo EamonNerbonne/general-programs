@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 
-namespace LvqGui
+namespace EmnExtensions.Wpf
 {
     public static class DispatcherUtils
     {

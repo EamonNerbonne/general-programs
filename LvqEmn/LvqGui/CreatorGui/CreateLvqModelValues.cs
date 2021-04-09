@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using EmnExtensions.Wpf;
+using LvqGui.CoreGui;
 using LvqLibCli;
 
-namespace LvqGui
+namespace LvqGui.CreatorGui
 {
     public sealed class CreateLvqModelValues : HasShorthandBase, IHasSeed
     {

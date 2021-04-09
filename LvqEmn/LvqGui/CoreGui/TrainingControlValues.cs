@@ -11,9 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using EmnExtensions.DebugTools;
+using EmnExtensions.Wpf;
+using LvqGui.LvqPlotting;
 using LvqLibCli;
 
-namespace LvqGui
+namespace LvqGui.CoreGui
 {
     public sealed class TrainingControlValues : INotifyPropertyChanged
     {

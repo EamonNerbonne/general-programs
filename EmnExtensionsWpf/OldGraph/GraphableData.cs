@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Media;
+using EmnExtensions.Wpf.Plot;
 
-namespace EmnExtensions.Wpf.Plot
+namespace EmnExtensions.Wpf.OldGraph
 {
     public abstract class GraphableData
     {

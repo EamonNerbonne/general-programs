@@ -1,6 +1,7 @@
-using System;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -10,8 +11,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using EmnExtensions.Threading;
 using LvqLibCli;
+using EmnExtensions.Wpf;
+using LvqGui.LvqPlotting;
 
-namespace LvqGui
+namespace LvqGui.CoreGui
 {
     public sealed partial class LvqWindow
     {

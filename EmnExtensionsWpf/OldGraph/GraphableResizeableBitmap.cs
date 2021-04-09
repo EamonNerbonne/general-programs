@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace EmnExtensions.Wpf.Plot
+namespace EmnExtensions.Wpf.OldGraph
 {
     public abstract class GraphableResizeableBitmap : GraphableData
     {
