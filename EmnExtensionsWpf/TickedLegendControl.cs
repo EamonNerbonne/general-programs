@@ -32,7 +32,7 @@ namespace EmnExtensions.Wpf
         public Brush TickColor
         {
             set {
-                tickPen = new Pen(value, 1.5) {
+                tickPen = new(value, 1.5) {
                     StartLineCap = PenLineCap.Round,
                     EndLineCap = PenLineCap.Round,
                     LineJoin = PenLineJoin.Round
@@ -46,7 +46,7 @@ namespace EmnExtensions.Wpf
         public TickedLegendControl()
         {
             TickColor = Brushes.Black;
-            labelType = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Verdana"));
+            labelType = new(new("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new("Verdana"));
             //            StartVal = 0;
             //          EndVal = 1;
         }
@@ -285,8 +285,8 @@ namespace EmnExtensions.Wpf
                     (val, rank) => {
                         var pixelPos = (val - startVal) * scale;
 
-                        context.BeginFigure(new Point(pixelPos, 0), false, false);
-                        context.LineTo(new Point(pixelPos, (4 - rank) * 4), true, false);
+                        context.BeginFigure(new(pixelPos, 0), false, false);
+                        context.LineTo(new(pixelPos, (4 - rank) * 4), true, false);
 
                         if (rank == 0) {
                             rank0ValAtPixel(val, pixelPos);

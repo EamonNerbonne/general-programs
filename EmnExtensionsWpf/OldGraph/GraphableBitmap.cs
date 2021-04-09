@@ -31,8 +31,8 @@ namespace EmnExtensions.Wpf.OldGraph
             set => DataBounds = ComputeDataBounds(InnerDrawingRect, value, DrawingRect);
         }
 
-        protected override Rect DrawingRect => new Rect(0, 0, bmp.Width, bmp.Height);
-        protected Rect InnerDrawingRect => new Rect(0.5 * (bmp.Width / bmp.PixelWidth), 0.5 * (bmp.Height / bmp.PixelHeight), bmp.Width - bmp.Width / bmp.PixelWidth, bmp.Height - bmp.Height / bmp.PixelHeight);
+        protected override Rect DrawingRect => new(0, 0, bmp.Width, bmp.Height);
+        protected Rect InnerDrawingRect => new(0.5 * (bmp.Width / bmp.PixelWidth), 0.5 * (bmp.Height / bmp.PixelHeight), bmp.Width - bmp.Width / bmp.PixelWidth, bmp.Height - bmp.Height / bmp.PixelHeight);
 
         protected override void DrawUntransformedIntoDrawingRect(DrawingContext context) => context.DrawImage(bmp, DrawingRect);
     }

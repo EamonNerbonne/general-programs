@@ -12,7 +12,7 @@ namespace LvqGui.CreatorGui
     {
         readonly LvqWindowValues owner;
 
-        GaussianCloudDatasetSettings settings = new GaussianCloudDatasetSettings();
+        GaussianCloudDatasetSettings settings = new();
 
         public GaussianCloudDatasetSettings Settings
         {

@@ -65,7 +65,7 @@ namespace EmnExtensions.Algorithms
                         maxDensity = density;
                     }
 
-                    yield return new Data {
+                    yield return new() {
                         point = curSum / (endIndex - startIndex),
                         density = density
                     };

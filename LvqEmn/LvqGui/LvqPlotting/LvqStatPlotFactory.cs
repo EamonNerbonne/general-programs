@@ -15,10 +15,10 @@ namespace LvqGui.LvqPlotting
 {
     static class LvqStatPlotFactory
     {
-        static readonly ConcurrentDictionary<int, Color[]> colorLookup = new ConcurrentDictionary<int, Color[]>();
+        static readonly ConcurrentDictionary<int, Color[]> colorLookup = new();
 
         static Color[] GetColors(int length) => colorLookup.GetOrAdd(length, len =>
-            WpfTools.MakeDistributedColors(len, new MersenneTwister(42))
+            WpfTools.MakeDistributedColors(len, new(42))
         );
 
 
@@ -75,7 +75,7 @@ namespace LvqGui.LvqPlotting
         public static bool IsNnPlot(IVizEngine plot) => IsNnPlot(plot.MetaData);
 
 
-        public static readonly DashStyle CurrPlotDashStyle = new DashStyle(new[] { 0.0, 3.0 }, 0.0);
+        public static readonly DashStyle CurrPlotDashStyle = new(new[] { 0.0, 3.0 }, 0.0);
         static IVizEngine<LvqStatPlots> MakeCurrentModelPlot(string yunitLabel, Color color, int statIdx, bool isTest, bool isNn) => MakePlotHelper(null, color, yunitLabel, isTest ? IsCurrTestPlotTag : isNn ? IsCurrNnPlotTag : IsCurrPlotTag, SelectedModelToPointsMapper(statIdx), CurrPlotDashStyle);
 
         static IVizEngine<LvqStatPlots> MakeMeanPlot(string dataLabel, string yunitLabel, Color color, int statIdx, bool isTest, bool isNn) => MakePlotHelper(dataLabel, color, yunitLabel, isTest ? IsTestPlotTag : isNn ? IsNnPlotTag : null, ModelToPointsMapper(statIdx));

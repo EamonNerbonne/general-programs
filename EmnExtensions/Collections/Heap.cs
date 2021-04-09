@@ -31,16 +31,16 @@ namespace EmnExtensions.Collections
 
     public static class Heap
     {
-        public static HeapFactory<T> Factory<T>() => new HeapFactory<T>();
+        public static HeapFactory<T> Factory<T>() => new();
 
         public static IHeap<T> CreateSelfTracked<T>()
-            where T : IComparable<T>, IHeapIndexed => new Heap<T, SelfSink<T>, ComparableComparer<T>>(new SelfSink<T>(), new ComparableComparer<T>());
+            where T : IComparable<T>, IHeapIndexed => new Heap<T, SelfSink<T>, ComparableComparer<T>>(new(), new());
 
         public static IHeap<T> CreateUntracked<T>()
-            where T : IComparable<T> => new Heap<T, NoSink<T>, ComparableComparer<T>>(new NoSink<T>(), new ComparableComparer<T>());
+            where T : IComparable<T> => new Heap<T, NoSink<T>, ComparableComparer<T>>(new(), new());
 
         public static IHeap<T> CreateTracked<T>(Action<T, int> indexChanged)
-            where T : IComparable<T> => new Heap<T, DelegateSink<T>, ComparableComparer<T>>(CreateDelegateSink(indexChanged), new ComparableComparer<T>());
+            where T : IComparable<T> => new Heap<T, DelegateSink<T>, ComparableComparer<T>>(CreateDelegateSink(indexChanged), new());
 
 
         public struct HeapFactory<T>
@@ -94,7 +94,7 @@ namespace EmnExtensions.Collections
             public int Compare(T x, T y) => x.CompareTo(y);
         }
 
-        static DelegateSink<T> CreateDelegateSink<T>(Action<T, int> sink) => new DelegateSink<T>(sink);
+        static DelegateSink<T> CreateDelegateSink<T>(Action<T, int> sink) => new(sink);
 
         struct DelegateSink<T> : IHeapIndexSink<T>
         {
@@ -275,7 +275,7 @@ namespace EmnExtensions.Collections
             }
 
             var newIndex = backingCount++;
-            Bubble(newIndex, new Entry { Cost = cost, Item = elem });
+            Bubble(newIndex, new() { Cost = cost, Item = elem });
         }
 
         public int Count => backingCount;
@@ -342,7 +342,7 @@ namespace EmnExtensions.Collections
                 throw new IndexOutOfRangeException();
             }
 
-            Sink(0, new Entry { Item = backingStore[0].Item, Cost = newCost });
+            Sink(0, new() { Item = backingStore[0].Item, Cost = newCost });
         }
 
         public void Delete(int indexOfItem)

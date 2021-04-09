@@ -26,7 +26,7 @@ namespace LvqGui.CoreGui
         void _propertyChanged(string propertyName)
         {
             if (PropertyChanged != null) {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                PropertyChanged(this, new(propertyName));
             }
         }
 
@@ -254,7 +254,7 @@ namespace LvqGui.CoreGui
                     _AnimateTraining = value;
                     _propertyChanged("AnimateTraining");
                     if (_AnimateTraining) {
-                        stopTraining = new CancellationTokenSource();
+                        stopTraining = new();
                         trainingTask = trainingTask == null
                             ? Task.Factory.StartNew(() => DoAnimatedTraining(stopTraining.Token), stopTraining.Token)
                             : trainingTask.ContinueWith(t => DoAnimatedTraining(stopTraining.Token), stopTraining.Token);
@@ -338,7 +338,7 @@ namespace LvqGui.CoreGui
         {
             var uptoIters = ItersToTrainUpto;
             var allModels = Owner.LvqModels.ToArray();
-            Parallel.ForEach(Partitioner.Create(allModels, true), new ParallelOptions { MaxDegreeOfParallelism = 3, CancellationToken = Owner.WindowClosingToken }, model => {
+            Parallel.ForEach(Partitioner.Create(allModels, true), new() { MaxDegreeOfParallelism = 3, CancellationToken = Owner.WindowClosingToken }, model => {
                     var dataset = model.InitSet;
                     TrainSelectedModel((_dataset, _model) => {
                             using (new DTimer("Training up to " + uptoIters + " iters")) {

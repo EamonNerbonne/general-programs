@@ -26,9 +26,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         //DrawingGroup painting = new DrawingGroup();
         const int EXTRA_RESIZE_PIX = 128;
         protected WriteableBitmap m_bmp;
-        readonly RectangleGeometry m_clipGeom = new RectangleGeometry();
-        readonly MatrixTransform m_bitmapToDisplayTransform = new MatrixTransform();
-        readonly DrawingGroup m_drawing = new DrawingGroup();
+        readonly RectangleGeometry m_clipGeom = new();
+        readonly MatrixTransform m_bitmapToDisplayTransform = new();
+        readonly DrawingGroup m_drawing = new();
 
         public sealed override void DrawGraph(DrawingContext context)
         {
@@ -36,7 +36,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             context.DrawDrawing(m_drawing);
         }
 
-        static Rect SnapRect(Rect r, double multX, double multY) => new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY));
+        static Rect SnapRect(Rect r, double multX, double multY) => new(new(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY));
 
         public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip, double dpiX, double dpiY)
         {
@@ -66,12 +66,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH || dpiX != m_bmp.DpiX || dpiY != m_bmp.DpiY) {
                 var width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + EXTRA_RESIZE_PIX);
                 var height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + EXTRA_RESIZE_PIX);
-                m_bmp = new WriteableBitmap(width, height, dpiX, dpiY, PixelFormats.Bgra32, null);
+                m_bmp = new(width, height, dpiX, dpiY, PixelFormats.Bgra32, null);
                 using (var context = m_drawing.Open()) {
-                    context.PushGuidelineSet(new GuidelineSet(new[] { 0.0 }, new[] { 0.0 }));
+                    context.PushGuidelineSet(new(new[] { 0.0 }, new[] { 0.0 }));
                     context.PushClip(m_clipGeom);
                     context.PushTransform(m_bitmapToDisplayTransform);
-                    context.DrawImage(m_bmp, new Rect(0, 0, m_bmp.Width, m_bmp.Height));
+                    context.DrawImage(m_bmp, new(0, 0, m_bmp.Width, m_bmp.Height));
                     context.Pop();
                     context.Pop();
                     context.Pop();

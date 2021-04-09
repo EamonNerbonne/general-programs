@@ -16,7 +16,7 @@ namespace EmnExtensions.MathHelpers
             Weight = _weightSum;
         }
 
-        public static MeanVarDistrib Init(double val, double weight = 1.0) => new MeanVarDistrib(weight, 0.0, val); //equivalent to adding to an empty distribution.
+        public static MeanVarDistrib Init(double val, double weight = 1.0) => new(weight, 0.0, val); //equivalent to adding to an empty distribution.
 
         public MeanVarDistrib Add(double val, double weight = 1.0)
         {
@@ -27,7 +27,7 @@ namespace EmnExtensions.MathHelpers
             var newWeightSum = Weight + weight;
             var mScale = weight / newWeightSum;
             var sScale = Weight * weight / newWeightSum;
-            return new MeanVarDistrib(newWeightSum, sX + (val - Mean) * (val - Mean) * sScale, Mean + (val - Mean) * mScale);
+            return new(newWeightSum, sX + (val - Mean) * (val - Mean) * sScale, Mean + (val - Mean) * mScale);
         }
 
         public MeanVarDistrib Add(MeanVarDistrib other)
@@ -35,7 +35,7 @@ namespace EmnExtensions.MathHelpers
             var newWeightSum = Weight + other.Weight;
             var mScale = other.Weight / newWeightSum;
             var sScale = Weight * other.Weight / newWeightSum;
-            return new MeanVarDistrib(newWeightSum, sX + other.sX + (other.Mean - Mean) * (other.Mean - Mean) * sScale, Mean + (other.Mean - Mean) * mScale);
+            return new(newWeightSum, sX + other.sX + (other.Mean - Mean) * (other.Mean - Mean) * sScale, Mean + (other.Mean - Mean) * mScale);
         }
 
         public double Mean { get; }

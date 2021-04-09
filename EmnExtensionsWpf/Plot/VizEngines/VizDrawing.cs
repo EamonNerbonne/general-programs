@@ -5,8 +5,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 {
     public class VizDrawing : PlotVizBase<Drawing>
     {
-        readonly MatrixTransform m_trans = new MatrixTransform();
-        readonly RectangleGeometry m_clip = new RectangleGeometry();
+        readonly MatrixTransform m_trans = new();
+        readonly RectangleGeometry m_clip = new();
 
         public VizDrawing(IPlotMetaData owner) : base(owner) { }
 

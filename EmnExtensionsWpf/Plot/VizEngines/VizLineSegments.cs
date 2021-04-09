@@ -18,7 +18,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         StreamGeometry geomCache;
         Point[] currentPoints;
 
-        public VizLineSegments(IPlotMetaData owner) => impl = new VizGeometry(owner) { AutosizeBounds = false };
+        public VizLineSegments(IPlotMetaData owner) => impl = new(owner) { AutosizeBounds = false };
 
         protected override IVizEngine<StreamGeometry> Implementation => impl;
 

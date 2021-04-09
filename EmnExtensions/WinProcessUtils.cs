@@ -53,7 +53,7 @@ namespace EmnExtensions
                     proc.PriorityClass = startOptions.Priority.Value;
                 }
 
-                StringBuilder error = new StringBuilder(), output = new StringBuilder();
+                StringBuilder error = new(), output = new();
                 Thread.MemoryBarrier();
                 proc.ErrorDataReceived += (s, e) => error.Append(e.Data);
                 proc.OutputDataReceived += (s, e) => output.Append(e.Data);
@@ -61,7 +61,7 @@ namespace EmnExtensions
                 proc.BeginOutputReadLine();
                 using (var inputStream =
                     startOptions.StandardInputEncoding != null
-                        ? new StreamWriter(proc.StandardInput.BaseStream, startOptions.StandardInputEncoding)
+                        ? new(proc.StandardInput.BaseStream, startOptions.StandardInputEncoding)
                         : proc.StandardInput) {
                     if (input != null) {
                         inputStream.Write(input);
@@ -70,7 +70,7 @@ namespace EmnExtensions
 
                 proc.WaitForExit();
                 Thread.MemoryBarrier();
-                return new ProcessExecutionResult { StandardOutputContents = output.ToString(), StandardErrorContents = error.ToString(), ExitCode = proc.ExitCode };
+                return new() { StandardOutputContents = output.ToString(), StandardErrorContents = error.ToString(), ExitCode = proc.ExitCode };
             }
         }
     }

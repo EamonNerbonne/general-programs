@@ -28,9 +28,9 @@ namespace LvqGui.CreatorGui
         IDatasetCreator IDatasetCreator.Clone() => Clone();
         protected abstract string RegexText { get; }
         protected abstract string GetShorthand();
-        protected static readonly T defaults = new T();
+        protected static readonly T defaults = new();
 
-        public static readonly Regex shR = new Regex(defaults.RegexText, RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
+        public static readonly Regex shR = new(defaults.RegexText, RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
         public string Shorthand
         {
@@ -40,7 +40,7 @@ namespace LvqGui.CreatorGui
 
         public string ShorthandErrors => ShorthandHelper.VerifyShorthand(this, shR);
         public abstract LvqDatasetCli CreateDataset();
-        public static T ParseSettings(string shorthand) => new T { Shorthand = shorthand };
+        public static T ParseSettings(string shorthand) => new() { Shorthand = shorthand };
         public static T TryParse(string shorthand) => ShorthandHelper.TryParseShorthand(defaults, shR, shorthand).AsNullable();
     }
 

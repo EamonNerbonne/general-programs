@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using EmnExtensions;
@@ -22,8 +22,8 @@ namespace LvqGui
 
         public LrAndError(LvqModelSettingsCli settings, LvqMultiModel.Statistic stats, int nnIdx)
         {
-            LR = new LearningRates(settings);
-            Errors = new ErrorRates(stats, nnIdx);
+            LR = new(settings);
+            Errors = new(stats, nnIdx);
             cumLearningRate = stats.Value[LvqTrainingStatCli.CumLearningRateI];
         }
 
@@ -42,9 +42,9 @@ namespace LvqGui
             var errsThenCumulLr0 = resLrThenErr[1].Split(';');
 
             var errs = errsThenCumulLr0.Take(3).Select(errStr => errStr.Split('~').Select(double.Parse).ToArray()).Select(errval => Tuple.Create(errval[0], errval.Skip(1).FirstOrDefault())).ToArray();
-            return new LrAndError(
-                new LearningRates(ClosestMatch(lr0range, lrs[0]), ClosestMatch(lrPrange, lrs[1]), ClosestMatch(lrBrange, lrs[2])),
-                new ErrorRates(errs[0].Item1, errs[0].Item2, errs[1].Item1, errs[1].Item2, errs[2].Item1, errs[2].Item2),
+            return new(
+                new(ClosestMatch(lr0range, lrs[0]), ClosestMatch(lrPrange, lrs[1]), ClosestMatch(lrBrange, lrs[2])),
+                new(errs[0].Item1, errs[0].Item2, errs[1].Item1, errs[1].Item2, errs[2].Item1, errs[2].Item2),
                 double.Parse(errsThenCumulLr0[3].Trim(' ', '[', ']'))
             );
         }

@@ -254,7 +254,7 @@ namespace LvqGui
             );
         }
 
-        static readonly object fsSync = new object();
+        static readonly object fsSync = new();
 
         bool AttemptToClaimSettings(LvqModelSettingsCli settings, TextWriter sink)
         {
@@ -364,7 +364,7 @@ namespace LvqGui
             var mSettingsShorthand = settings.ToShorthand();
             var prefix = LvqMultiModel.ItersPrefix(_itersToRun) + "-";
 
-            return new FileInfo(Path.Combine(datasetResultsDir.FullName + "\\", prefix + mSettingsShorthand + ".txt"));
+            return new(Path.Combine(datasetResultsDir.FullName + "\\", prefix + mSettingsShorthand + ".txt"));
         }
 
         static DirectoryInfo ResultsDatasetDir(LvqDatasetCli dataset)
@@ -373,7 +373,7 @@ namespace LvqGui
                 return LrGuesser.resultsDir.CreateSubdirectory("base");
             }
 
-            return new DirectoryInfo(LrGuesser.resultsDir.FullName + "\\" + dataset.DatasetLabel);
+            return new(LrGuesser.resultsDir.FullName + "\\" + dataset.DatasetLabel);
         }
 
         public static IEnumerable<LvqModelType> ModelTypes

@@ -57,6 +57,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         public abstract void OnRenderOptionsChanged();
         public abstract bool SupportsColor { get; }
 
-        public virtual Drawing SampleDrawing => MetaData.RenderColor == null ? null : new GeometryDrawing(new SolidColorBrush(MetaData.RenderColor.Value).AsFrozen(), null, new RectangleGeometry(new Rect(0, 0, 10, 10)));
+        public virtual Drawing SampleDrawing => MetaData.RenderColor == null ? null : new GeometryDrawing(new SolidColorBrush(MetaData.RenderColor.Value).AsFrozen(), null, new RectangleGeometry(new(0, 0, 10, 10)));
     }
 }

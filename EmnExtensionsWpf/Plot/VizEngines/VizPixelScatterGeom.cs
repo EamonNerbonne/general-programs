@@ -23,7 +23,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             InvalidateBounds();
         }
 
-        public VizPixelScatterGeom(IPlotMetaData metadata) => impl = new VizGeometry(metadata) { AutosizeBounds = false };
+        public VizPixelScatterGeom(IPlotMetaData metadata) => impl = new(metadata) { AutosizeBounds = false };
 
         void InvalidateBounds()
         {

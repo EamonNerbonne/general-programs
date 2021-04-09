@@ -21,7 +21,7 @@ namespace LvqGui.CreatorGui
         void _propertyChanged(string propertyName)
         {
             if (PropertyChanged != null) {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                PropertyChanged(this, new(propertyName));
             }
         }
 
@@ -122,7 +122,7 @@ namespace LvqGui.CreatorGui
             return null;
         }
 
-        LvqDatasetCli LoadDataset(FileInfo dataFile, uint seed, int folds, FileInfo testFile = null) => LoadDatasetImpl.LoadData(dataFile, testFile, new LoadedDatasetSettings { TestFilename = testFile == null ? null : testFile.Name, ExtendDataByCorrelation = owner.ExtendDataByCorrelation, NormalizeDimensions = owner.NormalizeDimensions, NormalizeByScaling = owner.NormalizeByScaling, InstanceSeed = seed, Folds = folds });
+        LvqDatasetCli LoadDataset(FileInfo dataFile, uint seed, int folds, FileInfo testFile = null) => LoadDatasetImpl.LoadData(dataFile, testFile, new() { TestFilename = testFile == null ? null : testFile.Name, ExtendDataByCorrelation = owner.ExtendDataByCorrelation, NormalizeDimensions = owner.NormalizeDimensions, NormalizeByScaling = owner.NormalizeByScaling, InstanceSeed = seed, Folds = folds });
 
         public void ConfirmCreation()
         {

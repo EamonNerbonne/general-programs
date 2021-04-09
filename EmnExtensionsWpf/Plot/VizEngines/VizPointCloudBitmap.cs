@@ -337,7 +337,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         {
             try {
                 m_bmp.WritePixels(
-                    new Int32Rect(0, 0, pW, pH),
+                    new(0, 0, pW, pH),
                     m_image,
                     pW * sizeof(uint),
                     0,

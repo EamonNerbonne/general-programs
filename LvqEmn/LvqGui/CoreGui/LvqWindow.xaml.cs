@@ -18,7 +18,7 @@ namespace LvqGui.CoreGui
 {
     public sealed partial class LvqWindow
     {
-        readonly CancellationTokenSource cts = new CancellationTokenSource();
+        readonly CancellationTokenSource cts = new();
         public CancellationToken ClosingToken => cts.Token;
 
         public LvqWindow()
@@ -116,7 +116,7 @@ namespace LvqGui.CoreGui
         void ModelChanged()
         {
             if (lvqPlotContainer == null && Values.TrainingControlValues.SelectedDataset != null && Values.TrainingControlValues.SelectedLvqModel != null) {
-                lvqPlotContainer = new LvqStatPlotsContainer(ClosingToken);
+                lvqPlotContainer = new(ClosingToken);
             }
 
             if (lvqPlotContainer != null) {

@@ -33,6 +33,6 @@ namespace LvqGui.LvqPlotting
             }
         }
 
-        public static LvqStatName Create(string compoundName, int index) => new LvqStatName(compoundName, index);
+        public static LvqStatName Create(string compoundName, int index) => new(compoundName, index);
     }
 }

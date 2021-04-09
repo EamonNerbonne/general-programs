@@ -8,7 +8,7 @@ namespace EmnExtensions.Wpf.OldGraph
     public class GraphableGeometry : GraphableData
     {
         Geometry m_Geometry;
-        readonly MatrixTransform m_ProjectionTransform = new MatrixTransform();
+        readonly MatrixTransform m_ProjectionTransform = new();
         bool m_AutosizeBounds = true;
         Brush m_Fill = Brushes.Black;
         Pen m_Pen = defaultPen;
@@ -100,7 +100,7 @@ namespace EmnExtensions.Wpf.OldGraph
                 DataBounds = m_Geometry.Bounds; //this will trigger OnChanged if neeeded.
                 m_Geometry.Transform = m_ProjectionTransform;
                 changingGeometry = false;
-                Margin = new Thickness(Pen.Thickness / 2.0); //this will trigger OnChanged if neeeded.
+                Margin = new(Pen.Thickness / 2.0); //this will trigger OnChanged if neeeded.
             }
         }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -24,7 +24,7 @@ namespace EmnExtensions.Text
             }
 
             categorycache = new byte[char.MaxValue + 1];
-            reasonablechar = new BitArray(char.MaxValue + 1);
+            reasonablechar = new(char.MaxValue + 1);
             //translatedchar = new char[(int)char.MaxValue + 1];
             foreach (var c in Enumerable.Range(0, char.MaxValue + 1)) {
                 var cat = CharUnicodeInfo.GetUnicodeCategory((char)c);

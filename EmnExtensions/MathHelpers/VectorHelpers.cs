@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EmnExtensions.MathHelpers
 {
@@ -9,7 +9,7 @@ namespace EmnExtensions.MathHelpers
         public Vector(double[] v) => elems = v;
         public int N => elems.Length;
 
-        public static implicit operator Vector(double[] v) => new Vector { elems = v };
+        public static implicit operator Vector(double[] v) => new() { elems = v };
         public static implicit operator double[](Vector v) => v.elems;
         public double[] ToArray() => elems;
 

@@ -22,7 +22,7 @@ namespace EmnExtensions.Wpf
             var geom = new PathGeometry();
             PathFigure fig = null;
             foreach (var startPoint in lineOfPoints.Take(1)) {
-                fig = new PathFigure { StartPoint = startPoint };
+                fig = new() { StartPoint = startPoint };
                 geom.Figures.Add(fig);
             }
 
@@ -56,7 +56,7 @@ namespace EmnExtensions.Wpf
             var geom = new PathGeometry();
             PathFigure fig = null;
             foreach (var startPoint in lineOfPoints.Take(1)) {
-                fig = new PathFigure { StartPoint = startPoint };
+                fig = new() { StartPoint = startPoint };
                 geom.Figures.Add(fig);
             }
 
@@ -81,11 +81,11 @@ namespace EmnExtensions.Wpf
 
             var dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(lineOfPoints);
             const double maxSafe = int.MaxValue / 2.0;
-            var safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
+            var safeBounds = new Rect(new(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
             var dataToGeom = TransformShape(dataBounds, safeBounds, false);
             var geomToData = TransformShape(safeBounds, dataBounds, false);
             var scaledPoints = lineOfPoints.Select(dataToGeom.Transform);
-            return Line(scaledPoints, false, new MatrixTransform(geomToData));
+            return Line(scaledPoints, false, new(geomToData));
         }
 
         public static StreamGeometry Line(IEnumerable<Point> lineOfPoints, bool makeFillable = false, MatrixTransform withTransform = null)
@@ -122,11 +122,11 @@ namespace EmnExtensions.Wpf
             var dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(upper);
             dataBounds.Union(VizPixelScatterHelpers.ComputeOuterBounds(lower));
             const double maxSafe = int.MaxValue / 2.0;
-            var safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
+            var safeBounds = new Rect(new(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
             var dataToGeom = TransformShape(dataBounds, safeBounds, false);
             var geomToData = TransformShape(safeBounds, dataBounds, false);
             var scaledPointsInCircle = upper.Concat(lower.Reverse()).Select(dataToGeom.Transform);
-            return Line(scaledPointsInCircle, true, new MatrixTransform(geomToData));
+            return Line(scaledPointsInCircle, true, new(geomToData));
         }
 
         /// <summary>
@@ -252,7 +252,7 @@ namespace EmnExtensions.Wpf
             var figs = toGeom.Figures;
             var lastFig = figs.Count > 0 ? figs[^1] : null;
             if (lastFig == null) {
-                lastFig = new PathFigure {
+                lastFig = new() {
                     StartPoint = point
                 };
                 toGeom.Figures.Add(lastFig);
@@ -261,8 +261,8 @@ namespace EmnExtensions.Wpf
             }
         }
 
-        public static Rect ExpandRect(this Rect src, Thickness withMargin) => new Rect(src.X - withMargin.Left, src.Y - withMargin.Top, src.Width + withMargin.Left + withMargin.Right, src.Height + withMargin.Top + withMargin.Bottom);
-        public static Rect ShrinkRect(this Rect src, Thickness withMargin) => new Rect(src.X + withMargin.Left, src.Y + withMargin.Top, src.Width - withMargin.Left - withMargin.Right, src.Height - withMargin.Top - withMargin.Bottom);
+        public static Rect ExpandRect(this Rect src, Thickness withMargin) => new(src.X - withMargin.Left, src.Y - withMargin.Top, src.Width + withMargin.Left + withMargin.Right, src.Height + withMargin.Top + withMargin.Bottom);
+        public static Rect ShrinkRect(this Rect src, Thickness withMargin) => new(src.X + withMargin.Left, src.Y + withMargin.Top, src.Width - withMargin.Left - withMargin.Right, src.Height - withMargin.Top - withMargin.Bottom);
 
         public static Matrix TransformShape(Rect fromPosition, Rect toPosition, bool flipVertical)
         {
@@ -316,13 +316,13 @@ namespace EmnExtensions.Wpf
 
         public static Drawing MakeBitmapDrawing(BitmapSource bitmap, double yStart, double yEnd, double xStart, double xEnd)
         {
-            var img = new ImageDrawing(bitmap, new Rect(0, 0, bitmap.Width, bitmap.Height));
+            var img = new ImageDrawing(bitmap, new(0, 0, bitmap.Width, bitmap.Height));
 
             var trans = Matrix.Identity;
             trans.Scale((xEnd - xStart) / bitmap.Width, (yEnd - yStart) / bitmap.Height);
             trans.Translate(xStart, yStart);
             var transD = new MatrixTransform(trans);
-            var clipRect = transD.TransformBounds(new Rect(0, 0, bitmap.Width, bitmap.Height));
+            var clipRect = transD.TransformBounds(new(0, 0, bitmap.Width, bitmap.Height));
             var retval = new DrawingGroup();
             using (var context = retval.Open()) {
                 context.PushClip(new RectangleGeometry(clipRect));

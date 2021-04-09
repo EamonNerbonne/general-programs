@@ -108,8 +108,8 @@ namespace LvqGui
         }
 
         public LvqTrainingStatCli[] SelectedStats(int submodel) => subModels[submodel].TrainingStats;
-        readonly object statCacheSync = new object();
-        readonly List<Statistic> statCache = new List<Statistic>();
+        readonly object statCacheSync = new();
+        readonly List<Statistic> statCache = new();
         Statistic[] cachedStatCache = { };
         int statProcIdx;
 
@@ -268,7 +268,7 @@ namespace LvqGui
             TrainImpl(cancel, epochsCurrent, epochsToTrainUpto);
         }
 
-        static readonly BlockingCollection<string> toLog = new BlockingCollection<string>();
+        static readonly BlockingCollection<string> toLog = new();
 
         static LvqMultiModel() => new Thread(() => {
                 using (var stream = File.Open(Path.Combine(FSUtil.FindDataDir("lvqlog").FullName + "\\", "training-" + DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture) + ".log"),
@@ -427,7 +427,7 @@ namespace LvqGui
 
             var nativeColorsPerClass = NativeColorsPerClassAndBlack(dataset);
             var boundaryImage = closestClass.IsSet() ? BoundaryImageFor(closestClass, nativeColorsPerClass, width, renderwidth, height, renderheight) : null;
-            return new ModelProjectionAndImage {
+            return new() {
                 Width = width,
                 Height = height,
                 ImageData = boundaryImage,
@@ -457,10 +457,10 @@ namespace LvqGui
             height = Math.Max(height, 1);
             if (rect.Width / width < rect.Height / height) {
                 var scale = rect.Height / height / (rect.Width / width);
-                return new Rect(rect.X - rect.Width * (scale - 1) / 2, rect.Y, rect.Width * scale, rect.Height);
+                return new(rect.X - rect.Width * (scale - 1) / 2, rect.Y, rect.Width * scale, rect.Height);
             } else {
                 var scale = rect.Width / width / (rect.Height / height);
-                return new Rect(rect.X, rect.Y - rect.Height * (scale - 1) / 2, rect.Width, rect.Height * scale);
+                return new(rect.X, rect.Y - rect.Height * (scale - 1) / 2, rect.Width, rect.Height * scale);
             }
         }
 
@@ -526,7 +526,7 @@ namespace LvqGui
                         || val != closestClass.arr[addr - closestClass.cols]
                         || val != closestClass.arr[addr + closestClass.cols]
                     ) {
-                        edges.Add(new IntPoint { X = x, Y = y });
+                        edges.Add(new() { X = x, Y = y });
                     }
                 }
             }

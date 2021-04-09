@@ -21,7 +21,7 @@ namespace EmnExtensions
             public int normalCount;
 #endif
             readonly LowPriorityTaskScheduler owner;
-            readonly SemaphoreSlim sem = new SemaphoreSlim(1);
+            readonly SemaphoreSlim sem = new(1);
             bool shouldExit;
 
             public WorkerThread(LowPriorityTaskScheduler owner, ThreadPriority priority)
@@ -60,7 +60,7 @@ namespace EmnExtensions
         }
 
 #if FIFO_TASKS
-        readonly ConcurrentQueue<Task> tasks = new ConcurrentQueue<Task>();
+        readonly ConcurrentQueue<Task> tasks = new();
         void AddTaskToQueue(Task task) => tasks.Enqueue(task);
         bool TryGetQueuedTask(out Task retval) => tasks.TryDequeue(out retval);
         bool TasksAreQueued() => tasks.Count > 0;
@@ -72,7 +72,7 @@ namespace EmnExtensions
 #endif
 
 #if FIFO_THREADS
-        readonly ConcurrentQueue<WorkerThread> threads = new ConcurrentQueue<WorkerThread>();
+        readonly ConcurrentQueue<WorkerThread> threads = new();
         bool TryGetThread(out WorkerThread thread) => threads.TryDequeue(out thread);
         void AddThread(WorkerThread thread) => threads.Enqueue(thread);
 #else
@@ -176,6 +176,6 @@ namespace EmnExtensions
         }
 
         public override int MaximumConcurrencyLevel { get; }
-        public static LowPriorityTaskScheduler DefaultLowPriorityScheduler { get; } = new LowPriorityTaskScheduler();
+        public static LowPriorityTaskScheduler DefaultLowPriorityScheduler { get; } = new();
     }
 }

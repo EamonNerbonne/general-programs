@@ -6,7 +6,7 @@ namespace EmnExtensions.MathHelpers
     public static class RndHelper
     {
         public static double NextNorm(this Random r) => MakeNormal(r.NextDouble(), r.NextDouble());
-        static readonly RNGCryptoServiceProvider cryptGen = new RNGCryptoServiceProvider();
+        static readonly RNGCryptoServiceProvider cryptGen = new();
         static readonly float MaxValF = ComputeMaxValF();
         static readonly double MaxValD = ComputeMaxValD();
 
@@ -74,7 +74,7 @@ namespace EmnExtensions.MathHelpers
         {
             get {
                 if (randomImpl == null) {
-                    randomImpl = new MersenneTwister();
+                    randomImpl = new();
                 }
 
                 return randomImpl;

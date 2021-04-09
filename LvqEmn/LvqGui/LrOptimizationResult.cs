@@ -84,7 +84,7 @@ namespace LvqGui
                 return null;
             }
 
-            return new LrOptimizationResult(resultFile, itersAndSettings.Item2, itersAndSettings.Item3);
+            return new(resultFile, itersAndSettings.Item2, itersAndSettings.Item3);
         }
 
 

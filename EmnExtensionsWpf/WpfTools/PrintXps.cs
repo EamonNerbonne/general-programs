@@ -67,7 +67,7 @@ namespace EmnExtensions.Wpf.WpfTools
                     el.UpdateLayout();
                     var margin_compensating = new Size(reqWidth + DimensionMargins.FromThicknessX(el.Margin).Sum, reqHeight + DimensionMargins.FromThicknessY(el.Margin).Sum);
                     el.Measure(margin_compensating);
-                    el.Arrange(new Rect(margin_compensating));
+                    el.Arrange(new(margin_compensating));
                 }
 
 
@@ -84,7 +84,7 @@ namespace EmnExtensions.Wpf.WpfTools
 #if USE_PAGED_XPS_SAVE
                     writer.Write(page);
 #else
-                    writer.Write(el, new PrintTicket { OutputQuality = OutputQuality.High });
+                    writer.Write(el, new() { OutputQuality = OutputQuality.High });
 #endif
                 }
             } finally {

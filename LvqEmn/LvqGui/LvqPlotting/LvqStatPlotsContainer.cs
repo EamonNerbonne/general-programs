@@ -21,7 +21,7 @@ namespace LvqGui.LvqPlotting
 {
     public sealed class LvqStatPlotsContainer : IDisposable
     {
-        readonly object plotsSync = new object();
+        readonly object plotsSync = new();
         LvqStatPlots subplots;
 
         readonly Dispatcher lvqPlotDispatcher;
@@ -46,7 +46,7 @@ namespace LvqGui.LvqPlotting
 
                             var modelChange = oldsubplots == null || oldsubplots.dataset != dataset || oldsubplots.model != model || oldsubplots.plots.First().Dispatcher != lvqPlotDispatcher;
                             if (modelChange) {
-                                model.Tag = subplots = new LvqStatPlots(dataset, model);
+                                model.Tag = subplots = new(dataset, model);
                             } else {
                                 subplots = oldsubplots;
                             }
@@ -221,7 +221,7 @@ namespace LvqGui.LvqPlotting
 
                 BuildContextMenu(plotGrid.Children.Cast<PlotControl>());
                 foreach (PlotControl plot in plotGrid.Children) {
-                    plot.Margin = new Thickness(2.0);
+                    plot.Margin = new(2.0);
                     plot.Background = Brushes.White;
                 }
             }
@@ -239,7 +239,7 @@ namespace LvqGui.LvqPlotting
 
             var unitLength = new GridLength(1.0, GridUnitType.Star);
             while (plotGrid.ColumnDefinitions.Count < layout.CellsWide) {
-                plotGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = unitLength });
+                plotGrid.ColumnDefinitions.Add(new() { Width = unitLength });
             }
 
             if (plotGrid.ColumnDefinitions.Count > layout.CellsWide) {
@@ -247,7 +247,7 @@ namespace LvqGui.LvqPlotting
             }
 
             while (plotGrid.RowDefinitions.Count < layout.CellsHigh) {
-                plotGrid.RowDefinitions.Add(new RowDefinition { Height = unitLength });
+                plotGrid.RowDefinitions.Add(new() { Height = unitLength });
             }
 
             if (plotGrid.RowDefinitions.Count > layout.CellsHigh) {
@@ -260,7 +260,7 @@ namespace LvqGui.LvqPlotting
             }
         }
 
-        readonly HashSet<string> VisiblePlots = new HashSet<string>(new[] { "embed", "NN Error", "Error Rates" });
+        readonly HashSet<string> VisiblePlots = new(new[] { "embed", "NN Error", "Error Rates" });
 
         void BuildContextMenu(IEnumerable<PlotControl> plots)
         {
@@ -279,7 +279,7 @@ namespace LvqGui.LvqPlotting
                 items.Add(menuItem);
             }
 
-            subPlotWindow.ContextMenu = new ContextMenu { ItemsSource = items.ToArray() };
+            subPlotWindow.ContextMenu = new() { ItemsSource = items.ToArray() };
         }
 
         void menuitem_Checked(object sender, RoutedEventArgs e)
@@ -321,7 +321,7 @@ namespace LvqGui.LvqPlotting
                 return;
             }
 
-            subPlotWindow = new Window {
+            subPlotWindow = new() {
                 Width = SystemParameters.FullPrimaryScreenWidth * 0.7,
                 Height = SystemParameters.MaximizedPrimaryScreenHeight - borderWidth * 2,
                 Title = "No Model Selected",
@@ -358,7 +358,7 @@ namespace LvqGui.LvqPlotting
         }
 
         public void QueueUpdate() => ThreadPool.QueueUserWorkItem(UpdateQueueProcessor);
-        readonly UpdateSync updateSync = new UpdateSync();
+        readonly UpdateSync updateSync = new();
 
         void UpdateQueueProcessor(object _)
         {

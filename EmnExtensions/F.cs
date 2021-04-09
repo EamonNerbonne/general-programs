@@ -18,7 +18,7 @@ namespace EmnExtensions
                         yield return queue;
                     }
 
-                    queue = new Queue<T>();
+                    queue = new();
                 }
 
                 queue.Enqueue(t);

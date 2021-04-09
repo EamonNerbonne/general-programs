@@ -49,7 +49,7 @@ namespace EmnExtensions.Wpf.Plot
             return double.IsNegativeInfinity(max)
                 ? Empty
                 : FlippedOrder
-                    ? new DimensionBounds { Start = max, End = min }
+                    ? new() { Start = max, End = min }
                     : new DimensionBounds { Start = min, End = max };
         }
 
@@ -65,16 +65,16 @@ namespace EmnExtensions.Wpf.Plot
             End *= factor;
         }
 
-        public static DimensionBounds Empty => new DimensionBounds { Start = double.PositiveInfinity, End = double.PositiveInfinity };
-        public static DimensionBounds FromRectX(Rect r) => r.IsEmpty ? Empty : new DimensionBounds { Start = r.X, End = r.Right };
-        public static DimensionBounds FromRectY(Rect r) => r.IsEmpty ? Empty : new DimensionBounds { Start = r.Y, End = r.Bottom };
+        public static DimensionBounds Empty => new() { Start = double.PositiveInfinity, End = double.PositiveInfinity };
+        public static DimensionBounds FromRectX(Rect r) => r.IsEmpty ? Empty : new() { Start = r.X, End = r.Right };
+        public static DimensionBounds FromRectY(Rect r) => r.IsEmpty ? Empty : new() { Start = r.Y, End = r.Bottom };
 
         public static DimensionBounds Merge(DimensionBounds a, DimensionBounds b) => a.IsEmpty
             ? b
             : b.IsEmpty
                 ? a
                 : a.FlippedOrder
-                    ? new DimensionBounds { Start = Math.Max(a.Max, b.Max), End = Math.Min(a.Min, b.Min) }
+                    ? new() { Start = Math.Max(a.Max, b.Max), End = Math.Min(a.Min, b.Min) }
                     : new DimensionBounds { Start = Math.Min(a.Min, b.Min), End = Math.Max(a.Max, b.Max) };
 
         public static double MergeQuality(DimensionBounds a, DimensionBounds b)

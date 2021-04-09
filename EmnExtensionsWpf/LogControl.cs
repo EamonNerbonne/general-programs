@@ -47,13 +47,13 @@ namespace EmnExtensions.Wpf
         }
 
 
-        readonly StringBuilder curLine = new StringBuilder();
+        readonly StringBuilder curLine = new();
         readonly DelegateTextWriter logger;
 
         public LogControl()
         {
             Reset();
-            logger = new DelegateTextWriter(AppendThreadSafe);
+            logger = new(AppendThreadSafe);
             VerticalContentAlignment = VerticalAlignment.Bottom;
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             Application.Current.MainWindow.Closed += LogControl_Unloaded;
@@ -64,12 +64,12 @@ namespace EmnExtensions.Wpf
             var clearLogMenuItem = new MenuItem { Header = "Clear log" };
             clearLogMenuItem.Click += (s, e) => Reset();
 
-            ContextMenu = new ContextMenu { Items = { clearLogMenuItem } };
+            ContextMenu = new() { Items = { clearLogMenuItem } };
         }
 
-        void Reset() => Document = new FlowDocument {
+        void Reset() => Document = new() {
             TextAlignment = TextAlignment.Left,
-            FontFamily = new FontFamily("Consolas"),
+            FontFamily = new("Consolas"),
             FontSize = 10.0
         };
 
@@ -189,7 +189,7 @@ namespace EmnExtensions.Wpf
                             break;
                         }
 
-                        toControl.AppendThreadSafe(new string(buffer, 0, actuallyRead));
+                        toControl.AppendThreadSafe(new(buffer, 0, actuallyRead));
                     }
                 }
             }

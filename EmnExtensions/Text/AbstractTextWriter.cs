@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
 
 namespace EmnExtensions.Text
@@ -21,9 +21,9 @@ namespace EmnExtensions.Text
 
         public override void Write(char value) => WriteString(value.ToString(FormatProvider));
 
-        public override void Write(char[] buffer) => WriteString(new string(buffer));
+        public override void Write(char[] buffer) => WriteString(new(buffer));
 
-        public override void Write(char[] buffer, int index, int count) => WriteString(new string(buffer, index, count));
+        public override void Write(char[] buffer, int index, int count) => WriteString(new(buffer, index, count));
 
         public override void Write(decimal value) => WriteString(value.ToString(FormatProvider));
 

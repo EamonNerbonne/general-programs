@@ -11,7 +11,7 @@ namespace EmnExtensions.Wpf.OldGraph
     {
         public GraphablePixelScatterPlot()
         {
-            Margin = new Thickness(0.5);
+            Margin = new(0.5);
             BitmapScalingMode = BitmapScalingMode.Linear;
         }
 
@@ -63,8 +63,8 @@ namespace EmnExtensions.Wpf.OldGraph
         BitmapScalingMode m_scalingMode;
 
         WriteableBitmap m_bmp;
-        readonly RectangleGeometry m_clipGeom = new RectangleGeometry();
-        readonly TranslateTransform m_offsetTransform = new TranslateTransform();
+        readonly RectangleGeometry m_clipGeom = new();
+        readonly TranslateTransform m_offsetTransform = new();
         const int EXTRA_RESIZE_PIX = 256;
         Point[] m_points;
         Rect m_outerBounds = Rect.Empty;
@@ -123,7 +123,7 @@ namespace EmnExtensions.Wpf.OldGraph
 
             Array.Sort(xs);
             Array.Sort(ys);
-            return new Rect(new Point(xs[cutoff], ys[cutoff]), new Point(xs[m_points.Length - 1 - cutoff], ys[m_points.Length - 1 - cutoff]));
+            return new(new(xs[cutoff], ys[cutoff]), new Point(xs[m_points.Length - 1 - cutoff], ys[m_points.Length - 1 - cutoff]));
         }
 
         Color m_pointColor;
@@ -145,10 +145,10 @@ namespace EmnExtensions.Wpf.OldGraph
                 return;
             }
 
-            context.PushGuidelineSet(new GuidelineSet(new[] { 0.0 }, new[] { 0.0 }));
+            context.PushGuidelineSet(new(new[] { 0.0 }, new[] { 0.0 }));
             context.PushClip(m_clipGeom);
             context.PushTransform(m_offsetTransform);
-            context.DrawImage(m_bmp, new Rect(0, 0, m_bmp.Width, m_bmp.Height));
+            context.DrawImage(m_bmp, new(0, 0, m_bmp.Width, m_bmp.Height));
             context.Pop();
             context.Pop();
             context.Pop();
@@ -157,7 +157,7 @@ namespace EmnExtensions.Wpf.OldGraph
 #endif
         }
 
-        static Rect SnapRect(Rect r, double multX, double multY) => new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY));
+        static Rect SnapRect(Rect r, double multX, double multY) => new(new(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY));
 
         uint[] image;
 
@@ -233,7 +233,7 @@ namespace EmnExtensions.Wpf.OldGraph
             if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH) {
                 var width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + (int)(EXTRA_RESIZE_PIX * m_dpiX / 96.0));
                 var height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + (int)(EXTRA_RESIZE_PIX * m_dpiY / 96.0));
-                m_bmp = new WriteableBitmap(width, height, m_dpiX, m_dpiY, PixelFormats.Bgra32, null);
+                m_bmp = new(width, height, m_dpiX, m_dpiY, PixelFormats.Bgra32, null);
                 RenderOptions.SetBitmapScalingMode(m_bmp, m_scalingMode);
                 OnChange(GraphChange.Drawing);
                 Trace.WriteLine("new WriteableBitmap");
@@ -241,7 +241,7 @@ namespace EmnExtensions.Wpf.OldGraph
 
             try {
                 m_bmp.Lock();
-                m_bmp.WritePixels(new Int32Rect(0, 0, pW, pH), image, pW * sizeof(uint), 0);
+                m_bmp.WritePixels(new(0, 0, pW, pH), image, pW * sizeof(uint), 0);
             } finally {
                 m_bmp.Unlock();
             }

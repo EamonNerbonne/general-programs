@@ -6,9 +6,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 {
     public sealed class VizGeometry : PlotVizBase<Geometry>
     {
-        readonly MatrixTransform m_ProjectionTransform = new MatrixTransform();
-        readonly GeometryGroup combinesGeom = new GeometryGroup();
-        readonly RectangleGeometry clipRectangle = new RectangleGeometry();
+        readonly MatrixTransform m_ProjectionTransform = new();
+        readonly GeometryGroup combinesGeom = new();
+        readonly RectangleGeometry clipRectangle = new();
 
         bool m_AutosizeBounds = true;
         Brush m_Fill = Brushes.Black;
@@ -98,7 +98,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             RecomputeMargin();
         }
 
-        void RecomputeMargin() => SetMargin(new Thickness(Pen.Thickness / 2.0));
+        void RecomputeMargin() => SetMargin(new(Pen.Thickness / 2.0));
         void m_Geometry_Changed(object sender, EventArgs e) => RecomputeBoundsIfAuto();
 
         void RecomputeBoundsIfAuto()

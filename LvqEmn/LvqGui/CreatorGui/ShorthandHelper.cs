@@ -23,7 +23,7 @@ namespace LvqGui.CreatorGui
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        void raisePropertyChanged(string prop) => PropertyChanged(this, new PropertyChangedEventArgs(prop));
+        void raisePropertyChanged(string prop) => PropertyChanged(this, new(prop));
 
         protected void _propertyChanged(string propertyName)
         {
@@ -106,9 +106,9 @@ namespace LvqGui.CreatorGui
         internal static Optional<T> TryParseShorthand<T>(T defaults, Regex shR, string shorthand)
             where T : new()
         {
-            var helper = new ShorthandHelper<T>(new T());
+            var helper = new ShorthandHelper<T>(new());
             if (!helper.TryParseShorthandWithErrs(defaults, shR, shorthand).Any()) {
-                return new Optional<T>(helper.shorthandObj);
+                return new(helper.shorthandObj);
             }
 
             return default(Optional<T>);

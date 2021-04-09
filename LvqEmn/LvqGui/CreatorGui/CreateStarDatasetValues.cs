@@ -13,7 +13,7 @@ namespace LvqGui.CreatorGui
     {
         readonly LvqWindowValues owner;
 
-        StarDatasetSettings settings = new StarDatasetSettings();
+        StarDatasetSettings settings = new();
 
         public StarDatasetSettings Settings
         {

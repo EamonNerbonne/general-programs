@@ -12,7 +12,7 @@ namespace EmnExtensions.Wpf.Plot
         static T HelpCreate<T>(Func<IPlotMetaData, T> factory, IPlotMetaData metadata = null)
             where T : IVizEngine
         {
-            var newmetadata = metadata == null ? new PlotMetaData() : new PlotMetaData(metadata);
+            var newmetadata = metadata == null ? new() : new PlotMetaData(metadata);
             var plot = factory(newmetadata);
             newmetadata.Visualisation = plot;
             return plot;

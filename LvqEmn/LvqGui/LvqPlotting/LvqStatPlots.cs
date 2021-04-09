@@ -68,7 +68,7 @@ namespace LvqGui.LvqPlotting
             }
         ).ToArray();
 
-        static PlotControl MakeScatterPlotControl(IEnumerable<IVizEngine> graphs) => new PlotControl {
+        static PlotControl MakeScatterPlotControl(IEnumerable<IVizEngine> graphs) => new() {
             ShowAxes = false,
             AttemptBorderTicks = false,
             //ShowGridLines = true,
@@ -117,7 +117,7 @@ namespace LvqGui.LvqPlotting
                     SetScatterBounds(lastProjection.Bounds);
                 }
 
-                bmp.WritePixels(new Int32Rect(0, 0, width, height), lastProjection.ImageData, width * 4, 0);
+                bmp.WritePixels(new(0, 0, width, height), lastProjection.ImageData, width * 4, 0);
             }
         }
     }

@@ -47,7 +47,7 @@ namespace EmnExtensions.Wpf
         }
 
 
-        protected override Size MeasureOverride(Size constraint) => new Size(
+        protected override Size MeasureOverride(Size constraint) => new(
             constraint.Width.IsFinite() ? constraint.Width : 150,
             constraint.Height.IsFinite() ? constraint.Height : 150
         );
@@ -217,7 +217,7 @@ namespace EmnExtensions.Wpf
             }
 
             UpdateBounds();
-            drawingContext.PushClip(new RectangleGeometry(new Rect(0, 0, ActualWidth, ActualHeight)));
+            drawingContext.PushClip(new RectangleGeometry(new(0, 0, ActualWidth, ActualHeight)));
             drawingContext.DrawGeometry(null, graphLinePen, graphGeom2);
         }
     }

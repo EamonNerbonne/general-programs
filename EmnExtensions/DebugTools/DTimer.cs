@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -83,7 +83,7 @@ namespace EmnExtensions.DebugTools
             }
 
             Array.Sort(times);
-            return new TimeSpan(times[repeats / 4]);
+            return new(times[repeats / 4]);
         }
 
         public static TimeSpan TimeAction(Action a)

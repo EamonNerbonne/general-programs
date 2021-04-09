@@ -5,7 +5,7 @@ namespace EmnExtensions.Wpf.OldGraph
 {
     public abstract class GraphableDrawing : GraphableData
     {
-        readonly MatrixTransform m_drawingToDisplay = new MatrixTransform();
+        readonly MatrixTransform m_drawingToDisplay = new();
 
         public static Rect ComputeDataBounds(Rect innerDrawingBounds, Rect innerDataBounds, Rect drawingBounds)
         {

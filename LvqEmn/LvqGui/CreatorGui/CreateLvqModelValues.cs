@@ -391,7 +391,7 @@ namespace LvqGui.CreatorGui
         }
 
         static readonly Regex shR =
-            new Regex(@"^([^:]*\:|\s*\\lvqseed\{)?\s*?(" +
+            new(@"^([^:]*\:|\s*\\lvqseed\{)?\s*?(" +
                 @"(?<ModelType>\b[A-Z][A-Za-z0-9]*)
                 (\[(?<Dimensionality>[^\]]+)\]|(?<NoNnErrorRateTracking_>\+?)),
                 (?<PrototypesPerClass>[0-9]+),
@@ -480,7 +480,7 @@ namespace LvqGui.CreatorGui
         public CreateLvqModelValues(LvqWindowValues owner)
         {
             Owner = owner;
-            settings = new LvqModelSettingsCli();
+            settings = new();
             //this.ReseedBoth();
         }
 

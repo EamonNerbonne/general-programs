@@ -45,7 +45,7 @@ namespace EmnExtensions.Filesystem
         /// If either represents a directory, it should end with a directory seperating character (e.g. a backslash)
         /// </summary>
         public static string MakeRelativePath(string basePath, string tgtPath) => Uri.UnescapeDataString(
-            new Uri(basePath, UriKind.Absolute).MakeRelativeUri(new Uri(tgtPath, UriKind.Absolute)).ToString()
+            new Uri(basePath, UriKind.Absolute).MakeRelativeUri(new(tgtPath, UriKind.Absolute)).ToString()
         ).Replace('/', Path.DirectorySeparatorChar);
     }
 }

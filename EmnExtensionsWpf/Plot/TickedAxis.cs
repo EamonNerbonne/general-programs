@@ -38,14 +38,14 @@ namespace EmnExtensions.Wpf.Plot
                     }.GetCurrentValueAsFrozen()
                 )
                 .ToArray();
-            m_tickPen = new Pen {
+            m_tickPen = new() {
                 Brush = Brushes.Black,
                 StartLineCap = PenLineCap.Flat,
                 EndLineCap = PenLineCap.Round,
                 Thickness = BaseTickWidth
             }; //start flat end round
             m_tickPen.Freeze();
-            m_typeface = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Arial"));
+            m_typeface = new(new("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new("Arial"));
         }
 
         public TickedAxis()
@@ -408,7 +408,7 @@ namespace EmnExtensions.Wpf.Plot
         {
             get {
                 if (m_tickLabels != null) {
-                    return new Size(
+                    return new(
                         m_tickLabels.Select(label => label.Item2.Width).DefaultIfEmpty(0.0).Max(),
                         m_tickLabels.Select(label => label.Item2.Height).DefaultIfEmpty(0.0).Max()
                     );
@@ -417,12 +417,12 @@ namespace EmnExtensions.Wpf.Plot
                 var canBeNegative = TicksNeedingLabels.Any(tick => tick.Value < 0.0);
                 var excessMagnitude = m_dataOrderOfMagnitude == 0 ? ComputedDataOrderOfMagnitude() : 0;
                 var textSample = MakeText(8.88888888888888888 * Math.Pow(10.0, excessMagnitude) * (canBeNegative ? -1 : 1));
-                return new Size(textSample.Width, textSample.Height);
+                return new(textSample.Width, textSample.Height);
             }
         }
 
         double PreferredPixelsPerTick => m_ticks == null ? PixelsPerTick : Math.Max((PixelsPerTick + CondTranspose(TickLabelSizeGuess).Width) / 2.0, CondTranspose(TickLabelSizeGuess).Width * Math.Sqrt(10) / 2.0 + 4); //factor sqrt(10)/2 since actual tick distance may be off by that much from the preferred quantity.
-        static Size Transpose(Size size) => new Size(size.Height, size.Width);
+        static Size Transpose(Size size) => new(size.Height, size.Width);
 
         Size CondTranspose(Size size) => IsHorizontal ? size : Transpose(size); //height==thickness, width == along span of axis
 
@@ -445,7 +445,7 @@ namespace EmnExtensions.Wpf.Plot
 
         Size DontShow(Size constraint)
         {
-            m_bestGuessCurrentSize = CondTranspose(new Size(ZeroIfInf(CondTranspose(constraint).Width), 0));
+            m_bestGuessCurrentSize = CondTranspose(new(ZeroIfInf(CondTranspose(constraint).Width), 0));
             RequiredThicknessOfNext = RequiredThicknessOfPrev = 0.0;
             return m_bestGuessCurrentSize;
         }
@@ -535,7 +535,7 @@ namespace EmnExtensions.Wpf.Plot
         {
             var tickLabelSize = CondTranspose(TickLabelSizeGuess); //height==thickness, width == along span of axis
             var minBounds = m_axisLegend.Bounds;
-            minBounds.Intersect(new Rect(new Point(0.0, 0.0), new Size(double.PositiveInfinity, double.PositiveInfinity)));
+            minBounds.Intersect(new(new(0.0, 0.0), new Size(double.PositiveInfinity, double.PositiveInfinity)));
             minBounds.Union(new Point(0, 0));
             minBounds.Height += TickLength + LabelOffset + tickLabelSize.Height;
 
@@ -612,7 +612,7 @@ namespace EmnExtensions.Wpf.Plot
                     displayEnd = m_bestGuessCurrentSize.Height - displayEnd;
                 }
 
-                return new DimensionBounds { Start = displayStart, End = displayEnd };
+                return new() { Start = displayStart, End = displayEnd };
             }
         }
 
@@ -634,7 +634,7 @@ namespace EmnExtensions.Wpf.Plot
                     displayEnd = m_bestGuessCurrentSize.Height - displayEnd;
                 }
 
-                return new DimensionBounds { Start = displayStart, End = displayEnd };
+                return new() { Start = displayStart, End = displayEnd };
             }
         }
 
@@ -733,7 +733,7 @@ namespace EmnExtensions.Wpf.Plot
 
         protected override void OnRender(DrawingContext drawingContext)
         {
-            drawingContext.DrawRectangle(Background, null, new Rect(m_bestGuessCurrentSize));
+            drawingContext.DrawRectangle(Background, null, new(m_bestGuessCurrentSize));
             if (IsCollapsedOrEmpty || m_ticks == null) {
                 return;
             }
@@ -830,8 +830,8 @@ namespace EmnExtensions.Wpf.Plot
         {
             //we choose to generate the the streamgeometry "by index" of tick rather than value, due to accuracy: it seems the geometry is low-resolution, so
             //once stored, the resolution is no better than a float: using the "real" value is often inaccurate.
-            context.BeginFigure(new Point(value, 0), false, false);
-            context.LineTo(new Point(value, tickLength), true, false);
+            context.BeginFigure(new(value, 0), false, false);
+            context.LineTo(new(value, tickLength), true, false);
         }
 
         static StreamGeometry DrawTicksAlongX(IEnumerable<Tick> ticks, double tickLength)
@@ -846,10 +846,10 @@ namespace EmnExtensions.Wpf.Plot
             return geom;
         }
 
-        static Matrix TransposeMatrix => new Matrix { M11 = 0, M12 = 1, M21 = 1, M22 = 0, OffsetX = 0, OffsetY = 0 };
+        static Matrix TransposeMatrix => new() { M11 = 0, M12 = 1, M21 = 1, M22 = 0, OffsetX = 0, OffsetY = 0 };
 
-        readonly MatrixTransform m_gridLineAlignTransform = new MatrixTransform();
-        readonly DrawingGroup m_gridLines = new DrawingGroup();
+        readonly MatrixTransform m_gridLineAlignTransform = new();
+        readonly DrawingGroup m_gridLines = new();
         double pixelsPerDip = 1.0;
         public Drawing GridLines => m_gridLines;
 
@@ -871,8 +871,8 @@ namespace EmnExtensions.Wpf.Plot
             var startAt = oppFirst ? oppositeThickness : Thickness;
             var endAt = overallLength - (oppFirst ? Thickness : oppositeThickness);
 
-            var tickIdxToDisp = MapBounds(new DimensionBounds { Start = 0, End = m_ticks.Length - 1 },
-                    new DimensionBounds { Start = m_ticks[0].Value, End = m_ticks[^1].Value }
+            var tickIdxToDisp = MapBounds(new() { Start = 0, End = m_ticks.Length - 1 },
+                    new() { Start = m_ticks[0].Value, End = m_ticks[^1].Value }
                 )
                 * DataToDisplayAlongXTransform;
 
@@ -891,7 +891,7 @@ namespace EmnExtensions.Wpf.Plot
         FormattedText MakeText(double val)
         {
             var numericValueString = (val * Math.Pow(10.0, -m_dataOrderOfMagnitude)).ToString("f" + Math.Max(0, m_dataOrderOfMagnitude - m_slotOrderOfMagnitude));
-            return new FormattedText(numericValueString, m_cachedCulture, FlowDirection.LeftToRight, m_typeface, FontSize, Brushes.Black, pixelsPerDip);
+            return new(numericValueString, m_cachedCulture, FlowDirection.LeftToRight, m_typeface, FontSize, Brushes.Black, pixelsPerDip);
         }
 
         static DrawingGroup MakeAxisLegendText(int dataOrderOfMagnitude, string dataUnits, CultureInfo culture, double fontSize, Typeface typeface, double pixelsPerDip)
@@ -948,7 +948,7 @@ namespace EmnExtensions.Wpf.Plot
                     }
                 }
 
-                allTicks.Add(new Tick { Rank = rank, Value = value });
+                allTicks.Add(new() { Rank = rank, Value = value });
             }
             //we have all ticks, now trim ticks down to relevant ones
 

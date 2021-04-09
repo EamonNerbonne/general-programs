@@ -40,8 +40,8 @@ namespace EmnExtensions.IO
         public DateTime LastWriteTimeUtc => getLastWriteTime(FullName).UtcDateTime;
 
         public long Length => getLength(FullName);
-        public static LFile Construct(string path) => new LFile(path);
-        public static LFile Construct(FileInfo fileinfo) => new LFile(fileinfo.FullName);
+        public static LFile Construct(string path) => new(path);
+        public static LFile Construct(FileInfo fileinfo) => new(fileinfo.FullName);
         public static LFile ConstructIfExists(string path) => File.Exists(path) ? new LFile(path) : null;
 
         public FileStream OpenRead() => OpenRead(FullName);
@@ -79,7 +79,7 @@ namespace EmnExtensions.IO
         }
 
         public string Name => Path.GetFileName(FullName);
-        public FileInfo AsInfo() => new FileInfo(FullName);
+        public FileInfo AsInfo() => new(FullName);
 
         public bool Equals(LFile other) => !ReferenceEquals(other, null) && RawPath == other.RawPath;
         public static bool operator ==(LFile a, LFile b) => ReferenceEquals(a, b) || !ReferenceEquals(a, null) && a.Equals(b);
@@ -95,8 +95,8 @@ namespace EmnExtensions.IO
 
         public bool Exists => Directory.Exists(FullName);
 
-        public static LDirectory Construct(string path) => new LDirectory(path);
-        public static LDirectory Construct(DirectoryInfo dirInfo) => new LDirectory(dirInfo.FullName);
+        public static LDirectory Construct(string path) => new(path);
+        public static LDirectory Construct(DirectoryInfo dirInfo) => new(dirInfo.FullName);
 
         public IEnumerable<LFile> GetFiles() => Directory.EnumerateFiles(FullName).Select(LFile.Construct);
         public IEnumerable<LFile> GetFiles(string searchPattern) => Directory.EnumerateFiles(FullName, searchPattern).Select(LFile.Construct);
@@ -117,7 +117,7 @@ namespace EmnExtensions.IO
             }
         }
 
-        public DirectoryInfo AsInfo() => new DirectoryInfo(FullName);
+        public DirectoryInfo AsInfo() => new(FullName);
 
 
         public void Create()

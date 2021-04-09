@@ -9,7 +9,7 @@ namespace EmnExtensions.Algorithms
 {
     public static class DeepEquals
     {
-        public static bool AreEqual(object object1, object object2) => Compare(new HashSet<ReferencePair>(), object1, object2);
+        public static bool AreEqual(object object1, object object2) => Compare(new(), object1, object2);
 
         static bool Compare(HashSet<ReferencePair> assumeEquals, object object1, object object2)
         {
@@ -84,7 +84,7 @@ namespace EmnExtensions.Algorithms
         {
             foreach (var member in GetGetters(type)) {
                 object v1 = member.Getter(o1_nonnull), v2 = member.Getter(o2_nonnull);
-                if (!member.DeclaredType.IsValueType && assumeEqual.Contains(new ReferencePair(v1, v2))) {
+                if (!member.DeclaredType.IsValueType && assumeEqual.Contains(new(v1, v2))) {
                     continue;
                 }
 

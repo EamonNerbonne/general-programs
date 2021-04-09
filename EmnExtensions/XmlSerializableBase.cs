@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
@@ -8,7 +8,7 @@ namespace EmnExtensions
     public class XmlSerializableBase<T>
         where T : XmlSerializableBase<T>
     {
-        static readonly XmlSerializer serializer = new XmlSerializer(typeof(T));
+        static readonly XmlSerializer serializer = new(typeof(T));
         public static T Deserialize(XmlReader from) => (T)serializer.Deserialize(from);
 
         public static T Deserialize(XDocument from)

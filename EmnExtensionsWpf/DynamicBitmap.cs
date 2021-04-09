@@ -52,7 +52,7 @@ namespace EmnExtensions.Wpf
 
         const int maxWidthHeight = 4096;
 
-        void MakeBitmap() => bitmap = new WriteableBitmap(
+        void MakeBitmap() => bitmap = new(
             Math.Min((int)Math.Ceiling(ActualWidth), maxWidthHeight),
             Math.Min((int)Math.Ceiling(ActualHeight), maxWidthHeight),
             96, 96, PixelFormats.Bgr32, null
@@ -61,7 +61,7 @@ namespace EmnExtensions.Wpf
         void UpdateBitmap()
         {
             var bmpGen = BitmapGenerator ?? DefaultBitmapGenerator;
-            bitmap.WritePixels(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight), bmpGen(bitmap.PixelWidth, bitmap.PixelHeight), bitmap.PixelWidth * 4, 0);
+            bitmap.WritePixels(new(0, 0, bitmap.PixelWidth, bitmap.PixelHeight), bmpGen(bitmap.PixelWidth, bitmap.PixelHeight), bitmap.PixelWidth * 4, 0);
         }
 
         protected override void OnRender(DrawingContext drawingContext)
@@ -78,7 +78,7 @@ namespace EmnExtensions.Wpf
 
             UpdateBitmap();
 
-            drawingContext.DrawImage(bitmap, new Rect(0, 0, ActualWidth, ActualHeight));
+            drawingContext.DrawImage(bitmap, new(0, 0, ActualWidth, ActualHeight));
         }
     }
 }

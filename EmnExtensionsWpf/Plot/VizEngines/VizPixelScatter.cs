@@ -113,7 +113,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
                     throw new PlotVizException("Invalid point array!");
                 }
 
-                return new Rect(xBounds.Start, yBounds.Start, xBounds.Length, yBounds.Length);
+                return new(xBounds.Start, yBounds.Start, xBounds.Length, yBounds.Length);
             }
         }
 
@@ -134,7 +134,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
             var xLen = data[datalen - 1] - data[0];
             if (xLen == 0.0) {
-                return new DimensionBounds { Start = data[0], End = data[datalen - 1] };
+                return new() { Start = data[0], End = data[datalen - 1] };
             }
 
             var startCutoff = maxCutoff;
@@ -148,7 +148,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             }
 
             return startCutoff < datalen - 1 - endCutoff
-                ? new DimensionBounds { Start = data[startCutoff], End = data[datalen - 1 - endCutoff] }
+                ? new() { Start = data[startCutoff], End = data[datalen - 1 - endCutoff] }
                 : DimensionBounds.Empty;
         }
 

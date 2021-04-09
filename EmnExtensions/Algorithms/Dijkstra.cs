@@ -29,7 +29,7 @@ namespace EmnExtensions.Algorithms
             var toProcess = Heap.Factory<DistanceTo>().Create((node, newIndex) => { nodeIndex[node.targetNode] = newIndex; });
             var noStartNodes = true;
             foreach (var startNode in startNodes) {
-                toProcess.Add(new DistanceTo { distance = 0.0f, targetNode = startNode });
+                toProcess.Add(new() { distance = 0.0f, targetNode = startNode });
                 distance[startNode] = 0;
                 comeFrom[startNode] = startNode;
                 noStartNodes = false;
@@ -52,7 +52,7 @@ namespace EmnExtensions.Algorithms
                                 toProcess.Delete(nodeIndex[outEdge.targetNode]);
                             }
 
-                            toProcess.Add(new DistanceTo { distance = newLength, targetNode = outEdge.targetNode });
+                            toProcess.Add(new() { distance = newLength, targetNode = outEdge.targetNode });
                         }
                     }
                 }

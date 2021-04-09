@@ -5,8 +5,8 @@ namespace EmnExtensions.Collections
 {
     public class HashMultiMap<T1, T2> : IMultiMap<T1, T2>
     {
-        readonly Dictionary<T1, HashSet<T2>> forwardLookup = new Dictionary<T1, HashSet<T2>>();
-        readonly Dictionary<T2, HashSet<T1>> reverseLookup = new Dictionary<T2, HashSet<T1>>();
+        readonly Dictionary<T1, HashSet<T2>> forwardLookup = new();
+        readonly Dictionary<T2, HashSet<T1>> reverseLookup = new();
 
         public HashMultiMap() { }
 
@@ -29,14 +29,14 @@ namespace EmnExtensions.Collections
         public void AddNodeFrom(T1 from)
         {
             if (!forwardLookup.ContainsKey(from)) {
-                forwardLookup[from] = new HashSet<T2>();
+                forwardLookup[from] = new();
             }
         }
 
         public void AddNodeTo(T2 to)
         {
             if (!reverseLookup.ContainsKey(to)) {
-                reverseLookup[to] = new HashSet<T1>();
+                reverseLookup[to] = new();
             }
         }
 

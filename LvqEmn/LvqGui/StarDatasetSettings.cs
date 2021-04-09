@@ -52,7 +52,7 @@ namespace LvqGui
             + (Folds == defaults.Folds ? "" : "^" + Folds);
 
         public override LvqDatasetCli CreateDataset() => LvqDatasetCli.ConstructStarDataset(Shorthand,
-            colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)ParamsSeed)),
+            colors: WpfTools.MakeDistributedColors(NumberOfClasses, new((int)ParamsSeed)),
             folds: Folds,
             extend: ExtendDataByCorrelation,
             normalizeDims: NormalizeDimensions,

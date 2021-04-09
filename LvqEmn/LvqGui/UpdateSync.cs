@@ -2,7 +2,7 @@ namespace LvqGui
 {
     sealed class UpdateSync
     {
-        readonly object syncUpdates = new object();
+        readonly object syncUpdates = new();
         bool busy, updateQueued;
 
         public bool UpdateEnqueue_IsMyTurn()

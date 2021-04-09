@@ -25,7 +25,7 @@ namespace EmnExtensions.Wpf.Plot
     {
         bool needRedrawGraphs;
         IEnumerable<IVizEngine> visibleGraphs => Graphs.Where(g => !g.MetaData.Hidden);
-        public ObservableCollection<IVizEngine> Graphs { get; } = new ObservableCollection<IVizEngine>();
+        public ObservableCollection<IVizEngine> Graphs { get; } = new();
 
         public IEnumerable<IVizEngine> GraphsEnumerable
         {
@@ -48,7 +48,7 @@ namespace EmnExtensions.Wpf.Plot
             protected override void OnRender(DrawingContext drawingContext) => drawingContext.DrawDrawing(drawing);
         }
 
-        static readonly object syncType = new object();
+        static readonly object syncType = new();
 
         public PlotControl()
         {
@@ -58,10 +58,10 @@ namespace EmnExtensions.Wpf.Plot
             }
 
             RenderOptions.SetBitmapScalingMode(dg, BitmapScalingMode.Linear);
-            bgBrush = new DrawingBrush(dg) {
+            bgBrush = new(dg) {
                 Stretch = Stretch.None, //No stretch since we want the ticked axis to determine stretch
                 ViewboxUnits = BrushMappingMode.Absolute,
-                Viewbox = new Rect(0, 0, 0, 0), //we want to to start displaying in the corner 0,0 - and width+height are irrelevant due to Stretch.None.
+                Viewbox = new(0, 0, 0, 0), //we want to to start displaying in the corner 0,0 - and width+height are irrelevant due to Stretch.None.
                 AlignmentX = AlignmentX.Left, //and corner 0,0 is in the Top-Left!
                 AlignmentY = AlignmentY.Top,
             };
@@ -177,7 +177,7 @@ namespace EmnExtensions.Wpf.Plot
                 label.Inlines.Add(new Image {
                         Source = new DrawingImage(graph.SampleDrawing).AsFrozen(),
                         Stretch = Stretch.None,
-                        Margin = new Thickness(2, 0, 2, 0)
+                        Margin = new(2, 0, 2, 0)
                     }
                 );
                 label.Inlines.Add(graph.MetaData.DataLabel);
@@ -333,7 +333,7 @@ namespace EmnExtensions.Wpf.Plot
         }
 
         //readonly RectangleGeometry overallClipRect = new RectangleGeometry();
-        readonly DrawingGroup dg = new DrawingGroup();
+        readonly DrawingGroup dg = new();
 
         protected override void OnRender(DrawingContext drawingContext)
         {
@@ -373,7 +373,7 @@ namespace EmnExtensions.Wpf.Plot
                 var graphCorner = ChooseProjection(graph);
                 if (cornerProjection.ContainsKey(graphCorner)) {
                     var trans = cornerProjection[graphCorner];
-                    var bounds = new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
+                    var bounds = new Rect(new(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
                     graph.SetTransform(trans.Transform, bounds, m_dpiX, m_dpiY);
                 } else {
                     graph.SetTransform(Matrix.Identity, Rect.Empty, m_dpiX, m_dpiY);

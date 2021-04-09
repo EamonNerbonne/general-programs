@@ -34,7 +34,7 @@ namespace LvqGui
             ExtendDataByCorrelation,
             NormalizeDimensions,
             NormalizeByScaling,
-            WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)ParamsSeed)),
+            WpfTools.MakeDistributedColors(NumberOfClasses, new((int)ParamsSeed)),
             rngParamsSeed: ParamsSeed,
             rngInstSeed: InstanceSeed,
             dims: Dimensions,
@@ -44,7 +44,7 @@ namespace LvqGui
         );
 
 
-        public static GaussianCloudDatasetSettings InstableCross() => new GaussianCloudDatasetSettings {
+        public static GaussianCloudDatasetSettings InstableCross() => new() {
             PointsPerClass = 1000,
             Folds = 10,
             NumberOfClasses = 3,
@@ -54,7 +54,7 @@ namespace LvqGui
             InstanceSeed = 0xc62ef64e,
         };
 
-        public static GaussianCloudDatasetSettings PlainCurvedBoundaryExample() => new GaussianCloudDatasetSettings {
+        public static GaussianCloudDatasetSettings PlainCurvedBoundaryExample() => new() {
             PointsPerClass = 1000,
             Folds = 10,
             NumberOfClasses = 3,

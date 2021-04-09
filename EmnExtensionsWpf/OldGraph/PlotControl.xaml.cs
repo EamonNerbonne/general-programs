@@ -28,7 +28,7 @@ namespace EmnExtensions.Wpf.OldGraph
             Background = new DrawingBrush(dg) {
                 Stretch = Stretch.None, //No stretch since we want the ticked axis to determine stretch
                 ViewboxUnits = BrushMappingMode.Absolute,
-                Viewbox = new Rect(0, 0, 0, 0), //we want to to start displaying in the corner 0,0 - and width+height are irrelevant due to Stretch.None.
+                Viewbox = new(0, 0, 0, 0), //we want to to start displaying in the corner 0,0 - and width+height are irrelevant due to Stretch.None.
                 AlignmentX = AlignmentX.Left, //and corner 0,0 is in the Top-Left!
                 AlignmentY = AlignmentY.Top,
             };
@@ -219,7 +219,7 @@ namespace EmnExtensions.Wpf.OldGraph
 
             foreach (var graph in Graphs) {
                 var trans = cornerProjection[ChooseProjection(graph)];
-                var bounds = new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
+                var bounds = new Rect(new(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
                 graph.SetTransform(trans.Transform, bounds);
             }
 

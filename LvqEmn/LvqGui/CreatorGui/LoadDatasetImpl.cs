@@ -59,7 +59,7 @@ namespace LvqGui.CreatorGui
         public static LvqDatasetCli Load(int folds, string name, uint rngInst)
         {
             var dataFile = dataDir.GetFiles(name).FirstOrDefault();
-            return LoadData(dataFile, null, new LoadedDatasetSettings { InstanceSeed = rngInst, Folds = folds });
+            return LoadData(dataFile, null, new() { InstanceSeed = rngInst, Folds = folds });
         }
 
 
@@ -141,7 +141,7 @@ namespace LvqGui.CreatorGui
                 normalizeDims: settings.NormalizeDimensions,
                 normalizeByScaling: settings.NormalizeByScaling,
                 folds: settings.Folds,
-                colors: WpfTools.MakeDistributedColors(settings.ClassCount, new MersenneTwister(colorSeed)),
+                colors: WpfTools.MakeDistributedColors(settings.ClassCount, new(colorSeed)),
                 classes: trainingdata.Item3,
                 points: pointArray,
                 pointLabels: labelArray,

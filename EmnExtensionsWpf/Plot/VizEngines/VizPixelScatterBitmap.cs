@@ -68,7 +68,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
                 alpha = Math.Min(1.0, alpha / 5.0);
             }
 
-            return new Tuple<double, bool>(alpha, useDiamondPoints);
+            return new(alpha, useDiamondPoints);
         }
 
         #region UpdateBitmap Helpers
@@ -137,7 +137,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         }
 
         void CopyImageRegionToWriteableBitmap(int pW, int pH) => m_bmp.WritePixels(
-            new Int32Rect(0, 0, pW, pH),
+            new(0, 0, pW, pH),
             m_image,
             pW * sizeof(uint),
             0,
