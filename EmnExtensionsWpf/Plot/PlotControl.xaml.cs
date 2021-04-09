@@ -17,8 +17,10 @@ using System.Windows.Xps.Packaging;
 using EmnExtensions.MathHelpers;
 using Microsoft.Win32;
 
-namespace EmnExtensions.Wpf {
-    public partial class PlotControl : IPlotContainer {
+namespace EmnExtensions.Wpf
+{
+    public partial class PlotControl : IPlotContainer
+    {
         bool needRedrawGraphs;
         readonly ObservableCollection<IVizEngine> graphs = new ObservableCollection<IVizEngine>();
         IEnumerable<IVizEngine> visibleGraphs { get { return graphs.Where(g => !g.MetaData.Hidden); } }
@@ -27,16 +29,19 @@ namespace EmnExtensions.Wpf {
         readonly DrawingBrush bgBrush;
         readonly UIElement drawingUi;
 
-        class PlainDrawing : UIElement {
+        class PlainDrawing : UIElement
+        {
             readonly Drawing drawing;
             public PlainDrawing(DrawingGroup dg) { drawing = dg; }
             protected override void OnRender(DrawingContext drawingContext) { drawingContext.DrawDrawing(drawing); }
         }
 
         static readonly object syncType = new object();
-        public PlotControl() {
+        public PlotControl()
+        {
             graphs.CollectionChanged += graphs_CollectionChanged;
-            lock (syncType) InitializeComponent();//Apparently InitializeComponent isn't thread safe.
+            lock (syncType)
+                InitializeComponent();//Apparently InitializeComponent isn't thread safe.
             RenderOptions.SetBitmapScalingMode(dg, BitmapScalingMode.Linear);
             bgBrush = new DrawingBrush(dg) {
                 Stretch = Stretch.None, //No stretch since we want the ticked axis to determine stretch
@@ -53,16 +58,18 @@ namespace EmnExtensions.Wpf {
         public bool ShowAxes { get { return (bool)GetValue(ShowAxesProperty); } set { SetValue(ShowAxesProperty, value); } }
         public static readonly DependencyProperty ShowAxesProperty =
             DependencyProperty.Register("ShowAxes", typeof(bool), typeof(PlotControl), new UIPropertyMetadata(true, ShowAxesSet));
-        static void ShowAxesSet(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+        static void ShowAxesSet(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
             ((PlotControl)d).SetAxesShow((bool)e.NewValue);
         }
 
-        void SetAxesShow(bool showAxes) {
+        void SetAxesShow(bool showAxes)
+        {
             foreach (var axis in Axes)
                 axis.HideAxis = !showAxes;
         }
 
-        public bool UniformScaling { get { return Axes.All(axis => axis.UniformScale); } set { foreach (var axis in Axes)axis.UniformScale = value; } }
+        public bool UniformScaling { get { return Axes.All(axis => axis.UniformScale); } set { foreach (var axis in Axes) axis.UniformScale = value; } }
 
         public string Title { get { return (string)GetValue(TitleProperty); } set { SetValue(TitleProperty, value); } }
         public static readonly DependencyProperty TitleProperty =
@@ -70,7 +77,8 @@ namespace EmnExtensions.Wpf {
                 (depObj, evtArg) => { (depObj as PlotControl).titleTextbox.Visibility = evtArg.NewValue == null ? Visibility.Collapsed : Visibility.Visible; }
                 ));
 
-        public void AutoPickColors(MersenneTwister rnd = null) {
+        public void AutoPickColors(MersenneTwister rnd = null)
+        {
             var ColoredPlots = (
                                     from graph in Graphs
                                     where graph != null && graph.SupportsColor
@@ -81,16 +89,19 @@ namespace EmnExtensions.Wpf {
                 plotAndColor.Item1.MetaData.RenderColor = plotAndColor.Item2;
         }
 
-        void RegisterChanged(IEnumerable<IVizEngine> newGraphs) {
-            foreach (IVizEngine newgraph in newGraphs)
+        void RegisterChanged(IEnumerable<IVizEngine> newGraphs)
+        {
+            foreach (var newgraph in newGraphs)
                 newgraph.MetaData.Container = this;
         }
-        static void UnregisterChanged(IEnumerable<IVizEngine> oldGraphs) {
-            foreach (IVizEngine oldgraph in oldGraphs)
+        static void UnregisterChanged(IEnumerable<IVizEngine> oldGraphs)
+        {
+            foreach (var oldgraph in oldGraphs)
                 oldgraph.MetaData.Container = null;
         }
 
-        void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
+        void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
             if (e.OldItems != null)
                 UnregisterChanged(e.OldItems.Cast<IVizEngine>());
             if (e.NewItems != null)
@@ -99,18 +110,20 @@ namespace EmnExtensions.Wpf {
                 RequireRedisplay();
         }
 
-        void RequireRedisplay() {
+        void RequireRedisplay()
+        {
             InvalidateMeasure();
 
             needRedrawGraphs = true;
             InvalidateVisual();
 
             labelarea.Children.Clear();
-            bool any = false;
-            TextBlock label = new TextBlock();
+            var any = false;
+            var label = new TextBlock();
             label.TextWrapping = TextWrapping.Wrap;
             foreach (var graph in Graphs) {
-                if (graph.MetaData.DataLabel == null) continue;
+                if (graph.MetaData.DataLabel == null)
+                    continue;
                 if (any)
                     label.Inlines.Add(";  ");
                 any = true;
@@ -121,13 +134,14 @@ namespace EmnExtensions.Wpf {
                 });
                 label.Inlines.Add(graph.MetaData.DataLabel);
             }
-            if (any) 
+            if (any)
                 labelarea.Children.Add(label);
         }
 
 
 
-        void IPlotContainer.GraphChanged(IVizEngine plot, GraphChange graphChange) {
+        void IPlotContainer.GraphChanged(IVizEngine plot, GraphChange graphChange)
+        {
             if (GraphChange.Visibility == graphChange)
                 RequireRedisplay();
             else if (!plot.MetaData.Hidden)
@@ -149,16 +163,18 @@ namespace EmnExtensions.Wpf {
 
         IEnumerable<TickedAxis> Axes { get { yield return tickedAxisLft; yield return tickedAxisBot; yield return tickedAxisRgt; yield return tickedAxisTop; } }
 
-        public bool? AttemptBorderTicks {
+        public bool? AttemptBorderTicks
+        {
             set { if (value.HasValue) foreach (var axis in Axes) axis.AttemptBorderTicks = value.Value; }
             get {
-                bool[] vals = Axes.Select(axis => axis.AttemptBorderTicks).Distinct().ToArray();
+                var vals = Axes.Select(axis => axis.AttemptBorderTicks).Distinct().ToArray();
                 return vals.Length != 1 ? (bool?)null : vals[0];
             }
         }
 
         #region Static Helper Functions
-        static IEnumerable<TickedAxisLocation> ProjectionCorners {
+        static IEnumerable<TickedAxisLocation> ProjectionCorners
+        {
             get {
                 yield return TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph;
                 yield return TickedAxisLocation.BelowGraph | TickedAxisLocation.RightOfGraph;
@@ -171,21 +187,22 @@ namespace EmnExtensions.Wpf {
         static TickedAxisLocation ChooseProjection(IVizEngine graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.MetaData.AxisBindings & corner) == corner); }
         #endregion
 
-        void RecomputeBounds() {
+        void RecomputeBounds()
+        {
             Trace.WriteLine("RecomputeBounds");
 
-            foreach (TickedAxis axis in Axes) {
+            foreach (var axis in Axes) {
                 // ReSharper disable AccessToModifiedClosure
                 var boundGraphs = visibleGraphs.Where(graph => (graph.MetaData.AxisBindings & axis.AxisPos) != 0);
-                DimensionBounds bounds =
+                var bounds =
                     boundGraphs
                     .Select(graph => ToDimBounds(graph.EffectiveDataBounds(), axis.IsHorizontal))
                     .Aggregate(DimensionBounds.Empty, DimensionBounds.Merge);
-                DimensionMargins margin =
+                var margin =
                     boundGraphs
                     .Select(graph => ToDimMargins(graph.Margin, axis.IsHorizontal))
                     .Aggregate(DimensionMargins.Empty, DimensionMargins.Merge);
-                string dataUnits = string.Join(", ", boundGraphs.Select(graph => axis.IsHorizontal ? graph.MetaData.XUnitLabel : graph.MetaData.YUnitLabel).Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray());
+                var dataUnits = string.Join(", ", boundGraphs.Select(graph => axis.IsHorizontal ? graph.MetaData.XUnitLabel : graph.MetaData.YUnitLabel).Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray());
                 // ReSharper restore AccessToModifiedClosure
 
                 axis.DataBound = bounds;
@@ -194,14 +211,16 @@ namespace EmnExtensions.Wpf {
             }
         }
 
-        void RedrawGraphs(TickedAxisLocation gridLineAxes) {
+        void RedrawGraphs(TickedAxisLocation gridLineAxes)
+        {
             Trace.WriteLine("Redrawing Graphs");
             using (var drawingContext = dg.Open())
                 RedrawScene(drawingContext, gridLineAxes);
             needRedrawGraphs = false;
         }
 
-        public bool ShowGridLines {
+        public bool ShowGridLines
+        {
             get { return (bool)GetValue(ShowGridLinesProperty); }
             set { SetValue(ShowGridLinesProperty, value); }
         }
@@ -210,15 +229,17 @@ namespace EmnExtensions.Wpf {
         public static readonly DependencyProperty ShowGridLinesProperty =
             DependencyProperty.Register("ShowGridLines", typeof(bool), typeof(PlotControl), new UIPropertyMetadata(false, ShowGridLinesChanged));
 
-        static void ShowGridLinesChanged(DependencyObject o, DependencyPropertyChangedEventArgs e) {
-            PlotControl self = (PlotControl)o;
+        static void ShowGridLinesChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            var self = (PlotControl)o;
             foreach (var axis in self.Axes)
                 axis.MatchOppositeTicks = (bool)e.NewValue;
             self.needRedrawGraphs = true;
             self.InvalidateVisual();
         }
 
-        void RedrawScene(DrawingContext drawingContext, TickedAxisLocation gridLineAxes) {
+        void RedrawScene(DrawingContext drawingContext, TickedAxisLocation gridLineAxes)
+        {
             //drawingContext.PushClip(overallClipRect);
             if (ShowGridLines)
                 foreach (var axis in Axes)
@@ -229,7 +250,8 @@ namespace EmnExtensions.Wpf {
             //drawingContext.Pop();
         }
 
-        protected override Size MeasureOverride(Size constraint) {
+        protected override Size MeasureOverride(Size constraint)
+        {
             RecomputeBounds();
             return base.MeasureOverride(constraint);
         }
@@ -237,10 +259,11 @@ namespace EmnExtensions.Wpf {
         //readonly RectangleGeometry overallClipRect = new RectangleGeometry();
         readonly DrawingGroup dg = new DrawingGroup();
 
-        protected override void OnRender(DrawingContext drawingContext) {
+        protected override void OnRender(DrawingContext drawingContext)
+        {
             Trace.WriteLine("PlotControl.OnRender");
             //axes which influence projection matrices:
-            TickedAxisLocation relevantAxes = visibleGraphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));
+            var relevantAxes = visibleGraphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));
             var transforms =
                 from axis in Axes
                 where (axis.AxisPos & relevantAxes) != 0 && axis.DataBound.Length > 0
@@ -273,14 +296,14 @@ namespace EmnExtensions.Wpf {
                 var graphCorner = ChooseProjection(graph);
                 if (cornerProjection.ContainsKey(graphCorner)) {
                     var trans = cornerProjection[graphCorner];
-                    Rect bounds = new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
+                    var bounds = new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
                     graph.SetTransform(trans.Transform, bounds, m_dpiX, m_dpiY);
                 } else {
                     graph.SetTransform(Matrix.Identity, Rect.Empty, m_dpiX, m_dpiY);
                 }
             }
 
-            Rect axisBounds = Axes.Aggregate(Rect.Empty, (bound, axis) => Rect.Union(bound, new Rect(axis.RenderSize)));
+            var axisBounds = Axes.Aggregate(Rect.Empty, (bound, axis) => Rect.Union(bound, new Rect(axis.RenderSize)));
             foreach (var axis in Axes)
                 axis.SetGridLineExtent(axisBounds.Size);
             if (needRedrawGraphs)
@@ -302,10 +325,11 @@ namespace EmnExtensions.Wpf {
         double m_dpiY = 96;
         bool manualRender;
 
-        void ExportGraph(object sender, RoutedEventArgs e) {
-            byte[] xpsData = PrintToByteArray();
+        void ExportGraph(object sender, RoutedEventArgs e)
+        {
+            var xpsData = PrintToByteArray();
             var dialogThread = new Thread(() => {
-                SaveFileDialog saveDialog = new SaveFileDialog {
+                var saveDialog = new SaveFileDialog {
                     AddExtension = true,
                     CheckPathExists = true,
                     DefaultExt = ".xps",
@@ -320,7 +344,7 @@ namespace EmnExtensions.Wpf {
                 // ReSharper disable ConstantNullCoalescingCondition
                 if (saveDialog.ShowDialog() ?? false) {
                     // ReSharper restore ConstantNullCoalescingCondition
-                    FileInfo selectedFile = new FileInfo(saveDialog.FileName);
+                    var selectedFile = new FileInfo(saveDialog.FileName);
                     using (var emnExtensionsWpfKey = Registry.CurrentUser.CreateSubKey(@"Software\EmnExtensionsWpf"))
                         emnExtensionsWpfKey.SetValue("ExportDir", selectedFile.Directory.FullName);
 
@@ -334,36 +358,41 @@ namespace EmnExtensions.Wpf {
             dialogThread.Start();
         }
 
-        public byte[] PrintToByteArray() {
-            using (MemoryStream ms = new MemoryStream()) {
+        public byte[] PrintToByteArray()
+        {
+            using (var ms = new MemoryStream()) {
                 PrintToStream(ms);
                 return ms.ToArray();
             }
         }
 
-        void PrintToStream(Stream writeTo) {
+        void PrintToStream(Stream writeTo)
+        {
             try {
                 //manualRender = true;
-                m_dpiX = 288.0; m_dpiY = 288.0;
+                m_dpiX = 288.0;
+                m_dpiY = 288.0;
                 WpfTools.PrintXPS(this, 350, 350, writeTo, FileMode.Create, FileAccess.ReadWrite);
             } finally {
                 //manualRender = false;
-                m_dpiX = 96.0; m_dpiY = 96.0;
+                m_dpiX = 96.0;
+                m_dpiY = 96.0;
                 RequireRedisplay();
             }
         }
 
-        void PrintGraph(object sender, RoutedEventArgs ree) {
-            byte[] xpsData = PrintToByteArray();
+        void PrintGraph(object sender, RoutedEventArgs ree)
+        {
+            var xpsData = PrintToByteArray();
 
             var printThread = new Thread(() => {
-                string tempFile = Path.GetTempFileName();
+                var tempFile = Path.GetTempFileName();
                 try {
                     File.WriteAllBytes(tempFile, xpsData);
-                    using (PrintQueue defaultPrintQueue = LocalPrintServer.GetDefaultPrintQueue())
+                    using (var defaultPrintQueue = LocalPrintServer.GetDefaultPrintQueue())
                     using (var dataReadStream = File.OpenRead(tempFile))
-                    using (Package package = Package.Open(dataReadStream, FileMode.Open, FileAccess.Read))
-                    using (XpsDocument doc = new XpsDocument(package, CompressionOption.Normal, tempFile)) {
+                    using (var package = Package.Open(dataReadStream, FileMode.Open, FileAccess.Read))
+                    using (var doc = new XpsDocument(package, CompressionOption.Normal, tempFile)) {
                         var xpsPrintWriter = PrintQueue.CreateXpsDocumentWriter(defaultPrintQueue);
                         xpsPrintWriter.Write(doc.GetFixedDocumentSequence());
                     }

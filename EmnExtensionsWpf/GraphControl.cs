@@ -1,16 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace EmnExtensions.Wpf
 {
@@ -46,13 +38,14 @@ namespace EmnExtensions.Wpf
     public class GraphControl : FrameworkElement
     {
         static Random GraphColorRandom = new Random();
-        static Brush RandomGraphColor() {
+        static Brush RandomGraphColor()
+        {
             double r, g, b, sum;
             r = GraphColorRandom.NextDouble() + 0.01;
             g = GraphColorRandom.NextDouble() + 0.01;
             b = GraphColorRandom.NextDouble() + 0.01;
             sum = GraphColorRandom.NextDouble() * 0.5 + 0.5;
-            SolidColorBrush brush = new SolidColorBrush(
+            var brush = new SolidColorBrush(
                 new Color {
                     A = (byte)255,
                     R = (byte)(255 * r * sum / (r + g + b)),
@@ -65,7 +58,8 @@ namespace EmnExtensions.Wpf
         }
 
 
-        protected override Size MeasureOverride(Size constraint) {
+        protected override Size MeasureOverride(Size constraint)
+        {
             return new Size(
                 constraint.Width.IsFinite() ? constraint.Width : 150,
                 constraint.Height.IsFinite() ? constraint.Height : 150
@@ -75,7 +69,8 @@ namespace EmnExtensions.Wpf
 
         Rect oldBounds = Rect.Empty;
         Rect graphBoundsPrivate = Rect.Empty;
-        public Rect GraphBounds { //TODO dependency property?
+        public Rect GraphBounds
+        { //TODO dependency property?
             get {
                 return graphBoundsPrivate;
             }
@@ -90,19 +85,21 @@ namespace EmnExtensions.Wpf
         string yLabel;
         public string YLabel { get { return yLabel; } set { yLabel = value; InvalidateVisual(); } }
 
-        public void EnsurePointInBounds(Point p) {
+        public void EnsurePointInBounds(Point p)
+        {
             graphBoundsPrivate.Union(p);
             UpdateBounds();
         }
 
         Size lastDispSize = Size.Empty;
-        void UpdateBounds() {
-            Size curSize = new Size(ActualWidth, ActualHeight);
-            if (oldBounds == graphBoundsPrivate && curSize== lastDispSize) 
+        void UpdateBounds()
+        {
+            var curSize = new Size(ActualWidth, ActualHeight);
+            if (oldBounds == graphBoundsPrivate && curSize == lastDispSize)
                 return;
             lastDispSize = curSize;
 
-            Matrix translateThenScale = Matrix.Identity;
+            var translateThenScale = Matrix.Identity;
             //we first translate since that's just easier
             translateThenScale.Translate(-graphBoundsPrivate.Location.X, -graphBoundsPrivate.Location.Y);
             //now we scale the graph to the appropriate dimensions
@@ -117,13 +114,15 @@ namespace EmnExtensions.Wpf
                 return;
             oldBounds = graphBoundsPrivate;
 
-            if (GraphBoundsUpdated != null) GraphBoundsUpdated(this, graphBoundsPrivate);
+            if (GraphBoundsUpdated != null)
+                GraphBoundsUpdated(this, graphBoundsPrivate);
 
         }
 
 
         Pen graphLinePen;
-        public Brush GraphLineColor {
+        public Brush GraphLineColor
+        {
             set {
                 graphLinePen = new Pen(value, 1.5);
                 graphLinePen.StartLineCap = PenLineCap.Round;
@@ -139,10 +138,11 @@ namespace EmnExtensions.Wpf
 
         //List<Point> points;
         PathGeometry graphGeom2;
-//        StreamGeometry graphGeom;
-        PathFigure fig=null;
-       // bool needUpdate = false;
-        public void NewLine(IEnumerable<Point> lineOfPoints) {
+        //        StreamGeometry graphGeom;
+        PathFigure fig = null;
+        // bool needUpdate = false;
+        public void NewLine(IEnumerable<Point> lineOfPoints)
+        {
             InvalidateVisual();
             graphBoundsPrivate = Rect.Empty;
             if (lineOfPoints == null) {
@@ -151,13 +151,13 @@ namespace EmnExtensions.Wpf
             } else {
                 var points = lineOfPoints.ToArray();
                 graphGeom2 = new PathGeometry();
-                foreach (Point startPoint in points.Take(1)) {
+                foreach (var startPoint in points.Take(1)) {
                     fig = new PathFigure();
                     fig.StartPoint = startPoint;
                     graphGeom2.Figures.Add(fig);
                     graphBoundsPrivate.Union(startPoint);
                 }
-                foreach (Point point in points.Skip(1)) {
+                foreach (var point in points.Skip(1)) {
                     fig.Segments.Add(new LineSegment(point, true));
                     graphBoundsPrivate.Union(point);
                 }
@@ -166,17 +166,21 @@ namespace EmnExtensions.Wpf
             UpdateBounds();
         }
 
-        public IEnumerable<Point> CurrentPoints {
+        public IEnumerable<Point> CurrentPoints
+        {
             get {
-                if (fig == null) yield break;
+                if (fig == null)
+                    yield break;
                 yield return fig.StartPoint;
                 foreach (LineSegment lineTo in fig.Segments)
                     yield return lineTo.Point;
             }
         }
 
-        public void AddPoint(Point point) {
-            if (graphGeom2 == null) NewLine(new[] { point });
+        public void AddPoint(Point point)
+        {
+            if (graphGeom2 == null)
+                NewLine(new[] { point });
             else {
                 if (fig == null) {
                     fig = new PathFigure();
@@ -192,12 +196,15 @@ namespace EmnExtensions.Wpf
             }
         }
 
-        public GraphControl() {
+        public GraphControl()
+        {
             GraphLineColor = RandomGraphColor();
         }
 
-        protected override void OnRender(DrawingContext drawingContext) {
-            if (graphGeom2 == null) return;
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            if (graphGeom2 == null)
+                return;
             UpdateBounds();
             drawingContext.PushClip(new RectangleGeometry(new Rect(0, 0, ActualWidth, ActualHeight)));
             drawingContext.DrawGeometry(null, graphLinePen, graphGeom2);

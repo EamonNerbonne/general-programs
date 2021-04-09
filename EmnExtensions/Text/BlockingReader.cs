@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 
 namespace EmnExtensions.Text
@@ -27,8 +24,7 @@ namespace EmnExtensions.Text
 
         public override int Peek()
         {
-            if (!hasPeeked)
-            {
+            if (!hasPeeked) {
                 peekChar = reader.Read();
                 hasPeeked = true;
             }
@@ -46,9 +42,8 @@ namespace EmnExtensions.Text
             if ((buffer.Length - index) < count)
                 throw new ArgumentException("Buffer too small");
 
-            int peekCharsRead = 0;
-            if (hasPeeked)
-            {
+            var peekCharsRead = 0;
+            if (hasPeeked) {
                 buffer[index] = (char)peekChar;
                 hasPeeked = false;
                 index++;
@@ -61,13 +56,10 @@ namespace EmnExtensions.Text
 
         protected override void Dispose(bool disposing)
         {
-            try
-            {
+            try {
                 if (disposing)
                     reader.Dispose();
-            }
-            finally
-            {
+            } finally {
                 base.Dispose(disposing);
             }
         }

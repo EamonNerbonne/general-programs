@@ -12,8 +12,10 @@ using System.Threading;
 using System.Windows.Threading;
 using LvqLibCli;
 
-namespace LvqGui {
-    public class LvqWindowValues : INotifyPropertyChanged {
+namespace LvqGui
+{
+    public class LvqWindowValues : INotifyPropertyChanged
+    {
         public event PropertyChangedEventHandler PropertyChanged;
         void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
@@ -24,25 +26,28 @@ namespace LvqGui {
         public TrainingControlValues TrainingControlValues { get; private set; }
         public LoadDatasetValues LoadDatasetValues { get; private set; }
 
-        public bool ExtendDataByCorrelation {
+        public bool ExtendDataByCorrelation
+        {
             get { return _ExtendDataByCorrelation; }
             set { if (!_ExtendDataByCorrelation.Equals(value)) { _ExtendDataByCorrelation = value; _propertyChanged("ExtendDataByCorrelation"); } }
         }
         bool _ExtendDataByCorrelation;
 
-        public bool NormalizeDimensions {
+        public bool NormalizeDimensions
+        {
             get { return _NormalizeDimensions; }
             set { if (!_NormalizeDimensions.Equals(value)) { _NormalizeDimensions = value; _propertyChanged("NormalizeDimensions"); } }
         }
-        private bool _NormalizeDimensions=true;
+        private bool _NormalizeDimensions = true;
 
-        public bool NormalizeByScaling {
+        public bool NormalizeByScaling
+        {
             get { return _NormalizeByScaling; }
             set { if (!Equals(_NormalizeByScaling, value)) { _NormalizeByScaling = value; _propertyChanged("NormalizeByScaling"); } }
         }
         private bool _NormalizeByScaling;
 
-        
+
 
 
         public ObservableCollection<LvqDatasetCli> Datasets { get; private set; }
@@ -52,8 +57,10 @@ namespace LvqGui {
         public Dispatcher Dispatcher { get { return win.Dispatcher; } }
         public readonly LvqWindow win;
 
-        public LvqWindowValues(LvqWindow win) {
-            if (win == null) throw new ArgumentNullException("win");
+        public LvqWindowValues(LvqWindow win)
+        {
+            if (win == null)
+                throw new ArgumentNullException("win");
             this.win = win;
             Datasets = new ObservableCollection<LvqDatasetCli>();
             LvqModels = new ObservableCollection<LvqMultiModel>();
@@ -69,10 +76,11 @@ namespace LvqGui {
             LvqModels.CollectionChanged += LvqModels_CollectionChanged;
         }
 
-        void LvqModels_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
+        void LvqModels_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
             if (e.NewItems != null && e.NewItems.Count > 0) {
                 foreach (LvqMultiModel modelGroup in e.NewItems)
-                    foreach (LvqModelCli subModel in modelGroup.SubModels)
+                    foreach (var subModel in modelGroup.SubModels)
                         modelGroupLookup.Add(subModel, modelGroup);
                 var newModelGroup = e.NewItems.Cast<LvqMultiModel>().First();
                 TrainingControlValues.SelectedDataset = newModelGroup.InitSet;
@@ -90,7 +98,7 @@ namespace LvqGui {
             }
             if (e.OldItems != null)
                 foreach (LvqMultiModel modelGroup in e.OldItems)
-                    foreach (LvqModelCli subModel in modelGroup.SubModels)
+                    foreach (var subModel in modelGroup.SubModels)
                         if (!modelGroupLookup.Remove(subModel))
                             throw new InvalidOperationException("How can you be removing models that aren't in the lookup... ehh....?");
 
@@ -98,19 +106,21 @@ namespace LvqGui {
 
         readonly Dictionary<LvqModelCli, LvqMultiModel> modelGroupLookup = new Dictionary<LvqModelCli, LvqMultiModel>();
 
-        public LvqMultiModel ResolveModel(LvqModelCli lastModel) {
+        public LvqMultiModel ResolveModel(LvqModelCli lastModel)
+        {
             LvqMultiModel multiModel;
             modelGroupLookup.TryGetValue(lastModel, out multiModel);
             return multiModel;
         }
 
 
-        void Datasets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
+        void Datasets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
             if (e.NewItems != null) {
                 foreach (LvqDatasetCli newDataset in e.NewItems) {
                     CreateLvqModelValues.ForDataset = newDataset;
                     ThreadPool.QueueUserWorkItem(o => {
-                        LvqDatasetCli dataset = (LvqDatasetCli)o;
+                        var dataset = (LvqDatasetCli)o;
                         var errorRateAndVar = dataset.GetPcaNnErrorRate();
                         Console.WriteLine("NN error rate under PCA: {0} ~ {1}", errorRateAndVar.Item1, Math.Sqrt(errorRateAndVar.Item2));
                     }, newDataset);

@@ -1,15 +1,17 @@
 ﻿using System;
-using System.Windows;
 using System.ComponentModel;
-using System.Globalization;
-using EmnExtensions.Text;
-using System.Linq;
 using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Windows;
+using EmnExtensions.Text;
 
-namespace EmnExtensions.Wpf {
+namespace EmnExtensions.Wpf
+{
     [DebuggerDisplay("{AtStart} [] {AtEnd}")]
     [TypeConverter(typeof(DimensionMarginsConverter))]
-    public struct DimensionMargins {
+    public struct DimensionMargins
+    {
         public double AtStart { get; set; }
         public double AtEnd { get; set; }
         public double Sum => AtStart + AtEnd;
@@ -24,21 +26,26 @@ namespace EmnExtensions.Wpf {
         public override bool Equals(object obj) => obj is DimensionMargins && this == (DimensionMargins)obj;
     }
 
-    public class DimensionMarginsConverter : TypeConverter {
-        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) {
-            string strval = value as string;
-            if (strval == null) return null;
+    public class DimensionMarginsConverter : TypeConverter
+    {
+        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
+        {
+            var strval = value as string;
+            if (strval == null)
+                return null;
             var parameters = (from segment in strval.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                               select segment.ParseAsDouble()
                              ).ToArray();
-            if (parameters.Length < 1 || parameters.Length > 2 || parameters.Contains(null)) return null;
+            if (parameters.Length < 1 || parameters.Length > 2 || parameters.Contains(null))
+                return null;
 
             return new DimensionMargins { AtStart = parameters[0].Value, AtEnd = parameters[parameters.Length - 1].Value };
         }
-        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) {
+        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
+        {
             if (destinationType != typeof(string) || !(value is DimensionMargins))
                 return null;
-            DimensionMargins dim = (DimensionMargins)value;
+            var dim = (DimensionMargins)value;
             return dim.AtEnd == dim.AtStart ? dim.AtStart.ToString(culture) : dim.AtStart.ToString(culture) + "," + dim.AtEnd.ToString(culture);
         }
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) => sourceType.Equals(typeof(string)) || base.CanConvertFrom(context, sourceType);

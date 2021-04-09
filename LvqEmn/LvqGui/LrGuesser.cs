@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using EmnExtensions.Algorithms;
 using EmnExtensions.Filesystem;
 using EmnExtensions.Text;
@@ -29,16 +27,13 @@ namespace LvqGui
                 where (settings.PrototypesPerClass == 1) == (resSettings.PrototypesPerClass == 1)
                 select resSettings
                 ).ToArray();
-            string myshorthand = settings.WithCanonicalizedDefaults().ToShorthand();
+            var myshorthand = settings.WithCanonicalizedDefaults().ToShorthand();
 
-            if (options.Any())
-            {
+            if (options.Any()) {
                 var bestResults = options.MinBy(resSettings => myshorthand.LevenshteinDistance(resSettings.WithCanonicalizedDefaults().ToShorthand())).First();
                 return settings.WithLrAndDecay(bestResults.LR0, bestResults.LrScaleP, bestResults.LrScaleB, bestResults.decay, bestResults.iterScaleFactor)
                     ;
-            }
-            else
-            {
+            } else {
                 return settings.ModelType == LvqModelType.Gm ? settings.WithLr(0.002, 2.0, 0.0)
                     : settings.ModelType == LvqModelType.Ggm ? settings.WithLr(0.03, 0.05, 4.0)
                         : settings.ModelType == LvqModelType.Fgm ? settings.WithLr(0.03, 0.05, 4.0)
@@ -65,10 +60,11 @@ namespace LvqGui
         public static Tuple<bool, double, LvqModelSettingsCli> ExtractItersAndSettings(string filename)
         {
             var match = resultsFilenameRegex.Match(filename);
-            if (!match.Success) return Tuple.Create(false, default(double), default(LvqModelSettingsCli));
-            double iters = double.Parse(match.Groups["iters"].Value.StartsWith("e") ? "1" + match.Groups["iters"].Value : match.Groups["iters"].Value);
-            string shorthand = match.Groups["shorthand"].Value;
-            LvqModelSettingsCli modelSettings = CreateLvqModelValues.ParseShorthand(shorthand);
+            if (!match.Success)
+                return Tuple.Create(false, default(double), default(LvqModelSettingsCli));
+            var iters = double.Parse(match.Groups["iters"].Value.StartsWith("e") ? "1" + match.Groups["iters"].Value : match.Groups["iters"].Value);
+            var shorthand = match.Groups["shorthand"].Value;
+            var modelSettings = CreateLvqModelValues.ParseShorthand(shorthand);
             return Tuple.Create(true, iters, modelSettings);
         }
 

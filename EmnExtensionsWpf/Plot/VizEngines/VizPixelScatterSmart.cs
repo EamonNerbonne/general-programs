@@ -1,19 +1,22 @@
 ﻿using System.Windows;
 
-namespace EmnExtensions.Wpf.VizEngines {
-    public class VizPixelScatterSmart : VizTransformed<Point[], Point[]>, IVizPixelScatter {
+namespace EmnExtensions.Wpf.VizEngines
+{
+    public class VizPixelScatterSmart : VizTransformed<Point[], Point[]>, IVizPixelScatter
+    {
         const int MaxPointsInStreamGeometry = 10000;
 
         IVizPixelScatter engine;
-        public VizPixelScatterSmart(IPlotMetaData metadata) {engine = new VizPixelScatterGeom(metadata);}
+        public VizPixelScatterSmart(IPlotMetaData metadata) { engine = new VizPixelScatterGeom(metadata); }
         protected override IVizEngine<Point[]> Implementation { get { return engine; } }
 
-        public override void ChangeData(Point[] newData) {
-            bool useBmpPlot = newData != null && newData.Length > MaxPointsInStreamGeometry;
-            bool reconstructEngine = engine is VizPixelScatterBitmap != useBmpPlot;
+        public override void ChangeData(Point[] newData)
+        {
+            var useBmpPlot = newData != null && newData.Length > MaxPointsInStreamGeometry;
+            var reconstructEngine = engine is VizPixelScatterBitmap != useBmpPlot;
 
             if (reconstructEngine) {
-                IVizPixelScatter newImplementation = useBmpPlot ? (IVizPixelScatter)new VizPixelScatterBitmap(MetaData) : new VizPixelScatterGeom(MetaData);
+                var newImplementation = useBmpPlot ? (IVizPixelScatter)new VizPixelScatterBitmap(MetaData) : new VizPixelScatterGeom(MetaData);
                 newImplementation.CoverageRatio = CoverageRatio;
                 newImplementation.CoverageGradient = CoverageGradient;
                 newImplementation.OverridePointCountEstimate = OverridePointCountEstimate;

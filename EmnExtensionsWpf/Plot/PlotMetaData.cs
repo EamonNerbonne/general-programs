@@ -1,19 +1,24 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Threading;
 
-namespace EmnExtensions.Wpf {
-    public sealed class PlotMetaData : IPlotMetaDataWriteable {
+namespace EmnExtensions.Wpf
+{
+    public sealed class PlotMetaData : IPlotMetaDataWriteable
+    {
         IVizEngine m_viz;
-        public IVizEngine Visualisation {
+        public IVizEngine Visualisation
+        {
             get { return m_viz; }
             set { if (m_viz != null) throw new InvalidOperationException("The plot for this metadata has already been set."); m_viz = value; }
         }
 
-        public void TriggerChange(GraphChange changeType) {
-            if (Container != null) Container.GraphChanged(Visualisation, changeType);
-            if (changeType == GraphChange.RenderOptions && Visualisation != null) Visualisation.OnRenderOptionsChanged();
+        public void TriggerChange(GraphChange changeType)
+        {
+            if (Container != null)
+                Container.GraphChanged(Visualisation, changeType);
+            if (changeType == GraphChange.RenderOptions && Visualisation != null)
+                Visualisation.OnRenderOptionsChanged();
         }
         void IPlotMetaData.GraphChanged(GraphChange changeType) { TriggerChange(changeType); }
 
@@ -48,13 +53,15 @@ namespace EmnExtensions.Wpf {
         public double? RenderThickness { get { return m_Thickness; } set { m_Thickness = value; TriggerChange(GraphChange.RenderOptions); } }
 
         bool hidden;
-        public bool Hidden {
+        public bool Hidden
+        {
             get { return hidden; }
             set { if (hidden != value) { hidden = value; TriggerChange(GraphChange.Visibility); } }
         }
 
         public PlotMetaData() { }
-        public PlotMetaData(IPlotMetaData clone) {
+        public PlotMetaData(IPlotMetaData clone)
+        {
             this.XUnitLabel = clone.XUnitLabel;
             this.YUnitLabel = clone.YUnitLabel;
             this.DataLabel = clone.DataLabel;

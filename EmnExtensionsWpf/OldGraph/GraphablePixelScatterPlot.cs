@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Media.Imaging;
-using System.Windows.Media;
-using System.Windows;
 using System.Diagnostics;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace EmnExtensions.Wpf.Plot
 {
@@ -34,26 +31,19 @@ namespace EmnExtensions.Wpf.Plot
         {
             if (m_points == null || m_points.Length == 0)
                 return Rect.Empty;
-            else
-            {
-                int cutoff = (int)(0.5 + 0.5 * (1.0 - m_coverage) * m_points.Length);
+            else {
+                var cutoff = (int)(0.5 + 0.5 * (1.0 - m_coverage) * m_points.Length);
                 m_outerBounds = Rect.Empty;
                 foreach (var point in m_points)
                     m_outerBounds.Union(point);
-                if (cutoff == 0)
-                {
+                if (cutoff == 0) {
                     return m_outerBounds;
-                }
-                else if (cutoff * 2 >= m_points.Length)
-                {
+                } else if (cutoff * 2 >= m_points.Length) {
                     return Rect.Empty;
-                }
-                else
-                {
-                    double[] xs = new double[m_points.Length];
-                    double[] ys = new double[m_points.Length];
-                    for (int i = 0; i < m_points.Length; i++)
-                    {
+                } else {
+                    var xs = new double[m_points.Length];
+                    var ys = new double[m_points.Length];
+                    for (var i = 0; i < m_points.Length; i++) {
                         xs[i] = m_points[i].X;
                         ys[i] = m_points[i].Y;
                     }
@@ -69,7 +59,8 @@ namespace EmnExtensions.Wpf.Plot
 
         public override void DrawGraph(System.Windows.Media.DrawingContext context)
         {
-            if (m_bmp == null) return;
+            if (m_bmp == null)
+                return;
             context.PushGuidelineSet(new GuidelineSet(new[] { 0.0 }, new[] { 0.0 }));
             context.PushClip(m_clipGeom);
             context.PushTransform(m_offsetTransform);
@@ -87,36 +78,33 @@ namespace EmnExtensions.Wpf.Plot
         uint[] image;
         public override void SetTransform(Matrix matrix, Rect displayClip)
         {
-            if (matrix.IsIdentity)
-            {
+            if (matrix.IsIdentity) {
                 return;//TODO: clear bitmap??
             }
 
-            Rect outerDispBounds = Rect.Transform(m_outerBounds, matrix);
+            var outerDispBounds = Rect.Transform(m_outerBounds, matrix);
             outerDispBounds.Intersect(displayClip);
             outerDispBounds = SnapRect(outerDispBounds, 96.0 / m_dpiX, 96.0 / m_dpiX);
 
-            int pW = (int)Math.Ceiling(outerDispBounds.Width * m_dpiX / 96.0);
-            int pH = (int)Math.Ceiling(outerDispBounds.Height * m_dpiY / 96.0);
+            var pW = (int)Math.Ceiling(outerDispBounds.Width * m_dpiX / 96.0);
+            var pH = (int)Math.Ceiling(outerDispBounds.Height * m_dpiY / 96.0);
             if (image == null || image.Length < pW * pH)
                 image = new uint[pW * pH];
             else
-                for (int i = 0; i < pW * pH; i++)
+                for (var i = 0; i < pW * pH; i++)
                     image[i] = 0;
             //image.Count();
             matrix.Translate(-outerDispBounds.X, -outerDispBounds.Y);
-            double xScale = m_dpiX / 96.0;
-            double yScale = m_dpiY / 96.0;
+            var xScale = m_dpiX / 96.0;
+            var yScale = m_dpiY / 96.0;
             matrix.Scale(xScale, yScale);
             if (UseDiamondPoints) //for performance, if-lifted out of loop.
-                foreach (var point in Points)
-                {
+                foreach (var point in Points) {
                     var displaypoint = matrix.Transform(point);
 
-                    int x = (int)(displaypoint.X);// - outerDispBounds.X) * m_dpiX / 96.0);
-                    int y = (int)(displaypoint.Y);// - outerDispBounds.Y) * m_dpiY / 96.0);
-                    if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1)
-                    {
+                    var x = (int)(displaypoint.X);// - outerDispBounds.X) * m_dpiX / 96.0);
+                    var y = (int)(displaypoint.Y);// - outerDispBounds.Y) * m_dpiY / 96.0);
+                    if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1) {
                         image[x + pW * y]++;
                         image[x - 1 + pW * y]++;
                         image[x + 1 + pW * y]++;
@@ -125,51 +113,45 @@ namespace EmnExtensions.Wpf.Plot
                     }
                 }
             else //non-diamond case 
-                foreach (var point in Points)
-                {
+                foreach (var point in Points) {
                     var displaypoint = matrix.Transform(point);
-                    int x = (int)(displaypoint.X);
-                    int y = (int)(displaypoint.Y);
+                    var x = (int)(displaypoint.X);
+                    var y = (int)(displaypoint.Y);
                     if (x >= 0 && x < pW && y >= 0 && y < pH)
                         image[x + pW * y]++;
                 } // so now we've counted the number of pixels in each position...
 
             uint maxOverlap = 0;
-            for (int i = 0; i < pW * pH; i++)
+            for (var i = 0; i < pW * pH; i++)
                 if (image[i] > maxOverlap)
                     maxOverlap = image[i];
-            uint[] alphaLookup = new uint[maxOverlap + 1];
-            for (int i = 0; i < alphaLookup.Length; i++)
+            var alphaLookup = new uint[maxOverlap + 1];
+            for (var i = 0; i < alphaLookup.Length; i++)
                 alphaLookup[i] = ((uint)((1.0 - Math.Pow(1.0 - PointColor.ScA, i)) * 255.5) << 24);
 
-            uint nativeColor = PointColor.ToNativeColor() & 0x00ffffff;
-            double transparency = 1.0 - PointColor.ScA;
-            for (int pxI = 0; pxI < pW * pH; pxI++)
+            var nativeColor = PointColor.ToNativeColor() & 0x00ffffff;
+            var transparency = 1.0 - PointColor.ScA;
+            for (var pxI = 0; pxI < pW * pH; pxI++)
                 image[pxI] = nativeColor | alphaLookup[image[pxI]]; // ((uint)((1.0 - Math.Pow(transparency, image[pxI])) * 255.5) << 24);
 
-            if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH)
-            {
-                int width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + (int)(EXTRA_RESIZE_PIX * m_dpiX / 96.0));
-                int height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + (int)(EXTRA_RESIZE_PIX * m_dpiY / 96.0));
+            if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH) {
+                var width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + (int)(EXTRA_RESIZE_PIX * m_dpiX / 96.0));
+                var height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + (int)(EXTRA_RESIZE_PIX * m_dpiY / 96.0));
                 m_bmp = new WriteableBitmap(width, height, m_dpiX, m_dpiY, PixelFormats.Bgra32, null);
                 RenderOptions.SetBitmapScalingMode(m_bmp, m_scalingMode);
                 OnChange(GraphChange.Drawing);
                 Trace.WriteLine("new WriteableBitmap");
             }
 
-            try
-            {
+            try {
                 m_bmp.Lock();
                 m_bmp.WritePixels(new Int32Rect(0, 0, pW, pH), image, pW * sizeof(uint), 0);
-            }
-            finally
-            {
+            } finally {
                 m_bmp.Unlock();
             }
 
 
-            if (m_offsetTransform.X != outerDispBounds.X || m_offsetTransform.Y != outerDispBounds.Y)
-            {
+            if (m_offsetTransform.X != outerDispBounds.X || m_offsetTransform.Y != outerDispBounds.Y) {
                 m_offsetTransform.X = outerDispBounds.X;
                 m_offsetTransform.Y = outerDispBounds.Y;
             }

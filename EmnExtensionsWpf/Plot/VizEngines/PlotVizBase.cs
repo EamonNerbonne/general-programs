@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Threading;
 
-namespace EmnExtensions.Wpf.VizEngines {
-    public abstract class PlotVizBase<T> :  IVizEngine<T> {
+namespace EmnExtensions.Wpf.VizEngines
+{
+    public abstract class PlotVizBase<T> : IVizEngine<T>
+    {
 
         protected PlotVizBase(IPlotMetaData owner) { if (owner == null) throw new ArgumentNullException("owner"); m_owner = owner; }
         readonly IPlotMetaData m_owner;
@@ -13,10 +13,12 @@ namespace EmnExtensions.Wpf.VizEngines {
 
         Rect? m_DataBounds;
         public Rect DataBounds { get { return m_DataBounds ?? (m_DataBounds = ComputeBounds()).Value; } }
-        protected void InvalidateDataBounds() {
+        protected void InvalidateDataBounds()
+        {
             m_DataBounds = null;
-            bool boundsChanged = !MetaData.OverrideBounds.HasValue;
-            if (boundsChanged) TriggerChange(GraphChange.Projection);
+            var boundsChanged = !MetaData.OverrideBounds.HasValue;
+            if (boundsChanged)
+                TriggerChange(GraphChange.Projection);
         }
 
         protected abstract Rect ComputeBounds();
@@ -24,9 +26,10 @@ namespace EmnExtensions.Wpf.VizEngines {
         protected void TriggerChange(GraphChange graphChange) { MetaData.TriggerChange(graphChange); }
 
         Thickness m_Margin;
-        
+
         public Thickness Margin { get { return MetaData.OverrideMargin ?? m_Margin; } }
-        protected void SetMargin(Thickness newMargin) {
+        protected void SetMargin(Thickness newMargin)
+        {
             var oldMargin = Margin;
             m_Margin = newMargin;
             if (Margin != oldMargin)
@@ -36,7 +39,8 @@ namespace EmnExtensions.Wpf.VizEngines {
         public abstract void DrawGraph(DrawingContext context);
         public abstract void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY);
         protected T Data { get; private set; }
-        public void ChangeData(T data) {
+        public void ChangeData(T data)
+        {
             var oldData = Data;
             Data = data;
             OnDataChanged(oldData);

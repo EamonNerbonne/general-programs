@@ -4,11 +4,13 @@ using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using LvqLibCli;
 
-namespace LvqGui {
-    public sealed class StarDatasetSettings : DatasetCreatorBase<StarDatasetSettings> {
+namespace LvqGui
+{
+    public sealed class StarDatasetSettings : DatasetCreatorBase<StarDatasetSettings>
+    {
 #if DEBUG
-        public int Dimensions=8;
-        public int PointsPerClass=100;
+        public int Dimensions = 8;
+        public int PointsPerClass = 100;
 #else
         public int Dimensions = 24;
         public int PointsPerClass = 1000;
@@ -25,7 +27,8 @@ namespace LvqGui {
 
         public uint ParamsSeed;
 
-        protected override string RegexText {
+        protected override string RegexText
+        {
             get {
                 return @"
                 ^\s*(.*?--)?
@@ -45,7 +48,8 @@ namespace LvqGui {
             }
         }
 
-        protected override string GetShorthand() {
+        protected override string GetShorthand()
+        {
             return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (!NormalizeDimensions ? "" : NormalizeByScaling ? "S" : "n") + "-" + NumberOfClasses + "x" + PointsPerClass + ","
                 + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "r" : "") + ")x" + ClusterCenterDeviation.ToString("r") + "i"
                 + IntraClusterClassRelDev.ToString("r") + (NoiseSigma != 1.0 ? "n" + NoiseSigma.ToString("r") : "")
@@ -54,7 +58,8 @@ namespace LvqGui {
                 + (Folds == defaults.Folds ? "" : "^" + Folds);
         }
 
-        public override LvqDatasetCli CreateDataset() {
+        public override LvqDatasetCli CreateDataset()
+        {
             return LvqDatasetCli.ConstructStarDataset(Shorthand,
                 colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)ParamsSeed)),
                 folds: Folds,

@@ -1,17 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Globalization;
+using System.Windows;
+using System.Windows.Media;
 
 namespace EmnExtensions.Wpf
 {
@@ -49,7 +39,8 @@ namespace EmnExtensions.Wpf
         Typeface labelType;
         double fontSize = 12.0 * 4.0 / 3.0;
         Pen tickPen;
-        public Brush TickColor {
+        public Brush TickColor
+        {
             set {
                 tickPen = new Pen(value, 1.5);
                 tickPen.StartLineCap = PenLineCap.Round;
@@ -65,14 +56,16 @@ namespace EmnExtensions.Wpf
 
 
 
-        public TickedLegendControl() {
+        public TickedLegendControl()
+        {
             TickColor = Brushes.Black;
             labelType = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Verdana"));
-//            StartVal = 0;
-  //          EndVal = 1;
+            //            StartVal = 0;
+            //          EndVal = 1;
         }
         GraphControl watchedGraph;
-        public GraphControl Watch {
+        public GraphControl Watch
+        {
             get { return watchedGraph; }
             set {
                 if (watchedGraph != null) {
@@ -84,7 +77,7 @@ namespace EmnExtensions.Wpf
                 if (watchedGraph != null) {
                     watchedGraph.GraphBoundsUpdated += OnGraphBoundsUpdated;
                     TickColor = watchedGraph.GraphLineColor;
-                    LegendLabel = (IsHorizontal?watchedGraph.XLabel:watchedGraph.YLabel) ?? watchedGraph.Name;
+                    LegendLabel = (IsHorizontal ? watchedGraph.XLabel : watchedGraph.YLabel) ?? watchedGraph.Name;
                     OnGraphBoundsUpdated(watchedGraph, watchedGraph.GraphBounds);
                 } else {
                     this.Visibility = Visibility.Collapsed;
@@ -92,8 +85,10 @@ namespace EmnExtensions.Wpf
             }
         }
 
-        void OnGraphBoundsUpdated(GraphControl graph, Rect newBounds) {
-            if (graph != watchedGraph) return;//shouldn't happen, but heck;
+        void OnGraphBoundsUpdated(GraphControl graph, Rect newBounds)
+        {
+            if (graph != watchedGraph)
+                return;//shouldn't happen, but heck;
             if (newBounds.IsEmpty) {
                 StartVal = double.NaN;
                 EndVal = double.NaN;
@@ -128,33 +123,35 @@ namespace EmnExtensions.Wpf
         public Side SnapTo { get { return snapTo; } set { snapTo = value; InvalidateVisual(); } }
 
         CultureInfo cachedCulture;
-        int orderOfMagnitude,orderOfMagnitudeDiff;//TODO:really, these should be calculated in measure.  The measure pass should have everything measured!
+        int orderOfMagnitude, orderOfMagnitudeDiff;//TODO:really, these should be calculated in measure.  The measure pass should have everything measured!
         bool IsHorizontal { get { return snapTo == Side.Bottom || snapTo == Side.Top; } }
 
-        protected override Size MeasureOverride(Size constraint) {
+        protected override Size MeasureOverride(Size constraint)
+        {
             if (Visibility == Visibility.Collapsed)
                 return new Size(0, 0);
             cachedCulture = CultureInfo.CurrentCulture;
 
             orderOfMagnitudeDiff = (int)Math.Floor(Math.Log10(Math.Abs(startVal - endVal)));
             orderOfMagnitude = (int)Math.Floor(Math.Log10(Math.Max(Math.Abs(startVal), Math.Abs(endVal))));
-            FormattedText text = MakeText(8.88888888888888888);
+            var text = MakeText(8.88888888888888888);
             FormattedText baseL, powL, textL;
             double labelWidth;
             MakeLegendText(out baseL, out powL, out textL, out labelWidth);
 
             if (IsHorizontal)
-                return new Size(constraint.Width.IsFinite() ? constraint.Width : labelWidth, Math.Max(constraint.Height.IsFinite()?constraint.Height:0, 17 + text.Height * 2));
+                return new Size(constraint.Width.IsFinite() ? constraint.Width : labelWidth, Math.Max(constraint.Height.IsFinite() ? constraint.Height : 0, 17 + text.Height * 2));
             else
-                return new Size( Math.Max(17 + text.Width + text.Height,constraint.Width.IsFinite()?constraint.Width:0), constraint.Height.IsFinite() ? constraint.Height : labelWidth);
+                return new Size(Math.Max(17 + text.Width + text.Height, constraint.Width.IsFinite() ? constraint.Width : 0), constraint.Height.IsFinite() ? constraint.Height : labelWidth);
         }
 
 
-        protected override void OnRender(DrawingContext drawingContext) {
+        protected override void OnRender(DrawingContext drawingContext)
+        {
             if (Visibility != Visibility.Visible)
                 return;
 
-            double ticksPixelsDim = IsHorizontal ? ActualWidth : ActualHeight;
+            var ticksPixelsDim = IsHorizontal ? ActualWidth : ActualHeight;
 
             if (ticksPixelsDim <= 0 ||
                 !ticksPixelsDim.IsFinite() ||
@@ -168,21 +165,22 @@ namespace EmnExtensions.Wpf
             orderOfMagnitudeDiff = (int)Math.Floor(Math.Log10(Math.Abs(startVal - endVal)));
             orderOfMagnitude = (int)Math.Floor(Math.Log10(Math.Max(Math.Abs(startVal), Math.Abs(endVal))));
 
-            Matrix mirrTrans = Matrix.Identity; //top-left is 0,0, so if you're on the bottom you're happy
+            var mirrTrans = Matrix.Identity; //top-left is 0,0, so if you're on the bottom you're happy
             if (snapTo == Side.Right || snapTo == Side.Bottom)
                 mirrTrans.ScaleAt(1.0, -1.0, 0.0, (ActualHeight + ActualWidth - ticksPixelsDim) / 2.0);
             if (snapTo == Side.Right || snapTo == Side.Left) {
                 mirrTrans.Rotate(-90.0);
                 mirrTrans.Translate(0.0, ticksPixelsDim);
             }
-            double textHMax = 0.0;
+            var textHMax = 0.0;
             //now mirrTrans projects from an "ideal" SnapTo-Top world-view to what we need.
-            StreamGeometry geom = DrawTicks(ticksPixelsDim, (val, pixPos) => {
-                FormattedText text = MakeText(val / Math.Pow(10, orderOfMagnitude));
-                double textH = (IsHorizontal ? text.Height : text.Width);
-                double altitudeCenter = 17 + textH / 2.0;
-                if (textH > textHMax) textHMax = textH;
-                Point textPos = mirrTrans.Transform(new Point(pixPos, altitudeCenter));
+            var geom = DrawTicks(ticksPixelsDim, (val, pixPos) => {
+                var text = MakeText(val / Math.Pow(10, orderOfMagnitude));
+                var textH = (IsHorizontal ? text.Height : text.Width);
+                var altitudeCenter = 17 + textH / 2.0;
+                if (textH > textHMax)
+                    textHMax = textH;
+                var textPos = mirrTrans.Transform(new Point(pixPos, altitudeCenter));
                 //but we need to shift from center to top-left...
                 textPos.Offset(text.Width / -2.0, text.Height / -2.0);
                 drawingContext.DrawText(text, textPos);
@@ -194,12 +192,13 @@ namespace EmnExtensions.Wpf
             FormattedText baseL, powL, textL;
             double totalLabelWidth;
             MakeLegendText(out baseL, out powL, out textL, out totalLabelWidth);
-            double centerPix = ticksPixelsDim / 2;
+            var centerPix = ticksPixelsDim / 2;
 
-            if (!IsHorizontal) textHMax += baseL.Height * 0.1;
-            double centerAlt = 17 + textHMax + baseL.Height / 2.0;
+            if (!IsHorizontal)
+                textHMax += baseL.Height * 0.1;
+            var centerAlt = 17 + textHMax + baseL.Height / 2.0;
 
-            Point labelPos = mirrTrans.Transform(new Point(centerPix, centerAlt));
+            var labelPos = mirrTrans.Transform(new Point(centerPix, centerAlt));
 
             if (snapTo == Side.Right)
                 drawingContext.PushTransform(new RotateTransform(90.0, labelPos.X, labelPos.Y));
@@ -219,11 +218,13 @@ namespace EmnExtensions.Wpf
 
 
 
-        FormattedText MakeText(double val) {
-            string numericValueString = (val).ToString("g" + (orderOfMagnitude-orderOfMagnitudeDiff+2));
+        FormattedText MakeText(double val)
+        {
+            var numericValueString = (val).ToString("g" + (orderOfMagnitude - orderOfMagnitudeDiff + 2));
             return new FormattedText(numericValueString, cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
         }
-        void MakeLegendText(out FormattedText baseL, out FormattedText powL, out FormattedText textL, out double totalLabelWidth) {
+        void MakeLegendText(out FormattedText baseL, out FormattedText powL, out FormattedText textL, out double totalLabelWidth)
+        {
             baseL = new FormattedText("×10",
 cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
             powL = new FormattedText(
@@ -238,24 +239,27 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
 
         }
 
-        StreamGeometry DrawTicks(double pixelsWide, Action<double, double> rank0ValAtPixel) {
-            double scale = pixelsWide / (endVal - startVal);
-            StreamGeometry geom = new StreamGeometry();
+        StreamGeometry DrawTicks(double pixelsWide, Action<double, double> rank0ValAtPixel)
+        {
+            var scale = pixelsWide / (endVal - startVal);
+            var geom = new StreamGeometry();
             using (var context = geom.Open()) {
                 FindAllTicks(pixelsWide / 100, Math.Min(startVal, endVal), Math.Max(startVal, endVal), (val, rank) => {
-                    double pixelPos = (val - startVal) * scale;
+                    var pixelPos = (val - startVal) * scale;
 
                     context.BeginFigure(new Point(pixelPos, 0), false, false);
                     context.LineTo(new Point(pixelPos, (4 - rank) * 4), true, false);
 
-                    if (rank == 0) rank0ValAtPixel(val, pixelPos);
+                    if (rank == 0)
+                        rank0ValAtPixel(val, pixelPos);
                 });
             }
             return geom;
         }
 
 
-        static void FindAllTicks(double preferredNum, double minVal, double maxVal, Action<double, int> foundTickWithRank) {
+        static void FindAllTicks(double preferredNum, double minVal, double maxVal, Action<double, int> foundTickWithRank)
+        {
             double firstTickAt, totalSlotSize;
             int[] subDivTicks;
             int orderOfMagnitude;
@@ -263,15 +267,16 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
             //we want the first tick to start before the range
             firstTickAt -= totalSlotSize;
             //convert subDivTicks into multiples:
-            for (int i = subDivTicks.Length - 2; i >= 0; i--)
+            for (var i = subDivTicks.Length - 2; i >= 0; i--)
                 subDivTicks[i] = subDivTicks[i] * subDivTicks[i + 1];
-            double subSlotSize = totalSlotSize / subDivTicks[0];
+            var subSlotSize = totalSlotSize / subDivTicks[0];
 
-            int firstSubTickMult = (int)Math.Ceiling((minVal - firstTickAt) / subSlotSize);//some positive number;
+            var firstSubTickMult = (int)Math.Ceiling((minVal - firstTickAt) / subSlotSize);//some positive number;
 
-            for (int i = firstSubTickMult; firstTickAt + subSlotSize * i <= maxVal + subSlotSize*0.00001; i++) {
-                int rank = 0;
-                while (rank < subDivTicks.Length && i % subDivTicks[rank] != 0) rank++;
+            for (var i = firstSubTickMult; firstTickAt + subSlotSize * i <= maxVal + subSlotSize * 0.00001; i++) {
+                var rank = 0;
+                while (rank < subDivTicks.Length && i % subDivTicks[rank] != 0)
+                    rank++;
                 foundTickWithRank(firstTickAt + subSlotSize * i, rank);
             }
         }
@@ -287,11 +292,12 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
         /// <param name="ticks">output: the additional order of subdivisions each slot can be divided into.
         /// This value aims to have around 10 subdivisions total, slightly more when the actual number of slots is fewer than requested
         /// and slightly less when the actual number of slots greater than requested.</param>
-        public static void CalcTickPositions(double minVal, double maxVal, double preferredNum, out double firstTickAt, out double slotSize, out int[] ticks, out int orderOfMagnitude) {
-            double range = maxVal - minVal;
-            double idealSlotSize = range / (preferredNum + 1);
+        public static void CalcTickPositions(double minVal, double maxVal, double preferredNum, out double firstTickAt, out double slotSize, out int[] ticks, out int orderOfMagnitude)
+        {
+            var range = maxVal - minVal;
+            var idealSlotSize = range / (preferredNum + 1);
             orderOfMagnitude = (int)Math.Floor(Math.Log10(idealSlotSize)); //i.e  for 143 or 971 this is 2
-            double relSlotSize = idealSlotSize / Math.Pow(10, orderOfMagnitude); //some number between 1 and 10
+            var relSlotSize = idealSlotSize / Math.Pow(10, orderOfMagnitude); //some number between 1 and 10
             int fixedSlot;
 
             if (relSlotSize < 1.42) {

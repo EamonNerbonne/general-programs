@@ -1,12 +1,13 @@
 ﻿using System;
-using System.Linq;
+using System.Diagnostics;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows;
-using System.Diagnostics;
 
-namespace EmnExtensions.Wpf.VizEngines {
-    public abstract class VizDynamicBitmap<T> : PlotVizBase<T> {
+namespace EmnExtensions.Wpf.VizEngines
+{
+    public abstract class VizDynamicBitmap<T> : PlotVizBase<T>
+    {
         protected VizDynamicBitmap(IPlotMetaData owner) : base(owner) { BitmapScalingMode = BitmapScalingMode.Linear; }
 
         public BitmapScalingMode BitmapScalingMode { get { return m_scalingMode; } set { m_scalingMode = value; if (m_drawing != null) RenderOptions.SetBitmapScalingMode(m_drawing, value); } }
@@ -19,23 +20,25 @@ namespace EmnExtensions.Wpf.VizEngines {
         readonly MatrixTransform m_bitmapToDisplayTransform = new MatrixTransform();
         readonly DrawingGroup m_drawing = new DrawingGroup();
 
-        public sealed override void DrawGraph(DrawingContext context) {
+        public sealed override void DrawGraph(DrawingContext context)
+        {
             Trace.WriteLine("redraw");
             context.DrawDrawing(m_drawing);
         }
 
         static Rect SnapRect(Rect r, double multX, double multY) { return new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY)); }
 
-        public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip, double dpiX, double dpiY) {
+        public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip, double dpiX, double dpiY)
+        {
             if (displayClip.IsEmpty)
                 using (m_drawing.Open())
                     return;
 
             double scaleX = dpiX / 96.0, scaleY = dpiY / 96.0;
 
-            Rect drawingClip = ComputeRelevantDisplay(displayClip, OuterDataBound, dataToDisplay);
+            var drawingClip = ComputeRelevantDisplay(displayClip, OuterDataBound, dataToDisplay);
 
-            Rect snappedDrawingClip = SnapRect(drawingClip, 1.0/scaleX, 1.0/scaleY);
+            var snappedDrawingClip = SnapRect(drawingClip, 1.0 / scaleX, 1.0 / scaleY);
 
             var dataToBitmapToDisplay = SplitDataToDisplay(dataToDisplay, snappedDrawingClip, dpiX, dpiY);
 
@@ -47,11 +50,11 @@ namespace EmnExtensions.Wpf.VizEngines {
 
 
 
-            int pW = (int)(0.5 + snappedDrawingClip.Width * scaleX);
-            int pH = (int)(0.5 + snappedDrawingClip.Height * scaleY);
+            var pW = (int)(0.5 + snappedDrawingClip.Width * scaleX);
+            var pH = (int)(0.5 + snappedDrawingClip.Height * scaleY);
             if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH || dpiX != m_bmp.DpiX || dpiY != m_bmp.DpiY) {
-                int width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + EXTRA_RESIZE_PIX);
-                int height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + EXTRA_RESIZE_PIX);
+                var width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + EXTRA_RESIZE_PIX);
+                var height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + EXTRA_RESIZE_PIX);
                 m_bmp = new WriteableBitmap(width, height, dpiX, dpiY, PixelFormats.Bgra32, null);
                 using (var context = m_drawing.Open()) {
                     context.PushGuidelineSet(new GuidelineSet(new[] { 0.0 }, new[] { 0.0 }));
@@ -70,19 +73,21 @@ namespace EmnExtensions.Wpf.VizEngines {
             Trace.WriteLine("retransform");
         }
 
-        static Rect ComputeRelevantDisplay(Rect clip, Rect? dataBounds, Matrix dataToDisplay) {
+        static Rect ComputeRelevantDisplay(Rect clip, Rect? dataBounds, Matrix dataToDisplay)
+        {
             if (dataBounds.HasValue)
                 clip.Intersect(Rect.Transform(dataBounds.Value, dataToDisplay));
             return clip;
         }
 
-        static Tuple<Matrix, Matrix> SplitDataToDisplay(Matrix dataToDisplay, Rect snappedDrawingClip, double dpiX, double dpiY) {
+        static Tuple<Matrix, Matrix> SplitDataToDisplay(Matrix dataToDisplay, Rect snappedDrawingClip, double dpiX, double dpiY)
+        {
 
-            Matrix dataToBitmap = dataToDisplay;
+            var dataToBitmap = dataToDisplay;
             dataToBitmap.Translate(-snappedDrawingClip.X, -snappedDrawingClip.Y); //transform real-location --> coordinates
             dataToBitmap.Scale(dpiX / 96.0, dpiY / 96.0); //transform from abstract units --> pixels
 
-            Matrix bitmapToDisplay = Matrix.Identity;
+            var bitmapToDisplay = Matrix.Identity;
             //bitmapToDisplay.Scale(96.0 / dpiX, 96.0 / dpiY); //transform pixels --> abstract units; not necessary, already done by WriteableBitmap's DPI setting.
             bitmapToDisplay.Translate(snappedDrawingClip.X, snappedDrawingClip.Y); //transform coordinates --> real-location
 

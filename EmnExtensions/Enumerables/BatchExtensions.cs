@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace EmnExtensions.Enumerables {
-    public static class BatchExtension {
-        static IEnumerable<T[]> Batch<T>(this IEnumerable<T> list, int batchSize) {
-            int i = 0;
+namespace EmnExtensions.Enumerables
+{
+    public static class BatchExtension
+    {
+        static IEnumerable<T[]> Batch<T>(this IEnumerable<T> list, int batchSize)
+        {
+            var i = 0;
             var arr = new T[batchSize];
             foreach (var t in list) {
                 arr[i++] = t;

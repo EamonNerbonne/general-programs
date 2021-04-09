@@ -2,8 +2,10 @@
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.VizEngines {
-    public class VizGeometry : PlotVizBase<Geometry> {
+namespace EmnExtensions.Wpf.VizEngines
+{
+    public class VizGeometry : PlotVizBase<Geometry>
+    {
         readonly MatrixTransform m_ProjectionTransform = new MatrixTransform();
         readonly GeometryGroup combinesGeom = new GeometryGroup();
         readonly RectangleGeometry clipRectangle = new RectangleGeometry();
@@ -13,7 +15,8 @@ namespace EmnExtensions.Wpf.VizEngines {
         Pen m_Pen = defaultPen;
 
         public VizGeometry(IPlotMetaData owner)
-            : base(owner) {
+            : base(owner)
+        {
             combinesGeom.Transform = m_ProjectionTransform;
             RecomputeMargin();
             RecreatePen();
@@ -21,7 +24,8 @@ namespace EmnExtensions.Wpf.VizEngines {
 
         static readonly Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness = 1.5, }.GetAsFrozen();
 
-        public Brush Fill {
+        public Brush Fill
+        {
             get { return m_Fill; }
             set {
                 if (m_Fill != value) {
@@ -31,13 +35,16 @@ namespace EmnExtensions.Wpf.VizEngines {
             }
         }
 
-        public Pen Pen {
+        public Pen Pen
+        {
             get { return m_Pen; }
             set {
                 if (m_Pen != value) {
-                    if (m_Pen != null && !m_Pen.IsFrozen) m_Pen.Changed -= m_Pen_Changed;
+                    if (m_Pen != null && !m_Pen.IsFrozen)
+                        m_Pen.Changed -= m_Pen_Changed;
                     m_Pen = value;
-                    if (m_Pen != null && !m_Pen.IsFrozen) m_Pen.Changed += m_Pen_Changed;
+                    if (m_Pen != null && !m_Pen.IsFrozen)
+                        m_Pen.Changed += m_Pen_Changed;
                     m_Pen_Changed(null, null);
                 }
             }
@@ -48,7 +55,8 @@ namespace EmnExtensions.Wpf.VizEngines {
         /// </summary>
         public bool AutosizeBounds { get { return m_AutosizeBounds; } set { m_AutosizeBounds = value; RecomputeBoundsIfAuto(); } }
 
-        protected override void OnDataChanged(Geometry oldData) {
+        protected override void OnDataChanged(Geometry oldData)
+        {
             if (Data == oldData)
                 return;
             if (oldData != null && !oldData.IsFrozen)
@@ -68,26 +76,32 @@ namespace EmnExtensions.Wpf.VizEngines {
             TriggerChange(GraphChange.Drawing);
         }
 
-        void m_Pen_Changed(object sender, EventArgs e) {
+        void m_Pen_Changed(object sender, EventArgs e)
+        {
             TriggerChange(GraphChange.Drawing);
             RecomputeMargin();
         }
-        void RecomputeMargin() {//this will trigger OnChanged if neeeded.
+        void RecomputeMargin()
+        {//this will trigger OnChanged if neeeded.
             SetMargin(new Thickness(Pen.Thickness / 2.0));
         }
         void m_Geometry_Changed(object sender, EventArgs e) { RecomputeBoundsIfAuto(); }
 
-        void RecomputeBoundsIfAuto() {
-            if (m_AutosizeBounds) InvalidateDataBounds();//this will trigger OnChanged if neeeded.
+        void RecomputeBoundsIfAuto()
+        {
+            if (m_AutosizeBounds)
+                InvalidateDataBounds();//this will trigger OnChanged if neeeded.
         }
         protected override Rect ComputeBounds() { return Data.Bounds; }
 
-        public override void SetTransform(Matrix axisToDisplay, Rect displayClip, double forDpiX, double forDpiY) {
+        public override void SetTransform(Matrix axisToDisplay, Rect displayClip, double forDpiX, double forDpiY)
+        {
             clipRectangle.Rect = displayClip;
             m_ProjectionTransform.Matrix = axisToDisplay;
         }
 
-        public override void DrawGraph(DrawingContext context) {
+        public override void DrawGraph(DrawingContext context)
+        {
             context.PushClip(clipRectangle);
             context.DrawGeometry(IsFilled ? m_Fill : null, IsStroked ? m_Pen : null, combinesGeom);
             context.Pop();
@@ -95,16 +109,17 @@ namespace EmnExtensions.Wpf.VizEngines {
 
         public override void OnRenderOptionsChanged() { RecreatePen(); }
 
-        void RecreatePen() {
-            Color currentColor = ((SolidColorBrush)m_Pen.Brush).Color;
-            double currentThickness = m_Pen.Thickness;
-            Color newColor = MetaData.RenderColor ?? currentColor;
-            double newThickness = MetaData.RenderThickness ?? currentThickness;
+        void RecreatePen()
+        {
+            var currentColor = ((SolidColorBrush)m_Pen.Brush).Color;
+            var currentThickness = m_Pen.Thickness;
+            var newColor = MetaData.RenderColor ?? currentColor;
+            var newThickness = MetaData.RenderThickness ?? currentThickness;
             if (newThickness != currentThickness || newColor != currentColor) {
                 if (newColor != currentColor)
                     TriggerChange(GraphChange.Labels);
 
-                Pen newPen = m_Pen.CloneCurrentValue();
+                var newPen = m_Pen.CloneCurrentValue();
                 newPen.Brush = Fill = new SolidColorBrush(newColor);
                 newPen.Thickness = newThickness;
                 newPen.Freeze();

@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
-namespace EmnExtensions.Text {
-    public class ForkingTextWriter : AbstractTextWriter {
+namespace EmnExtensions.Text
+{
+    public class ForkingTextWriter : AbstractTextWriter
+    {
         readonly bool closeUnderlying;
         readonly TextWriter[] writers;
-        public ForkingTextWriter(IEnumerable<TextWriter> targetWriters, bool? closeUnderlyingWriters = null) {
+        public ForkingTextWriter(IEnumerable<TextWriter> targetWriters, bool? closeUnderlyingWriters = null)
+        {
             closeUnderlying = closeUnderlyingWriters ?? true;
             writers = targetWriters.ToArray();
         }
@@ -17,7 +18,8 @@ namespace EmnExtensions.Text {
 
         public override void Flush() { base.Flush(); foreach (var writer in writers) writer.Flush(); }
 
-        protected override void Dispose(bool disposing) {
+        protected override void Dispose(bool disposing)
+        {
             if (closeUnderlying && disposing)
                 foreach (var writer in writers)
                     writer.Dispose();

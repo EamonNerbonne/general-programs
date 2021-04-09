@@ -2,14 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EmnExtensions {
-    public static class F {
+namespace EmnExtensions
+{
+    public static class F
+    {
 
         public static IEnumerable<T> EmptyIfNull<T>(this IEnumerable<T> enumerable) { return enumerable ?? Enumerable.Empty<T>(); }
 
-        public static IEnumerable<IEnumerable<T>> SplitWhen<T>(this IEnumerable<T> iter, Func<T, bool> splitMark) {
+        public static IEnumerable<IEnumerable<T>> SplitWhen<T>(this IEnumerable<T> iter, Func<T, bool> splitMark)
+        {
             var queue = new Queue<T>();
-            foreach (T t in iter) {
+            foreach (var t in iter) {
                 if (splitMark(t)) {
                     if (queue.Count != 0) {
                         yield return queue;
@@ -23,7 +26,8 @@ namespace EmnExtensions {
             }
         }
 
-        public static IEnumerable<Z> ZipWith<X, Y, Z>(this IEnumerable<X> seq, IEnumerable<Y> other, Func<X, Y, Z> f) {
+        public static IEnumerable<Z> ZipWith<X, Y, Z>(this IEnumerable<X> seq, IEnumerable<Y> other, Func<X, Y, Z> f)
+        {
             using (var seqE = seq.GetEnumerator())
             using (var otherE = other.GetEnumerator()) {
                 while (seqE.MoveNext() && otherE.MoveNext())
@@ -32,7 +36,8 @@ namespace EmnExtensions {
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        public static T Swallow<T>(Func<T> trial, Func<T> error) {
+        public static T Swallow<T>(Func<T> trial, Func<T> error)
+        {
             try {
                 return trial();
             } catch (Exception) {
@@ -40,7 +45,8 @@ namespace EmnExtensions {
             }
         }
 
-        public static T Swallow<T, TE>(Func<T> trial, Func<TE, T> error) where TE : Exception {
+        public static T Swallow<T, TE>(Func<T> trial, Func<TE, T> error) where TE : Exception
+        {
             try {
                 return trial();
             } catch (TE e) {
@@ -72,15 +78,17 @@ namespace EmnExtensions {
 
         //}
 
-        public static string ToStringOrNull(this object value) {
+        public static string ToStringOrNull(this object value)
+        {
             return value == null ? null : value.ToString();
         }
 
-        public static int IndexOfMax<T>(this IEnumerable<T> sequence, Func<int, T, bool> filter) where T : IComparable<T> {
+        public static int IndexOfMax<T>(this IEnumerable<T> sequence, Func<int, T, bool> filter) where T : IComparable<T>
+        {
             using (var enumerator = sequence.GetEnumerator()) {
-                int retval = -1;
-                T max = default(T);
-                int currentIndex = -1;
+                var retval = -1;
+                var max = default(T);
+                var currentIndex = -1;
                 T current;
                 while (enumerator.GetNext(out current)) {
                     currentIndex++;
@@ -94,15 +102,18 @@ namespace EmnExtensions {
             }
         }
 
-        public static bool IsFinite(this float f) {
+        public static bool IsFinite(this float f)
+        {
             return !(float.IsInfinity(f) || float.IsNaN(f));
         }
-        public static bool IsFinite(this double f) {
+        public static bool IsFinite(this double f)
+        {
             return !(double.IsInfinity(f) || double.IsNaN(f));
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "1#")]
-        public static bool GetNext<T>(this IEnumerator<T> enumerator, out T nextValue) {
+        public static bool GetNext<T>(this IEnumerator<T> enumerator, out T nextValue)
+        {
             if (enumerator.MoveNext()) {
                 nextValue = enumerator.Current;
                 return true;
@@ -113,11 +124,14 @@ namespace EmnExtensions {
         }
 
 
-        public static IEnumerable<T> AsEnumerable<T>(Func<T> func) {
-            while (true) yield return func();
+        public static IEnumerable<T> AsEnumerable<T>(Func<T> func)
+        {
+            while (true)
+                yield return func();
         }
 
-        public static IEnumerable<T> AsEnumerable<T>(Action init, Func<T> func) {
+        public static IEnumerable<T> AsEnumerable<T>(Action init, Func<T> func)
+        {
             init();
             return AsEnumerable(func);
         }

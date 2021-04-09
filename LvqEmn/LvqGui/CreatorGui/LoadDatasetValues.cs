@@ -8,38 +8,45 @@ using System.Threading;
 using LvqLibCli;
 using Microsoft.Win32;
 
-namespace LvqGui {
-    public class LoadDatasetValues : INotifyPropertyChanged, IHasSeed {
+namespace LvqGui
+{
+    public class LoadDatasetValues : INotifyPropertyChanged, IHasSeed
+    {
         readonly LvqWindowValues owner;
         public event PropertyChangedEventHandler PropertyChanged;
         void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
-        public uint ParamsSeed {
+        public uint ParamsSeed
+        {
             get { return _Seed; }
             set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("ParamsSeed"); } }
         }
         uint _Seed;
 
-        public uint InstanceSeed {
+        public uint InstanceSeed
+        {
             get { return _InstSeed; }
             set { if (!_InstSeed.Equals(value)) { _InstSeed = value; _propertyChanged("InstanceSeed"); } }
         }
         uint _InstSeed;
 
-        public int Folds {
+        public int Folds
+        {
             get { return _Folds; }
             set { if (value != 0 && value < 2) throw new ArgumentException("Must have no folds (no test data) or at least 2"); if (!_Folds.Equals(value)) { _Folds = value; _propertyChanged("Folds"); } }
         }
         int _Folds;
 
 
-        public LoadDatasetValues(LvqWindowValues owner) {
+        public LoadDatasetValues(LvqWindowValues owner)
+        {
             this.owner = owner;
             _Folds = 10;
             //this.ReseedBoth();
         }
 
-        LvqDatasetCli CreateDataset(uint seed, int folds) {
+        LvqDatasetCli CreateDataset(uint seed, int folds)
+        {
             var dataFileOpenDialog = new OpenFileDialog { Multiselect = folds == 0, Filter = "Dataset|*.data;*.data.gz" };
             using (var lvqGuiKey = Registry.CurrentUser.OpenSubKey(@"Software\LvqGui"))
                 if (lvqGuiKey != null)
@@ -59,7 +66,7 @@ namespace LvqGui {
                         return null;
                     }
                 } else if (dataFileOpenDialog.FileNames.Length == 2) {
-                    var trainFile = dataFileOpenDialog.FileNames.Where(name =>name.Contains("train.")).Select(name => new FileInfo(name)).FirstOrDefault();
+                    var trainFile = dataFileOpenDialog.FileNames.Where(name => name.Contains("train.")).Select(name => new FileInfo(name)).FirstOrDefault();
                     var testFile = dataFileOpenDialog.FileNames.Where(name => name.Contains("test.")).Select(name => new FileInfo(name)).FirstOrDefault();
                     if (trainFile == null || testFile == null)
                         return null;
@@ -70,15 +77,19 @@ namespace LvqGui {
                         Console.WriteLine("Can't load file: {0}", fe);
                         return null;
                     }
-                } else return null;
-            } else return null;
+                } else
+                    return null;
+            } else
+                return null;
         }
 
-        LvqDatasetCli LoadDataset(FileInfo dataFile, uint seed, int folds, FileInfo testFile = null) {
-            return LoadDatasetImpl.LoadData(dataFile, testFile, new LoadedDatasetSettings { TestFilename = testFile==null?null:testFile.Name, ExtendDataByCorrelation = owner.ExtendDataByCorrelation, NormalizeDimensions = owner.NormalizeDimensions, NormalizeByScaling=owner.NormalizeByScaling, InstanceSeed = seed, Folds = folds });
+        LvqDatasetCli LoadDataset(FileInfo dataFile, uint seed, int folds, FileInfo testFile = null)
+        {
+            return LoadDatasetImpl.LoadData(dataFile, testFile, new LoadedDatasetSettings { TestFilename = testFile == null ? null : testFile.Name, ExtendDataByCorrelation = owner.ExtendDataByCorrelation, NormalizeDimensions = owner.NormalizeDimensions, NormalizeByScaling = owner.NormalizeByScaling, InstanceSeed = seed, Folds = folds });
         }
 
-        public void ConfirmCreation() {
+        public void ConfirmCreation()
+        {
             var fileOpenThread = new Thread(o => {
                 var t = (Tuple<uint, int>)o;
                 var dataset = CreateDataset(t.Item1, t.Item2);

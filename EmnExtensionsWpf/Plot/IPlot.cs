@@ -1,15 +1,17 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace EmnExtensions.Wpf {
-    public interface IPlotContainer {
+namespace EmnExtensions.Wpf
+{
+    public interface IPlotContainer
+    {
         Dispatcher Dispatcher { get; }
         void GraphChanged(IVizEngine plot, GraphChange changeType);
     }
 
-    public interface IPlotMetaData {
+    public interface IPlotMetaData
+    {
         string XUnitLabel { get; }
         string YUnitLabel { get; }
         string DataLabel { get; }
@@ -32,7 +34,8 @@ namespace EmnExtensions.Wpf {
         IVizEngine Visualisation { get; }
     }
 
-    public interface IPlotMetaDataWriteable : IPlotMetaData {
+    public interface IPlotMetaDataWriteable : IPlotMetaData
+    {
         new string XUnitLabel { get; set; }
         new string YUnitLabel { get; set; }
         new string DataLabel { get; set; }

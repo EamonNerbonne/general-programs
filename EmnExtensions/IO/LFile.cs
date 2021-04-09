@@ -4,9 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace EmnExtensions.IO {
+namespace EmnExtensions.IO
+{
     [Obsolete]
-    public abstract class LPathEntry {
+    public abstract class LPathEntry
+    {
         protected static readonly Assembly mscorlib = Assembly.GetAssembly(typeof(File));
         protected static T mkFn<T>(MethodInfo mi) { return (T)(object)Delegate.CreateDelegate(typeof(T), mi); }
 
@@ -14,7 +16,8 @@ namespace EmnExtensions.IO {
         public string FullName { get { return fullname; } }
         protected string RawPath { get { return fullname; } }
 
-        internal LPathEntry(string path, bool addTrailingSlash) {
+        internal LPathEntry(string path, bool addTrailingSlash)
+        {
             var rawpath = path;
             fullname = addTrailingSlash && !rawpath.EndsWith(Path.DirectorySeparatorChar.ToString()) ? rawpath + Path.DirectorySeparatorChar : rawpath;
         }
@@ -23,7 +26,8 @@ namespace EmnExtensions.IO {
     }
 
     [Obsolete]
-    public sealed class LFile : LPathEntry, IEquatable<LFile> {
+    public sealed class LFile : LPathEntry, IEquatable<LFile>
+    {
         static readonly Type lpf = mscorlib.GetType("System.IO.LongPathFile");
         static readonly Func<string, DateTimeOffset> getLastWriteTime = mkFn<Func<string, DateTimeOffset>>(lpf.GetMethod("GetLastWriteTime", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static));
         static readonly Func<string, long> getLength = mkFn<Func<string, long>>(lpf.GetMethod("GetLength", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static));
@@ -49,7 +53,8 @@ namespace EmnExtensions.IO {
 
         public LFile Move(string newpath) { File.Move(FullName, newpath); return Construct(newpath); }
 
-        public static bool Delete(string path) {
+        public static bool Delete(string path)
+        {
             if (File.Exists(path)) {
                 File.Delete(path);
                 return true;
@@ -59,10 +64,11 @@ namespace EmnExtensions.IO {
         public bool Delete() { return Delete(FullName); }
 
         public static void Move(string path, string newpath) { File.Move(path, newpath); }
-        public LDirectory Directory {
+        public LDirectory Directory
+        {
             get {
                 var fullname = FullName;
-                int lastSlash = fullname.LastIndexOf(Path.DirectorySeparatorChar, fullname.Length - 1);
+                var lastSlash = fullname.LastIndexOf(Path.DirectorySeparatorChar, fullname.Length - 1);
                 return lastSlash == -1 ? null : LDirectory.Construct(FullName.Substring(0, lastSlash + 1));
             }
         }
@@ -76,9 +82,10 @@ namespace EmnExtensions.IO {
         public override bool Equals(object obj) { return Equals(obj as LFile); }
         public override int GetHashCode() { return RawPath.GetHashCode() + 42; }
     }
-    
+
     [Obsolete]
-    public sealed class LDirectory : LPathEntry, IEquatable<LDirectory> {
+    public sealed class LDirectory : LPathEntry, IEquatable<LDirectory>
+    {
         public LDirectory(string path) : base(path, true) { }
 
         public bool Exists { get { return Directory.Exists(FullName); } }
@@ -88,13 +95,15 @@ namespace EmnExtensions.IO {
 
         public IEnumerable<LFile> GetFiles() { return Directory.EnumerateFiles(FullName).Select(LFile.Construct); }
         public IEnumerable<LFile> GetFiles(string searchPattern) { return Directory.EnumerateFiles(FullName, searchPattern).Select(LFile.Construct); }
-        public IEnumerable<LFile> GetFiles(string searchPattern, SearchOption searchOption) {
+        public IEnumerable<LFile> GetFiles(string searchPattern, SearchOption searchOption)
+        {
             return searchOption == SearchOption.TopDirectoryOnly ? GetFiles(searchPattern) : GetDescendantAndSelfDirectories().SelectMany(dir => dir.GetFiles(searchPattern));
         }
         public IEnumerable<LDirectory> GetDirectories() { return Directory.EnumerateDirectories(FullName).Select(LDirectory.Construct); }
         public IEnumerable<LDirectory> GetDescendantDirectories() { return GetDescendantAndSelfDirectories().Skip(1); }
-        IEnumerable<LDirectory> GetDescendantAndSelfDirectories() {
-            Stack<LDirectory> todo = new Stack<LDirectory>();
+        IEnumerable<LDirectory> GetDescendantAndSelfDirectories()
+        {
+            var todo = new Stack<LDirectory>();
             todo.Push(this);
             while (todo.Count != 0) {
                 var next = todo.Pop();
@@ -107,30 +116,34 @@ namespace EmnExtensions.IO {
         public DirectoryInfo AsInfo() { return new DirectoryInfo(FullName); }
 
 
-        public void Create() {
+        public void Create()
+        {
             if (!Exists)
                 Parent.Create();
             Directory.CreateDirectory(FullName);
         }
 
-        public LDirectory CreateSubdirectory(string subdirname) {
+        public LDirectory CreateSubdirectory(string subdirname)
+        {
             var subdir = new LDirectory(FullName + Path.DirectorySeparatorChar + subdirname);
             subdir.Create();
             return subdir;
         }
 
-        public LDirectory Parent {
+        public LDirectory Parent
+        {
             get {
                 var fullname = FullName;
-                int lastSlash = fullname.LastIndexOf(Path.DirectorySeparatorChar, fullname.Length - 2);
+                var lastSlash = fullname.LastIndexOf(Path.DirectorySeparatorChar, fullname.Length - 2);
                 return lastSlash == -1 ? null : LDirectory.Construct(FullName.Substring(0, lastSlash + 1));
             }
         }
 
-        public string Name {
+        public string Name
+        {
             get {
                 var fullname = FullName;
-                int lastSlash = fullname.LastIndexOf(Path.DirectorySeparatorChar, fullname.Length - 2);
+                var lastSlash = fullname.LastIndexOf(Path.DirectorySeparatorChar, fullname.Length - 2);
                 var name = fullname.Substring(lastSlash + 1, fullname.Length - lastSlash - 2);
                 return name.EndsWith(":") && lastSlash == -1
                         ? name + Path.DirectorySeparatorChar

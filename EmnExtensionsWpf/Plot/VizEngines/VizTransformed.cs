@@ -1,9 +1,10 @@
 ﻿using System.Windows;
 using System.Windows.Media;
-using System.Windows.Threading;
 
-namespace EmnExtensions.Wpf.VizEngines {
-    public abstract class VizTransformed<TIn, TOut> : IVizEngine<TIn>, ITranformed<TOut> {
+namespace EmnExtensions.Wpf.VizEngines
+{
+    public abstract class VizTransformed<TIn, TOut> : IVizEngine<TIn>, ITranformed<TOut>
+    {
         protected abstract IVizEngine<TOut> Implementation { get; }
         IVizEngine<TOut> ITranformed<TOut>.Implementation { get { return Implementation; } }
 

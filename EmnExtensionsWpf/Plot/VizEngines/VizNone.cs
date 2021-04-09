@@ -2,8 +2,10 @@
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace EmnExtensions.Wpf.VizEngines {
-    public class VizNone : DispatcherObject, IVizEngine<object> {
+namespace EmnExtensions.Wpf.VizEngines
+{
+    public class VizNone : DispatcherObject, IVizEngine<object>
+    {
         public Rect DataBounds { get { return Rect.Empty; } }
         public Thickness Margin { get { return new Thickness(0.0); } }
         public void DrawGraph(DrawingContext context) { }

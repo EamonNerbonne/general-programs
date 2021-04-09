@@ -2,8 +2,10 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace EmnExtensions.DebugTools {
-    public sealed class DTimer : IDisposable {
+namespace EmnExtensions.DebugTools
+{
+    public sealed class DTimer : IDisposable
+    {
         public DTimer(string actionLabel) { Start(actionLabel); }
         public DTimer(Action<TimeSpan> resultSink) { Start(resultSink); }
 
@@ -21,15 +23,16 @@ namespace EmnExtensions.DebugTools {
         Stopwatch underlyingTimer;
         public static Task TimeTask(Func<Task> f, string actionLabel) { return TimeTask(f, new DTimer(actionLabel)); }
         public static Task TimeTask(Func<Task> f, Action<TimeSpan> resultSink) { return TimeTask(f, new DTimer(resultSink)); }
-        static Task TimeTask(Func<Task> f, DTimer timer) { return f().ContinueWith(t => { ((IDisposable)timer).Dispose(); t.Wait(); },TaskContinuationOptions.ExecuteSynchronously); }
+        static Task TimeTask(Func<Task> f, DTimer timer) { return f().ContinueWith(t => { ((IDisposable)timer).Dispose(); t.Wait(); }, TaskContinuationOptions.ExecuteSynchronously); }
 
         public static T TimeFunc<T>(Func<T> f, string actionLabel) { using (new DTimer(actionLabel)) return f(); }
         public static T TimeFunc<T>(Func<T> f, Action<TimeSpan> resultSink) { using (new DTimer(resultSink)) return f(); }
         public static T TimeFunc<T, M>(Func<T> f, M key, Action<M, TimeSpan> resultsSink) { using (new DTimer(t => resultsSink(key, t))) return f(); }
-        public static TimeSpan BenchmarkAction(Action a, int repeats) {
-            long[] times = new long[repeats];
-            for (int i = 0; i < repeats; i++) {
-                Stopwatch w = Stopwatch.StartNew();
+        public static TimeSpan BenchmarkAction(Action a, int repeats)
+        {
+            var times = new long[repeats];
+            for (var i = 0; i < repeats; i++) {
+                var w = Stopwatch.StartNew();
                 a();
                 times[i] = w.ElapsedTicks;
             }
@@ -39,7 +42,8 @@ namespace EmnExtensions.DebugTools {
         public static TimeSpan TimeAction(Action a) { var w = Stopwatch.StartNew(); a(); return w.Elapsed; }
     }
 
-    public static class DTimerExtensions {
+    public static class DTimerExtensions
+    {
         public static T TimeFunc<T>(this Func<T> f, string actionLabel) { return DTimer.TimeFunc(f, actionLabel); }
         public static T TimeFunc<T>(this Func<T> f, Action<TimeSpan> resultSink) { return DTimer.TimeFunc(f, resultSink); }
         public static T TimeFunc<T, M>(this Func<T> f, M key, Action<M, TimeSpan> resultsSink) { return DTimer.TimeFunc(f, key, resultsSink); }

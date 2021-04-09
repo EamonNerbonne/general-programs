@@ -14,18 +14,19 @@ namespace EmnExtensions.MathHelpers
 
         public MeanVarDistrib Add(double val, double weight = 1.0)
         {
-            if (weight == 0.0) return this;//ignore zero-weight stuff...
-            double newWeightSum = weightSum + weight;
-            double mScale = weight / newWeightSum;
-            double sScale = weightSum * weight / newWeightSum;
+            if (weight == 0.0)
+                return this;//ignore zero-weight stuff...
+            var newWeightSum = weightSum + weight;
+            var mScale = weight / newWeightSum;
+            var sScale = weightSum * weight / newWeightSum;
             return new MeanVarDistrib(newWeightSum, sX + (val - meanX) * (val - meanX) * sScale, meanX + (val - meanX) * mScale);
         }
 
         public MeanVarDistrib Add(MeanVarDistrib other)
         {
-            double newWeightSum = weightSum + other.weightSum;
-            double mScale = other.weightSum / newWeightSum;
-            double sScale = weightSum * other.weightSum / newWeightSum;
+            var newWeightSum = weightSum + other.weightSum;
+            var mScale = other.weightSum / newWeightSum;
+            var sScale = weightSum * other.weightSum / newWeightSum;
             return new MeanVarDistrib(newWeightSum, sX + other.sX + (other.meanX - meanX) * (other.meanX - meanX) * sScale, meanX + (other.meanX - meanX) * mScale);
         }
 

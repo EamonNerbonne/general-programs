@@ -1,5 +1,7 @@
-﻿namespace LvqGui {
-    class UpdateSync {
+﻿namespace LvqGui
+{
+    class UpdateSync
+    {
         readonly object syncUpdates = new object();
         bool busy, updateQueued;
         public bool UpdateEnqueue_IsMyTurn() { lock (syncUpdates) { updateQueued = busy; busy = true; return !updateQueued; } }

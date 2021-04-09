@@ -4,97 +4,125 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.ComponentModel;
-namespace LvqGui {
-    public interface IHasShorthand {
+
+namespace LvqGui
+{
+    public interface IHasShorthand
+    {
         string Shorthand { get; set; }
         string ShorthandErrors { get; }
     }
 
-    public abstract class HasShorthandBase : INotifyPropertyChanged, IHasShorthand {
-
+    public abstract class HasShorthandBase : INotifyPropertyChanged, IHasShorthand
+    {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        void raisePropertyChanged(string prop) { PropertyChanged(this, new PropertyChangedEventArgs(prop)); }
+        void raisePropertyChanged(string prop)
+        {
+            PropertyChanged(this, new PropertyChangedEventArgs(prop));
+        }
 
-        protected void _propertyChanged(string propertyName) {
+        protected void _propertyChanged(string propertyName)
+        {
             if (PropertyChanged != null) {
-                if (propertyName == "Shorthand")
+                if (propertyName == "Shorthand") {
                     AllPropertiesChanged();
-                else {
+                } else {
                     raisePropertyChanged(propertyName);
-                    foreach (var propName in GloballyDependantProps)
+                    foreach (var propName in GloballyDependantProps) {
                         raisePropertyChanged(propName);
+                    }
                 }
             }
         }
-        virtual protected IEnumerable<string> GloballyDependantProps {
+
+        protected virtual IEnumerable<string> GloballyDependantProps
+        {
             get {
                 yield return "Shorthand";
                 yield return "ShorthandErrors";
             }
         }
 
-        protected void AllPropertiesChanged() {
-            foreach (var propname in GetType().GetProperties().Where(prop => prop.CanRead).Select(prop => prop.Name))
+        protected void AllPropertiesChanged()
+        {
+            foreach (var propname in GetType().GetProperties().Where(prop => prop.CanRead).Select(prop => prop.Name)) {
                 raisePropertyChanged(propname);
+            }
         }
 
         public abstract string Shorthand { get; set; }
         public abstract string ShorthandErrors { get; }
     }
 
-    public struct Optional<T> {
+    public struct Optional<T>
+    {
         readonly object val;
 
-        public bool HasValue { get { return val != null; } }
+        public bool HasValue => val != null;
 
-        public T Value {
+        public T Value
+        {
             get {
-                if (!HasValue) throw new InvalidOperationException("Can't access null!"); return (T)val;
+                if (!HasValue) {
+                    throw new InvalidOperationException("Can't access null!");
+                }
+
+                return (T)val;
             }
         }
-        public Optional(T pval) {
-            if (pval == null) throw new ArgumentNullException();
+
+        public Optional(T pval)
+        {
+            if (pval == null) {
+                throw new ArgumentNullException();
+            }
+
             val = pval;
         }
 
-        internal T AsNullable() { return (T)val; }
-        internal TS? AsNullableStruct<TS>() where TS : struct { return (TS?)val; }
+        internal T AsNullable() => (T)val;
+
+        internal TS? AsNullableStruct<TS>()
+            where TS : struct => (TS?)val;
     }
 
-    static class ShorthandHelper {
-        public static void ParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
+    static class ShorthandHelper
+    {
+        public static void ParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand)
+        {
             Create(shorthandObj).ParseShorthand(defaults, shR, newShorthand);
         }
 
-        //		public static bool TryParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
+        //        public static bool TryParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
         //public static string VerifyShorthand(T shorthandObj, Regex shR) { IHasShorthand
-        //		public static T TryParseShorthand<T>(T defaults, Regex shR, string newShorthand) where T : class,new() {
+        //        public static T TryParseShorthand<T>(T defaults, Regex shR, string newShorthand) where T : class,new() {
 
 
-        internal static string VerifyShorthand(object shorthandObj, Regex shR) {
-            return Create(shorthandObj).VerifyShorthand(shR);
-        }
+        internal static string VerifyShorthand(object shorthandObj, Regex shR) => Create(shorthandObj).VerifyShorthand(shR);
 
-        static IShorthandHelper Create(object shorthandObj) {
-            return (IShorthandHelper)Activator.CreateInstance(typeof(ShorthandHelper<>).MakeGenericType(shorthandObj.GetType()), shorthandObj);
-        }
+        static IShorthandHelper Create(object shorthandObj) => (IShorthandHelper)Activator.CreateInstance(typeof(ShorthandHelper<>).MakeGenericType(shorthandObj.GetType()), shorthandObj);
 
-        internal static Optional<T> TryParseShorthand<T>(T defaults, Regex shR, string shorthand) where T : new() {
+        internal static Optional<T> TryParseShorthand<T>(T defaults, Regex shR, string shorthand)
+            where T : new()
+        {
             var helper = new ShorthandHelper<T>(new T());
-            if (!helper.TryParseShorthandWithErrs(defaults, shR, shorthand).Any())
+            if (!helper.TryParseShorthandWithErrs(defaults, shR, shorthand).Any()) {
                 return new Optional<T>(helper.shorthandObj);
-            else return default(Optional<T>);
+            }
+
+            return default(Optional<T>);
         }
     }
 
-    public interface IShorthandHelper {
+    public interface IShorthandHelper
+    {
         void ParseShorthand(object defaults, Regex shR, string newShorthand);
 
 
@@ -104,76 +132,91 @@ namespace LvqGui {
         object Value { get; }
     }
 
-    [AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Property)]
     sealed class NotInShorthandAttribute : Attribute { }
 
-    class ShorthandHelper<T> : IShorthandHelper {
+    class ShorthandHelper<T> : IShorthandHelper
+    {
         public T shorthandObj;
-        public object Value { get { return shorthandObj; } }
+        public object Value => shorthandObj;
 
-        public ShorthandHelper(T obj) {
-            shorthandObj = obj;
-        }
+        public ShorthandHelper(T obj) => shorthandObj = obj;
 
 
-
-        //		public static void ParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
-        //		public static bool TryParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
+        //        public static void ParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
+        //        public static bool TryParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
         //public static string VerifyShorthand(T shorthandObj, Regex shR) { IHasShorthand
-        //		public static T TryParseShorthand<T>(T defaults, Regex shR, string newShorthand) where T : class,new() {
-        public void ParseShorthand(object defaults, Regex shR, string newShorthand) {
-            if (typeof(T).IsValueType)
+        //        public static T TryParseShorthand<T>(T defaults, Regex shR, string newShorthand) where T : class,new() {
+        public void ParseShorthand(object defaults, Regex shR, string newShorthand)
+        {
+            if (typeof(T).IsValueType) {
                 throw new InvalidOperationException("This won't work - no reference to underlying data!");
+            }
+
             ParseShorthand((T)defaults, shR, newShorthand);
         }
 
-        public void ParseShorthand(T defaults, Regex shR, string newShorthand) {
+        public void ParseShorthand(T defaults, Regex shR, string newShorthand)
+        {
             var errs = TryParseShorthandWithErrs(defaults, shR, newShorthand);
 
-            if (errs.Any()) throw new InvalidOperationException(string.Join("\n", errs));
+            if (errs.Any()) {
+                throw new InvalidOperationException(string.Join("\n", errs));
+            }
         }
-        public bool TryParseShorthand(object defaults, Regex shR, string shorthand) {
-            return TryParseShorthandWithErrs((T)defaults, shR, shorthand).Any();
-        }
-        public List<string> TryParseShorthandWithErrs(T defaults, Regex shR, string newShorthand) {
+
+        public bool TryParseShorthand(object defaults, Regex shR, string shorthand) => TryParseShorthandWithErrs((T)defaults, shR, shorthand).Any();
+
+        public List<string> TryParseShorthandWithErrs(T defaults, Regex shR, string newShorthand)
+        {
             var toSet = new object[PropertyStore.properties.Length];
             var errors = new List<string>();
             DecomposeShorthand(shR, newShorthand, (p, v) => toSet[p.Index] = v, errors.Add);
-            if (!errors.Any())
-                for (int i = 0; i < toSet.Length; i++) {
+            if (!errors.Any()) {
+                for (var i = 0; i < toSet.Length; i++) {
                     var prop = PropertyStore.properties[i];
-                    shorthandObj=prop.Set(shorthandObj, toSet[i] ?? prop.Get(defaults));
+                    shorthandObj = prop.Set(shorthandObj, toSet[i] ?? prop.Get(defaults));
                 }
+            }
+
             return errors;
         }
 
-        public string VerifyShorthand(Regex shR) {
+        public string VerifyShorthand(Regex shR)
+        {
             var errs = new StringBuilder();
-            bool[] usedProperties = new bool[PropertyStore.properties.Length];
+            var usedProperties = new bool[PropertyStore.properties.Length];
             DecomposeShorthand(shR, ((IHasShorthand)shorthandObj).Shorthand,
                 (prop, val) => {
                     usedProperties[prop.Index] = true;
                     var currVal = prop.Get(shorthandObj);
-                    if (!Equals(currVal, val))
+                    if (!Equals(currVal, val)) {
                         errs.AppendLine(prop.Name + ": " + val + " != " + currVal);
-                }, err => errs.AppendLine(err));
-            errs.AppendLine("defaulted: " + string.Join(", ", PropertyStore.properties.Where(prop=>!usedProperties[prop.Index]).Select(prop=>prop.Name)));
+                    }
+                }, err => errs.AppendLine(err)
+            );
+            errs.AppendLine("defaulted: " + string.Join(", ", PropertyStore.properties.Where(prop => !usedProperties[prop.Index]).Select(prop => prop.Name)));
             return errs.ToString();
         }
 
-        static void DecomposeShorthand(Regex shR, string shorthand, Action<PropertyDef, object> FoundVal, Action<string> registerError) {
+        static void DecomposeShorthand(Regex shR, string shorthand, Action<PropertyDef, object> FoundVal, Action<string> registerError)
+        {
             if (!shR.IsMatch(shorthand)) {
                 registerError("Can't parse shorthand - enter manually?");
                 return;
             }
-            var groups = shR.Match(shorthand).Groups.Cast<Group>().ToArray();
-            bool[] includedProperties = new bool[PropertyStore.properties.Length];
 
-            for (int i = 0; i < groups.Length; i++) {
-                Group captureGroup = groups[i];
-                string groupName = shR.GroupNameFromNumber(i);
-                bool isHexEncodedOrNegated = groupName.EndsWith("_");
-                if (isHexEncodedOrNegated) groupName = groupName.Substring(0, groupName.Length - 1);
+            var groups = shR.Match(shorthand).Groups.Cast<Group>().ToArray();
+            var includedProperties = new bool[PropertyStore.properties.Length];
+
+            for (var i = 0; i < groups.Length; i++) {
+                var captureGroup = groups[i];
+                var groupName = shR.GroupNameFromNumber(i);
+                var isHexEncodedOrNegated = groupName.EndsWith("_");
+                if (isHexEncodedOrNegated) {
+                    groupName = groupName.Substring(0, groupName.Length - 1);
+                }
+
                 var propIdx = PropertyStore.GetIndex(groupName);
 
                 if (propIdx == -1 && i != 0) {
@@ -182,63 +225,72 @@ namespace LvqGui {
                     includedProperties[propIdx] = true;
                     if (captureGroup.Success) {
                         var prop = PropertyStore.properties[propIdx];
-                        string captureVal = captureGroup.Value;
-                        object val = prop.Type.Equals(typeof(bool))
-                                        ? captureVal != "" ^ isHexEncodedOrNegated
-                                        : isHexEncodedOrNegated && prop.Type == typeof(uint)
-                                            ? Convert.ToUInt32(captureVal, 16)
-                                            : TypeDescriptor.GetConverter(prop.Type).ConvertFromString(Regex.Replace(captureVal, "ModelType$",
-                                                                                                                     ""));
+                        var captureVal = captureGroup.Value;
+                        var val = prop.Type.Equals(typeof(bool))
+                            ? captureVal != "" ^ isHexEncodedOrNegated
+                            : isHexEncodedOrNegated && prop.Type == typeof(uint)
+                                ? Convert.ToUInt32(captureVal, 16)
+                                : TypeDescriptor.GetConverter(prop.Type).ConvertFromString(Regex.Replace(captureVal, "ModelType$",
+                                        ""
+                                    )
+                                );
                         FoundVal(prop, val);
                     }
                 }
             }
-            string[] excludedProperties = PropertyStore.properties.Where(prop => !includedProperties[prop.Index]).Select(prop=>prop.Name).ToArray();
-            if (excludedProperties.Any())
+
+            var excludedProperties = PropertyStore.properties.Where(prop => !includedProperties[prop.Index]).Select(prop => prop.Name).ToArray();
+            if (excludedProperties.Any()) {
                 registerError("Invalid Regex doesn't set properties: " + string.Join(", ", excludedProperties.ToArray()));
+            }
         }
 
 
-        static class PropertyStore {
+        static class PropertyStore
+        {
             public static readonly Dictionary<string, int> propIndex;
             public static readonly PropertyDef[] properties;
             public static readonly string[] Names;
-            public static int GetIndex(string name) {
+
+            public static int GetIndex(string name)
+            {
                 int idx;
-                if (propIndex.TryGetValue(name, out idx))
+                if (propIndex.TryGetValue(name, out idx)) {
                     return idx;
-                else
-                    return -1;
+                }
+
+                return -1;
             }
 
-            static PropertyStore() {
+            static PropertyStore()
+            {
                 properties = (
                         from property in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                         where property.CanRead && property.CanWrite
                         where !property.GetCustomAttributes(typeof(NotInShorthandAttribute), true).Any()
                         select new { property.Name, Type = property.PropertyType }
-
                     ).Concat(
                         from field in typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance)
                         where !field.GetCustomAttributes(typeof(NotInShorthandAttribute), true).Any()
                         select new { field.Name, Type = field.FieldType }
                     ).Where(mi => mi.Name != "Shorthand")
                     .Select((mi, i) => new PropertyDef(mi.Name, mi.Type, i))
-
-                    .ToArray();//select new PropertyDef(property.Name, property.PropertyType)
+                    .ToArray(); //select new PropertyDef(property.Name, property.PropertyType)
                 propIndex = properties.Select((p, i) => new { p, i }).ToDictionary(pi => pi.p.Name, pi => pi.i);
                 Names = propIndex.Keys.ToArray();
             }
         }
 
-        public class PropertyDef {
+        public class PropertyDef
+        {
             public readonly string Name;
             public readonly Type Type;
             public readonly Func<T, object> Get;
-            public readonly Func<T, object,T> Set;
+            public readonly Func<T, object, T> Set;
             public readonly int Index;
 
-            public PropertyDef(string propName, Type propertyType, int index) {
+            public PropertyDef(string propName, Type propertyType, int index)
+            {
                 Name = propName;
                 Type = propertyType;
                 Index = index;
@@ -250,7 +302,6 @@ namespace LvqGui {
                 var newValueParam = Expression.Parameter(typeof(object), "newValueParam");
                 var assignExpr = Expression.Assign(propExpr, Expression.Convert(newValueParam, propertyType));
                 Set = Expression.Lambda<Func<T, object, T>>(Expression.Block(typeof(T), assignExpr, shorthandObjParam), shorthandObjParam, newValueParam).Compile();
-
             }
         }
     }

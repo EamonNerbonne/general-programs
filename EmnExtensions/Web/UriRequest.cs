@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
-using System.IO;
 using System.Globalization;
+using System.IO;
+using System.Net;
+using System.Text;
 
-namespace EmnExtensions.Web {
-    public class UriRequest {
+namespace EmnExtensions.Web
+{
+    public class UriRequest
+    {
         public byte[] Content { get; private set; }
         public Uri Uri { get; private set; }
         public string EncodingName { get; private set; }
@@ -19,7 +19,8 @@ namespace EmnExtensions.Web {
 
         UriRequest() { }
         static readonly Encoding FallbackEncoding = Encoding.UTF8;
-        public static UriRequest Execute(Uri uri, CookieContainer cookies = null, Uri referer = null, string UserAgent = null, string PostData=null) {
+        public static UriRequest Execute(Uri uri, CookieContainer cookies = null, Uri referer = null, string UserAgent = null, string PostData = null)
+        {
             if (uri.Scheme.ToUpperInvariant() != "HTTP")
                 throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "Scheme \"{0}\" is unknown in Uri \"{1}\".", uri.Scheme, uri));
 
@@ -39,18 +40,18 @@ namespace EmnExtensions.Web {
                 request.Method = "POST";
                 request.ContentType = "application/x-www-form-urlencoded";
 
-                byte[] contentBytes = FallbackEncoding.GetBytes(PostData);
+                var contentBytes = FallbackEncoding.GetBytes(PostData);
                 request.ContentLength = contentBytes.Length;
                 using (var reqStream = request.GetRequestStream())
                     reqStream.Write(contentBytes, 0, contentBytes.Length);
             }
 
-            UriRequest retval = new UriRequest { Uri = uri };
+            var retval = new UriRequest { Uri = uri };
 
             using (var response = request.GetResponse()) {
                 var httpResponse = (HttpWebResponse)response;
 
-                string encodingName = httpResponse.ContentEncoding;
+                var encodingName = httpResponse.ContentEncoding;
                 if (string.IsNullOrEmpty(encodingName))
                     encodingName = httpResponse.CharacterSet;
                 if (string.IsNullOrEmpty(encodingName)) {
@@ -69,8 +70,8 @@ namespace EmnExtensions.Web {
 
                 var buf = new byte[BUFSIZE];
                 using (var stream = httpResponse.GetResponseStream()) {
-                    int lastReadCount = stream.Read(buf, 0, BUFSIZE);
-                    using (MemoryStream returnBuf = new MemoryStream(lastReadCount)) {
+                    var lastReadCount = stream.Read(buf, 0, BUFSIZE);
+                    using (var returnBuf = new MemoryStream(lastReadCount)) {
                         while (lastReadCount != 0) {
                             returnBuf.Write(buf, 0, lastReadCount);
                             lastReadCount = stream.Read(buf, 0, BUFSIZE);

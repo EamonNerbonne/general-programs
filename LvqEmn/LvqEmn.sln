@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "allconfigs", "allconfigs", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{487B0963-1F11-4847-9209-7CF93167A072}"
 	ProjectSection(SolutionItems) = preProject
+		..\.editorconfig = ..\.editorconfig
 		AnalyzeHeuristics.fsx = AnalyzeHeuristics.fsx
 		BestGlobalLearningRates.fsx = BestGlobalLearningRates.fsx
 		DynCreation.fsx = DynCreation.fsx

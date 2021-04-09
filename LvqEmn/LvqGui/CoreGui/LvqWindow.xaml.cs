@@ -8,16 +8,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media;
-using EmnExtensions.Wpf;
 using EmnExtensions.Threading;
 using LvqLibCli;
 
-namespace LvqGui {
-    public partial class LvqWindow {
+namespace LvqGui
+{
+    public partial class LvqWindow
+    {
         readonly CancellationTokenSource cts = new CancellationTokenSource();
         public CancellationToken ClosingToken { get { return cts.Token; } }
-        public LvqWindow() {
+        public LvqWindow()
+        {
             using (var proc = Process.GetCurrentProcess())
                 proc.PriorityClass = ProcessPriorityClass.BelowNormal;
 
@@ -36,7 +37,8 @@ namespace LvqGui {
 
         LvqWindowValues Values { get { return (LvqWindowValues)DataContext; } }
 
-        void LvqWindow_Closed(object sender, EventArgs e) {
+        void LvqWindow_Closed(object sender, EventArgs e)
+        {
             cts.Cancel();
             if (lvqPlotContainer != null) {
                 lvqPlotContainer.Dispose();
@@ -51,9 +53,10 @@ namespace LvqGui {
         }
 
         // ReSharper disable UnusedMember.Local
-        void DoBenchmark() {        // ReSharper restore UnusedMember.Local
+        void DoBenchmark()
+        {        // ReSharper restore UnusedMember.Local
             ThreadPool.QueueUserWorkItem(o => {
-                LvqWindowValues values = ((LvqWindowValues)o);
+                var values = ((LvqWindowValues)o);
                 values.CreateStarDatasetValues.ParamsSeed = 1337;
                 values.CreateStarDatasetValues.InstanceSeed = 37;
 
@@ -71,11 +74,13 @@ namespace LvqGui {
         }
 
         LvqStatPlotsContainer lvqPlotContainer;
-        void TrainingControlValues_SelectedModelUpdatedInBackgroundThread() {
+        void TrainingControlValues_SelectedModelUpdatedInBackgroundThread()
+        {
             LvqStatPlotsContainer.QueueUpdateIfCurrent(lvqPlotContainer);
         }
 
-        void TrainingControlValues_PropertyChanged(object sender, PropertyChangedEventArgs e) {
+        void TrainingControlValues_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
             if (e.PropertyName == "ShowBoundaries" && lvqPlotContainer != null)
                 lvqPlotContainer.ShowBoundaries(Values.TrainingControlValues.ShowBoundaries);
             if (e.PropertyName == "ShowPrototypes" && lvqPlotContainer != null)
@@ -93,7 +98,8 @@ namespace LvqGui {
         }
 
 
-        void ModelChanged() {
+        void ModelChanged()
+        {
             if (lvqPlotContainer == null && Values.TrainingControlValues.SelectedDataset != null && Values.TrainingControlValues.SelectedLvqModel != null)
                 lvqPlotContainer = new LvqStatPlotsContainer(ClosingToken);
 
@@ -101,7 +107,8 @@ namespace LvqGui {
                 lvqPlotContainer.DisplayModel(Values.TrainingControlValues.SelectedDataset, Values.TrainingControlValues.SelectedLvqModel, Values.TrainingControlValues.SubModelIndex, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes, Values.TrainingControlValues.ShowTestEmbedding, Values.TrainingControlValues.ShowTestErrorRates);
         }
 
-        public bool Fullscreen {
+        public bool Fullscreen
+        {
             get { return (bool)GetValue(FullscreenProperty); }
             set { SetValue(FullscreenProperty, value); }
         }
@@ -110,7 +117,7 @@ namespace LvqGui {
         // Using a DependencyProperty as the backing store for Fullscreen.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty FullscreenProperty =
             DependencyProperty.RegisterAttached("Fullscreen", typeof(bool), typeof(LvqWindow), new UIPropertyMetadata(false, (o, e) => {
-                LvqWindow win = (LvqWindow)o;
+                var win = (LvqWindow)o;
                 if ((bool)e.NewValue) {
                     win.lastState = win.WindowState;
                     win.WindowState = WindowState.Normal;
@@ -130,17 +137,18 @@ namespace LvqGui {
         // ReSharper restore MemberCanBeMadeStatic.Global
 
 
-        public Task SaveAllGraphs() {
+        public Task SaveAllGraphs()
+        {
             var selectedModel = Values.TrainingControlValues.SelectedLvqModel;
             var allmodels = Values.TrainingControlValues.MatchingLvqModels.ToArray();
             var graphSettings = new { Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowTestEmbedding, Values.TrainingControlValues.ShowTestErrorRates };
             var lvqInnerPlotContainer = new LvqStatPlotsContainer(ClosingToken, true);
 
-            TaskCompletionSource<object> done = new TaskCompletionSource<object>();
+            var done = new TaskCompletionSource<object>();
             done.SetResult(null);
             Task doneTask = done.Task;
 
-            int counter = 0;
+            var counter = 0;
             Console.WriteLine("Saving " + allmodels.Length + " model graphs:");
             return
                 allmodels.Aggregate(doneTask, (task, model) =>

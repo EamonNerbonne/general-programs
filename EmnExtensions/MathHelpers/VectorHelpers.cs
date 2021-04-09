@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace EmnExtensions.MathHelpers
+﻿namespace EmnExtensions.MathHelpers
 {
     public struct Vector
     {
@@ -33,43 +28,49 @@ namespace EmnExtensions.MathHelpers
 
     public static class VectorHelpers
     {
-        public static double[] Add(this double[] vecA, double[] vecB) {
+        public static double[] Add(this double[] vecA, double[] vecB)
+        {
             var retval = new double[vecA.Length];
-            for (int i = 0; i < vecA.Length; i++) {
+            for (var i = 0; i < vecA.Length; i++) {
                 retval[i] = vecA[i] + vecB[i];
             }
             return retval;
         }
-        public static double[] Sub(this double[] vecA, double[] vecB) {
+        public static double[] Sub(this double[] vecA, double[] vecB)
+        {
             var retval = new double[vecA.Length];
-            for (int i = 0; i < vecA.Length; i++) {
+            for (var i = 0; i < vecA.Length; i++) {
                 retval[i] = vecA[i] - vecB[i];
             }
             return retval;
         }
-        public static void AddTo(this double[] vecA, double[] vecB) {
-            for (int i = 0; i < vecA.Length; i++) {
+        public static void AddTo(this double[] vecA, double[] vecB)
+        {
+            for (var i = 0; i < vecA.Length; i++) {
                 vecA[i] += vecB[i];
             }
         }
 
-        public static double Dot(this double[] vecA, double[] vecB) {
+        public static double Dot(this double[] vecA, double[] vecB)
+        {
             var retval = 0.0;
-            for (int i = 0; i < vecA.Length; i++) {
+            for (var i = 0; i < vecA.Length; i++) {
                 retval += vecA[i] * vecB[i];
             }
             return retval;
         }
 
-        public static double[] Scale(this double[] vecA, double factor) {
-            double[] retval = new double[vecA.Length];
-            for (int i = 0; i < vecA.Length; i++)
+        public static double[] Scale(this double[] vecA, double factor)
+        {
+            var retval = new double[vecA.Length];
+            for (var i = 0; i < vecA.Length; i++)
                 retval[i] = vecA[i] * factor;
             return retval;
         }
 
-        public static void ScaleTo(this double[] vecA, double factor) {
-            for (int i = 0; i < vecA.Length; i++)
+        public static void ScaleTo(this double[] vecA, double factor)
+        {
+            for (var i = 0; i < vecA.Length; i++)
                 vecA[i] *= factor;
         }
 

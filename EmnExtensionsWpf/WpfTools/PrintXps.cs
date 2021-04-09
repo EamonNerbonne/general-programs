@@ -3,13 +3,12 @@ using System.IO;
 using System.IO.Packaging;
 using System.Printing;
 using System.Windows;
-using System.Windows.Media;
-using System.Windows.Xps;
 using System.Windows.Xps.Packaging;
-using EmnExtensions.Wpf;
 
-namespace EmnExtensions.Wpf {
-    public static partial class WpfTools {
+namespace EmnExtensions.Wpf
+{
+    public static partial class WpfTools
+    {
         /// <summary>
         /// Note that Xps actually reads the stream too, so the file cannot already exist and simply be overwritten
         /// (unless it's a valid xps), and it in particular may not have 0 bytes unless you open it in FileMode.Create.
@@ -20,11 +19,12 @@ namespace EmnExtensions.Wpf {
         /// <param name="toStream">the read/write stream to which to store the printout to.</param>
         /// <param name="fileMode">the provided stream's FileMode</param>
         /// <param name="fileAccess">The provided stream's FileAccess</param>
-        public static void PrintXPS(FrameworkElement el, double reqWidth, double reqHeight, Stream toStream, FileMode fileMode, FileAccess fileAccess) {
+        public static void PrintXPS(FrameworkElement el, double reqWidth, double reqHeight, Stream toStream, FileMode fileMode, FileAccess fileAccess)
+        {
             //MemoryStream ms = new MemoryStream();
             //  using (var stream = File.Open(@"C:\test.xps",FileMode.,FileAccess.ReadWrite)) 
-            double oldWidth = el.Width;
-            double oldHeight = el.Height;
+            var oldWidth = el.Width;
+            var oldHeight = el.Height;
 #if USELAYOUTTRANSFORM
             Transform oldLayout = el.LayoutTransform;
             Transform oldRender = el.RenderTransform;
@@ -77,9 +77,9 @@ namespace EmnExtensions.Wpf {
                 page.Background = brush;
 #endif
 
-                using (Package packInto = Package.Open(toStream, fileMode, fileAccess))
-                using (XpsDocument doc = new XpsDocument(packInto)) {
-                    XpsDocumentWriter writer = XpsDocument.CreateXpsDocumentWriter(doc);
+                using (var packInto = Package.Open(toStream, fileMode, fileAccess))
+                using (var doc = new XpsDocument(packInto)) {
+                    var writer = XpsDocument.CreateXpsDocumentWriter(doc);
 #if USE_PAGED_XPS_SAVE
                     writer.Write(page);
 #else

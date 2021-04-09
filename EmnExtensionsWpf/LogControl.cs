@@ -1,23 +1,23 @@
 ﻿// ReSharper disable UnusedMember.Global
 using System;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Windows.Controls;
-using EmnExtensions.Text;
 using System.IO;
+using System.Text;
 using System.Threading;
-using EmnExtensionsNative;
-using System.Windows.Documents;
 using System.Windows;
-using System.Windows.Media;
+using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
+using EmnExtensions.Text;
+using EmnExtensionsNative;
 
-namespace EmnExtensions.Wpf {
-    public class LogControl : FlowDocumentScrollViewer {
-        public static Tuple<Window, LogControl> ShowNewLogWindow(string windowTitle = null, double? width = null, double? height = null) {
+namespace EmnExtensions.Wpf
+{
+    public class LogControl : FlowDocumentScrollViewer
+    {
+        public static Tuple<Window, LogControl> ShowNewLogWindow(string windowTitle = null, double? width = null, double? height = null)
+        {
             var logger = new LogControl();
             var win = new Window {
                 Title = windowTitle ?? "Log Window",
@@ -35,7 +35,8 @@ namespace EmnExtensions.Wpf {
         }
 
         //TODO: this doesn't yet work.
-        static Tuple<Window, LogControl> ShowNewLogWindow_NewDispatcher(string windowTitle = null, double? width = null, double? height = null) {
+        static Tuple<Window, LogControl> ShowNewLogWindow_NewDispatcher(string windowTitle = null, double? width = null, double? height = null)
+        {
             var disp = WpfTools.StartNewDispatcher();
             return (Tuple<Window, LogControl>)disp.Invoke((Func<Tuple<Window, LogControl>>)(() => ShowNewLogWindow(windowTitle, width, height)));
         }
@@ -43,7 +44,8 @@ namespace EmnExtensions.Wpf {
 
         readonly StringBuilder curLine = new StringBuilder();
         readonly DelegateTextWriter logger;
-        public LogControl() {
+        public LogControl()
+        {
             Reset();
             logger = new DelegateTextWriter(AppendThreadSafe);
             VerticalContentAlignment = VerticalAlignment.Bottom;
@@ -59,7 +61,8 @@ namespace EmnExtensions.Wpf {
             this.ContextMenu = new ContextMenu { Items = { clearLogMenuItem } };
         }
 
-        void Reset() {
+        void Reset()
+        {
             Document = new FlowDocument {
                 TextAlignment = TextAlignment.Left,
                 FontFamily = new FontFamily("Consolas"),
@@ -68,11 +71,13 @@ namespace EmnExtensions.Wpf {
         }
 
         bool wantsStdOut, wantsStdErr;
-        void LogControl_Loaded(object sender, RoutedEventArgs e) {
+        void LogControl_Loaded(object sender, RoutedEventArgs e)
+        {
             ClaimStandardOut = wantsStdOut || ClaimStandardOut;
             ClaimStandardError = wantsStdErr || ClaimStandardError;
         }
-        void LogControl_Unloaded(object sender, EventArgs e) {
+        void LogControl_Unloaded(object sender, EventArgs e)
+        {
             wantsStdErr = ClaimStandardError;
             wantsStdOut = ClaimStandardOut;
             ClaimStandardOut = false;
@@ -82,20 +87,23 @@ namespace EmnExtensions.Wpf {
         bool redraw;
         TextWriter oldOut, oldError;
 
-        public void AppendLineThreadSafe(string line) {
+        public void AppendLineThreadSafe(string line)
+        {
             AppendThreadSafe(line + "\n");
         }
 
         public TextWriter Writer { get { return logger; } }
 
-        void Invalidate() {
+        void Invalidate()
+        {
             if (!redraw) {
                 redraw = true;
                 Dispatcher.BeginInvoke(DispatcherPriority.Normal, (Action)UpdateStringUI);
             }
         }
 
-        public void AppendThreadSafe(string text) {
+        public void AppendThreadSafe(string text)
+        {
             lock (curLine) {
                 //File.AppendAllText(@"C:\logger.log", text, Encoding.UTF8);
                 curLine.Append(text);
@@ -103,7 +111,8 @@ namespace EmnExtensions.Wpf {
             }
         }
 
-        void UpdateStringUI() {
+        void UpdateStringUI()
+        {
             string strToAppendToCur = null;
             lock (curLine) {
                 if (redraw) {
@@ -118,7 +127,8 @@ namespace EmnExtensions.Wpf {
             }
         }
 
-        public string GetContentsUI() {
+        public string GetContentsUI()
+        {
             lock (curLine) {
                 Document.ContentEnd.InsertTextInRun(curLine.ToString());
                 curLine.Length = 0;
@@ -127,7 +137,8 @@ namespace EmnExtensions.Wpf {
         }
 
         RestoringReadStream stdOutOverride;
-        public bool ClaimStandardOut {
+        public bool ClaimStandardOut
+        {
             get {
                 return stdOutOverride != null;
             }
@@ -147,7 +158,8 @@ namespace EmnExtensions.Wpf {
         }
 
         RestoringReadStream stdErrOverride;
-        public bool ClaimStandardError {
+        public bool ClaimStandardError
+        {
             get {
                 return stdErrOverride != null;
             }
@@ -166,13 +178,15 @@ namespace EmnExtensions.Wpf {
             }
         }
 
-        static void RedirectNativeStream(LogControl toControl, RestoringReadStream fromNative, string name) {
+        static void RedirectNativeStream(LogControl toControl, RestoringReadStream fromNative, string name)
+        {
             new Thread(() => {
                 using (var reader = new StreamReader(fromNative.ReadStream)) {
-                    char[] buffer = new char[4096];
+                    var buffer = new char[4096];
                     while (true) {
-                        int actuallyRead = reader.Read(buffer, 0, buffer.Length);
-                        if (actuallyRead <= 0) break;
+                        var actuallyRead = reader.Read(buffer, 0, buffer.Length);
+                        if (actuallyRead <= 0)
+                            break;
                         toControl.AppendThreadSafe(new string(buffer, 0, actuallyRead));
                     }
                 }

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Windows;
 using LvqLibCli;
 
-namespace LvqGui {
+namespace LvqGui
+{
 
-    public partial class CreateLvqModel {
+    public partial class CreateLvqModel
+    {
         // ReSharper disable MemberCanBeMadeStatic.Global
         // ReSharper disable MemberCanBePrivate.Global
         public IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }

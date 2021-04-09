@@ -3,8 +3,10 @@ using System;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace LvqGui {
-    static class UserInputVerifiers {
+namespace LvqGui
+{
+    static class UserInputVerifiers
+    {
         static readonly Brush OK = Brushes.Transparent;
         static readonly Brush BAD = Brushes.Yellow;
 

@@ -3,13 +3,16 @@ using System.IO;
 using System.Text;
 using System.Threading;
 
-namespace EmnExtensions {
-    public struct ProcessExecutionResult {
+namespace EmnExtensions
+{
+    public struct ProcessExecutionResult
+    {
         public string StandardOutputContents, StandardErrorContents;
         public int ExitCode;
     }
 
-    public struct ProcessStartOptions {
+    public struct ProcessStartOptions
+    {
         public ProcessPriorityClass? Priority;
         public Encoding StandardInputEncoding;
         public Encoding StandardOutputAndErrorEncoding;
@@ -19,9 +22,11 @@ namespace EmnExtensions {
     /// <summary>
     /// Useful in LINQpad queries
     /// </summary>
-    public static class WinProcessUtil {
+    public static class WinProcessUtil
+    {
 
-        public static ProcessExecutionResult ExecuteProcessSynchronously(string filename, string arguments, string input, ProcessStartOptions startOptions = default(ProcessStartOptions)) {
+        public static ProcessExecutionResult ExecuteProcessSynchronously(string filename, string arguments, string input, ProcessStartOptions startOptions = default(ProcessStartOptions))
+        {
             var processStartInfo = new ProcessStartInfo {
                 CreateNoWindow = true,//don't need UI.
                 RedirectStandardOutput = true,

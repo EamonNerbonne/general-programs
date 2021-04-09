@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Threading;
 
-namespace EmnExtensions.Wpf.VizEngines {
-    public sealed class VizMapped<TIn, TOut> : IVizEngine<TIn>, ITranformed<TOut> {
+namespace EmnExtensions.Wpf.VizEngines
+{
+    public sealed class VizMapped<TIn, TOut> : IVizEngine<TIn>, ITranformed<TOut>
+    {
         readonly Func<TIn, TOut> map;
         IVizEngine<TOut> Implementation { get; set; }
         public void ChangeData(TIn newData) { Implementation.ChangeData(map(newData)); }

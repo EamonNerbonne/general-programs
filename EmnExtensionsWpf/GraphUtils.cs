@@ -7,30 +7,34 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using EmnExtensions.Wpf.VizEngines;
 
-namespace EmnExtensions.Wpf {
-    public static class GraphUtils {
-        public static Color BlendWith(this Color a, Color b) {
+namespace EmnExtensions.Wpf
+{
+    public static class GraphUtils
+    {
+        public static Color BlendWith(this Color a, Color b)
+        {
             return Color.FromArgb((byte)(a.A + b.A + 1 >> 1), (byte)(a.R + b.R + 1 >> 1), (byte)(a.G + b.G + 1 >> 1), (byte)(a.B + b.B + 1 >> 1));
         }
 
 
         public static bool IsFiniteNonEmpty(this Rect rect) { return rect.Width.IsFinite() && rect.Height.IsFinite() && rect.Height * rect.Width > 0; }
 
-        public static PathGeometry LineWithErrorBars(Point[] lineOfPoints, double[] ErrBars) {
-            PathGeometry geom = new PathGeometry();
+        public static PathGeometry LineWithErrorBars(Point[] lineOfPoints, double[] ErrBars)
+        {
+            var geom = new PathGeometry();
             PathFigure fig = null;
-            foreach (Point startPoint in lineOfPoints.Take(1)) {
+            foreach (var startPoint in lineOfPoints.Take(1)) {
                 fig = new PathFigure { StartPoint = startPoint };
                 geom.Figures.Add(fig);
             }
-            foreach (Point point in lineOfPoints.Skip(1)) {
+            foreach (var point in lineOfPoints.Skip(1)) {
                 fig.Segments.Add(new LineSegment(point, true));
             }
-            Rect bounds = geom.Bounds;
-            double errWidth = bounds.Width / 200.0;
-            for (int i = 0; i < lineOfPoints.Length; i++) {
+            var bounds = geom.Bounds;
+            var errWidth = bounds.Width / 200.0;
+            for (var i = 0; i < lineOfPoints.Length; i++) {
                 if (ErrBars[i].IsFinite()) {
-                    PathFigure errf = new PathFigure {
+                    var errf = new PathFigure {
                         StartPoint = lineOfPoints[i] + new Vector(-errWidth, -ErrBars[i])
                     };
                     errf.Segments.Add(new LineSegment(lineOfPoints[i] + new Vector(errWidth, -ErrBars[i]), true));
@@ -45,17 +49,18 @@ namespace EmnExtensions.Wpf {
             return geom;
         }
 
-        public static PathGeometry LineAsPathGeometry(IEnumerable<Point> lineOfPoints) {
+        public static PathGeometry LineAsPathGeometry(IEnumerable<Point> lineOfPoints)
+        {
             lineOfPoints = lineOfPoints.SkipWhile(p => !IsOK(p));
 
-            PathGeometry geom = new PathGeometry();
+            var geom = new PathGeometry();
             PathFigure fig = null;
-            foreach (Point startPoint in lineOfPoints.Take(1)) {
+            foreach (var startPoint in lineOfPoints.Take(1)) {
                 fig = new PathFigure { StartPoint = startPoint };
                 geom.Figures.Add(fig);
             }
-            bool wasOK = true;
-            foreach (Point point in lineOfPoints.Skip(1)) {
+            var wasOK = true;
+            foreach (var point in lineOfPoints.Skip(1)) {
                 if (IsOK(point)) {
                     fig.Segments.Add(new LineSegment(point, wasOK));
                     wasOK = true;
@@ -66,25 +71,30 @@ namespace EmnExtensions.Wpf {
             return geom;
         }
 
-        public static StreamGeometry LineScaled(Point[] lineOfPoints) {
-            if (lineOfPoints == null || lineOfPoints.Length == 0) return null;
+        public static StreamGeometry LineScaled(Point[] lineOfPoints)
+        {
+            if (lineOfPoints == null || lineOfPoints.Length == 0)
+                return null;
 
-            Rect dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(lineOfPoints);
+            var dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(lineOfPoints);
             const double maxSafe = Int32.MaxValue / 2.0;
-            Rect safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
-            Matrix dataToGeom = TransformShape(dataBounds, safeBounds, flipVertical: false);
-            Matrix geomToData = TransformShape(safeBounds, dataBounds, flipVertical: false);
+            var safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
+            var dataToGeom = TransformShape(dataBounds, safeBounds, flipVertical: false);
+            var geomToData = TransformShape(safeBounds, dataBounds, flipVertical: false);
             var scaledPoints = lineOfPoints.Select(dataToGeom.Transform);
             return Line(scaledPoints, false, new MatrixTransform(geomToData));
         }
 
-        public static StreamGeometry Line(IEnumerable<Point> lineOfPoints, bool makeFillable = false, MatrixTransform withTransform = null) {
-            StreamGeometry geom = new StreamGeometry();
-            bool wasOK = false;
+        public static StreamGeometry Line(IEnumerable<Point> lineOfPoints, bool makeFillable = false, MatrixTransform withTransform = null)
+        {
+            var geom = new StreamGeometry();
+            var wasOK = false;
             using (var context = geom.Open())
                 foreach (var point in lineOfPoints)
-                    if (!IsOK(point)) wasOK = makeFillable;
-                    else if (wasOK) context.LineTo(point, true, true);
+                    if (!IsOK(point))
+                        wasOK = makeFillable;
+                    else if (wasOK)
+                        context.LineTo(point, true, true);
                     else { context.BeginFigure(point, makeFillable, makeFillable); wasOK = true; }
             if (withTransform != null)
                 geom.Transform = withTransform;
@@ -92,15 +102,17 @@ namespace EmnExtensions.Wpf {
             return geom;
         }
 
-        public static StreamGeometry RangeScaled(Point[] upper, Point[] lower) {
-            if (upper == null || upper.Length == 0 || lower == null || lower.Length == 0) return null;
+        public static StreamGeometry RangeScaled(Point[] upper, Point[] lower)
+        {
+            if (upper == null || upper.Length == 0 || lower == null || lower.Length == 0)
+                return null;
 
-            Rect dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(upper);
+            var dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(upper);
             dataBounds.Union(VizPixelScatterHelpers.ComputeOuterBounds(lower));
             const double maxSafe = Int32.MaxValue / 2.0;
-            Rect safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
-            Matrix dataToGeom = TransformShape(dataBounds, safeBounds, flipVertical: false);
-            Matrix geomToData = TransformShape(safeBounds, dataBounds, flipVertical: false);
+            var safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
+            var dataToGeom = TransformShape(dataBounds, safeBounds, flipVertical: false);
+            var geomToData = TransformShape(safeBounds, dataBounds, flipVertical: false);
             var scaledPointsInCircle = upper.Concat(lower.Reverse()).Select(dataToGeom.Transform);
             return Line(scaledPointsInCircle, true, new MatrixTransform(geomToData));
         }
@@ -108,8 +120,9 @@ namespace EmnExtensions.Wpf {
         /// <summary>
         /// Makes a StreamGeometry based point-cloud (quite fast).
         /// </summary>
-        public static StreamGeometry PointCloud(IEnumerable<Point> setOfPoints) {
-            StreamGeometry geom = new StreamGeometry();
+        public static StreamGeometry PointCloud(IEnumerable<Point> setOfPoints)
+        {
+            var geom = new StreamGeometry();
             if (setOfPoints != null)
                 using (var context = geom.Open())
                     foreach (var point in setOfPoints)
@@ -126,8 +139,9 @@ namespace EmnExtensions.Wpf {
         /// <summary>
         /// Makes a filled-square based point cloud; radius is in data-space, so distorted (fast)
         /// </summary>
-        public static StreamGeometry PointCloud4(IEnumerable<Point> setOfPoints, double radius) {
-            StreamGeometry geom = new StreamGeometry { FillRule = FillRule.Nonzero };
+        public static StreamGeometry PointCloud4(IEnumerable<Point> setOfPoints, double radius)
+        {
+            var geom = new StreamGeometry { FillRule = FillRule.Nonzero };
             using (var context = geom.Open()) {
                 foreach (var point in setOfPoints) {
                     if (IsOK(point)) {
@@ -159,11 +173,12 @@ namespace EmnExtensions.Wpf {
         /// <summary>
         /// Makes a DrawingVisual based point cloud (slow)
         /// </summary>
-        public static DrawingVisual PointCloud2(IEnumerable<Point> setOfPoints, Brush brush, double radius, out Rect bounds) {
+        public static DrawingVisual PointCloud2(IEnumerable<Point> setOfPoints, Brush brush, double radius, out Rect bounds)
+        {
 
-            DrawingVisual vis = new DrawingVisual();
+            var vis = new DrawingVisual();
             bounds = Rect.Empty;
-            using (DrawingContext ctx = vis.RenderOpen()) {
+            using (var ctx = vis.RenderOpen()) {
                 foreach (var point in setOfPoints) {
                     if (IsOK(point)) {
                         ctx.DrawEllipse(brush, null, point, radius, radius);
@@ -178,10 +193,11 @@ namespace EmnExtensions.Wpf {
         /// <summary>
         /// Makes a DrawingGroup based point cloud (slow)
         /// </summary>
-        public static DrawingGroup PointCloud3(IEnumerable<Point> setOfPoints, Brush brush, double radius, out Rect bounds) {
-            DrawingGroup drawing = new DrawingGroup();
+        public static DrawingGroup PointCloud3(IEnumerable<Point> setOfPoints, Brush brush, double radius, out Rect bounds)
+        {
+            var drawing = new DrawingGroup();
             bounds = Rect.Empty;
-            using (DrawingContext ctx = drawing.Open()) {
+            using (var ctx = drawing.Open()) {
                 foreach (var point in setOfPoints) {
                     if (IsOK(point)) {
                         ctx.DrawEllipse(brush, null, point, radius, radius);
@@ -193,14 +209,17 @@ namespace EmnExtensions.Wpf {
             return drawing;
         }
 
-        public static IEnumerable<Point> PathFigurePoints(PathFigure fig) {
-            if (fig == null) yield break;
+        public static IEnumerable<Point> PathFigurePoints(PathFigure fig)
+        {
+            if (fig == null)
+                yield break;
             yield return fig.StartPoint;
             foreach (LineSegment lineTo in fig.Segments)
                 yield return lineTo.Point;
         }
 
-        public static void AddPoint(PathFigure fig, Point point) {
+        public static void AddPoint(PathFigure fig, Point point)
+        {
             fig.Segments.Add(new LineSegment(point, true));
         }
 
@@ -210,7 +229,8 @@ namespace EmnExtensions.Wpf {
         /// <param name="toGeom">The PathGeometry to extend.</param>
         /// <param name="point">The point to draw a line to.  IsOK(point) must hold (i.e.
         /// no NaN of Inf points) for sane results;</param>
-        public static void AddPoint(PathGeometry toGeom, Point point) {
+        public static void AddPoint(PathGeometry toGeom, Point point)
+        {
             var figs = toGeom.Figures;
             var lastFig = figs.Count > 0 ? figs[figs.Count - 1] : null;
             if (lastFig == null) {
@@ -223,15 +243,18 @@ namespace EmnExtensions.Wpf {
             }
         }
 
-        public static Rect ExpandRect(this Rect src, Thickness withMargin) {
+        public static Rect ExpandRect(this Rect src, Thickness withMargin)
+        {
             return new Rect(src.X - withMargin.Left, src.Y - withMargin.Top, src.Width + withMargin.Left + withMargin.Right, src.Height + withMargin.Top + withMargin.Bottom);
         }
-        public static Rect ShrinkRect(this Rect src, Thickness withMargin) {
+        public static Rect ShrinkRect(this Rect src, Thickness withMargin)
+        {
             return new Rect(src.X + withMargin.Left, src.Y + withMargin.Top, src.Width - withMargin.Left - withMargin.Right, src.Height - withMargin.Top - withMargin.Bottom);
         }
 
-        public static Matrix TransformShape(Rect fromPosition, Rect toPosition, bool flipVertical) {
-            Matrix translateThenScale = Matrix.Identity;
+        public static Matrix TransformShape(Rect fromPosition, Rect toPosition, bool flipVertical)
+        {
+            var translateThenScale = Matrix.Identity;
             //we first translate to origin since that's just easier
             translateThenScale.Translate(-fromPosition.X, -fromPosition.Y);
             //now we scale the graph to the appropriate dimensions
@@ -247,38 +270,42 @@ namespace EmnExtensions.Wpf {
 
         static bool IsOK(Point p) { return p.X.IsFinite() && p.Y.IsFinite(); }
 
-        public static BitmapSource MakeGreyBitmap(byte[,] image) {
+        public static BitmapSource MakeGreyBitmap(byte[,] image)
+        {
             int w = image.GetLength(1), h = image.GetLength(0);
-            byte[] inlinearray = new byte[w * h];
-            int i = 0;
-            for (int y = 0; y < h; y++)
-                for (int x = 0; x < w; x++)
+            var inlinearray = new byte[w * h];
+            var i = 0;
+            for (var y = 0; y < h; y++)
+                for (var x = 0; x < w; x++)
                     inlinearray[i++] = image[y, x];
             return BitmapSource.Create(w, h, 96.0, 96.0, PixelFormats.Gray8, null, inlinearray, w);
         }
 
-        public static uint ToNativeColor(this Color colorstruct) {
+        public static uint ToNativeColor(this Color colorstruct)
+        {
             return ((uint)colorstruct.A << 24) | ((uint)colorstruct.R << 16) | ((uint)colorstruct.G << 8) | colorstruct.B;
         }
 
-        public static BitmapSource MakeColormappedBitmap<T>(T[,] image, Func<T, Color> colormap, int sampleFactor = 1) {
+        public static BitmapSource MakeColormappedBitmap<T>(T[,] image, Func<T, Color> colormap, int sampleFactor = 1)
+        {
             int w = image.GetLength(1) * sampleFactor, h = image.GetLength(0) * sampleFactor;
-            uint[] inlinearray = new uint[w * h];
-            int i = 0;
-            for (int y = 0; y < h; y++)
-                for (int x = 0; x < w; x++)
+            var inlinearray = new uint[w * h];
+            var i = 0;
+            for (var y = 0; y < h; y++)
+                for (var x = 0; x < w; x++)
                     inlinearray[i++] = ToNativeColor(colormap(image[y / sampleFactor, x / sampleFactor]));
             return BitmapSource.Create(w, h, 96.0, 96.0, PixelFormats.Bgra32, null, inlinearray, w * 4);
         }
 
-        public static Drawing MakeBitmapDrawing(BitmapSource bitmap, double yStart, double yEnd, double xStart, double xEnd) {
+        public static Drawing MakeBitmapDrawing(BitmapSource bitmap, double yStart, double yEnd, double xStart, double xEnd)
+        {
             var img = new ImageDrawing(bitmap, new Rect(0, 0, bitmap.Width, bitmap.Height));
 
-            Matrix trans = Matrix.Identity;
+            var trans = Matrix.Identity;
             trans.Scale((xEnd - xStart) / bitmap.Width, (yEnd - yStart) / bitmap.Height);
             trans.Translate(xStart, yStart);
-            MatrixTransform transD = new MatrixTransform(trans);
-            Rect clipRect = transD.TransformBounds(new Rect(0, 0, bitmap.Width, bitmap.Height));
+            var transD = new MatrixTransform(trans);
+            var clipRect = transD.TransformBounds(new Rect(0, 0, bitmap.Width, bitmap.Height));
             var retval = new DrawingGroup();
             using (var context = retval.Open()) {
                 context.PushClip(new RectangleGeometry(clipRect));

@@ -1,35 +1,37 @@
 ﻿using System;
-using MoreLinq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using EmnExtensions;
-using EmnExtensions.Filesystem;
 using EmnExtensions.Text;
 using ExpressionToCodeLib;
 using LvqLibCli;
+using MoreLinq;
 
-namespace LvqGui {
+namespace LvqGui
+{
 
-    public class LrOptimizer {
+    public class LrOptimizer
+    {
         public readonly uint offset;
         readonly LvqDatasetCli _dataset;
         readonly long _itersToRun;
         readonly int _folds;
         readonly DirectoryInfo datasetResultsDir;
 
-        public LrOptimizer(long itersToRun, uint p_offset) {
+        public LrOptimizer(long itersToRun, uint p_offset)
+        {
             _itersToRun = itersToRun;
             offset = p_offset;
             _folds = basedatasets.Length;
             datasetResultsDir = ResultsDatasetDir(null);
         }
 
-        public LrOptimizer(LvqDatasetCli dataset) {
+        public LrOptimizer(LvqDatasetCli dataset)
+        {
             _itersToRun = 30L * 1000L * 1000L;
             offset = 0;
             _dataset = dataset;
@@ -38,7 +40,8 @@ namespace LvqGui {
         }
 
 
-        public Task TestLrIfNecessary(TextWriter sink, LvqModelSettingsCli settings, CancellationToken cancel) {
+        public Task TestLrIfNecessary(TextWriter sink, LvqModelSettingsCli settings, CancellationToken cancel)
+        {
             if (!AttemptToClaimSettings(settings, sink)) {
                 var sw = new StringWriter();
                 return
@@ -54,24 +57,26 @@ namespace LvqGui {
                         }, cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler
                     );
             } else {
-                TaskCompletionSource<int> tc = new TaskCompletionSource<int>();
+                var tc = new TaskCompletionSource<int>();
                 tc.SetResult(0);
                 return tc.Task;
             }
         }
 
 
-        public static string ShortnameFor(long iters, LvqModelSettingsCli settings) {
+        public static string ShortnameFor(long iters, LvqModelSettingsCli settings)
+        {
             return LvqMultiModel.ItersPrefix(iters) + "-" + settings.ToShorthand();
         }
 
 
 
-        public string ShortnameFor(LvqModelSettingsCli settings) {
+        public string ShortnameFor(LvqModelSettingsCli settings)
+        {
             return ShortnameFor(_itersToRun, settings);
         }
         //{-8.46,0.42,-1.11,-1.49,1.51,0.79}
-        static readonly double[, ,] heurEffects = //proto,type,heur
+        static readonly double[,,] heurEffects = //proto,type,heur
             {
                 {
                     {0, 0,3.61 ,2.40 ,0, 0.48 ,2.16 ,},
@@ -85,16 +90,18 @@ namespace LvqGui {
                 },
             };
 
-        static double EstimateAccuracy(LvqModelSettingsCli settings) {
-            int protoIdx = settings.PrototypesPerClass == 1 ? 0 : 1;
-            int typeIdx = settings.ModelType == LvqModelType.Ggm ? 0 : settings.ModelType == LvqModelType.Gm ? 2 : 1;
-            bool[] heurs = new[] { settings.NGi, settings.NGu, settings.Ppca, settings.SlowK, settings.Popt, settings.Bcov };
+        static double EstimateAccuracy(LvqModelSettingsCli settings)
+        {
+            var protoIdx = settings.PrototypesPerClass == 1 ? 0 : 1;
+            var typeIdx = settings.ModelType == LvqModelType.Ggm ? 0 : settings.ModelType == LvqModelType.Gm ? 2 : 1;
+            var heurs = new[] { settings.NGi, settings.NGu, settings.Ppca, settings.SlowK, settings.Popt, settings.Bcov };
             return heurs.Select((on, heurIdx) => on ? heurEffects[protoIdx, typeIdx, heurIdx] : 0).Sum();
         }
 
         public enum LrTestingStatus { SomeUnstartedResults, SomeUnfinishedResults, AllResultsComplete };
 
-        public static LrTestingStatus HasAllLrTestingResults(LvqDatasetCli dataset) {
+        public static LrTestingStatus HasAllLrTestingResults(LvqDatasetCli dataset)
+        {
             var testlr = new LrOptimizer(dataset);
 
             return (LrTestingStatus)
@@ -108,14 +115,15 @@ namespace LvqGui {
                 });
         }
 
-        public Task StartAllLrTesting(CancellationToken cancel) {
+        public Task StartAllLrTesting(CancellationToken cancel)
+        {
             var allsettings = AllLrTestingSettings();
 
 
             var testingTasks =
             (
                 from settings in allsettings
-                //let bi=false 
+                    //let bi=false 
                 let shortname = ShortnameFor(settings)
                 select TestLrIfNecessary(null, settings, cancel)
                  ).ToArray();
@@ -157,7 +165,8 @@ namespace LvqGui {
                  select settings).ToArray();
 
 
-        IEnumerable<LvqModelSettingsCli> AllLrTestingSettings() {
+        IEnumerable<LvqModelSettingsCli> AllLrTestingSettings()
+        {
             return
                 from settings in AllLrTestingSettingsNoOffset
                 select WithSeedFromOffset(settings, offset);
@@ -165,7 +174,8 @@ namespace LvqGui {
 
 
 
-        Task FindOptimalLr(TextWriter sink, LvqModelSettingsCli settings, CancellationToken cancel) {
+        Task FindOptimalLr(TextWriter sink, LvqModelSettingsCli settings, CancellationToken cancel)
+        {
             var lr0range = _dataset != null ? LogRange(0.3 / settings.PrototypesPerClass, 0.01 / settings.PrototypesPerClass, 6) : LogRange(0.3, 0.01, 8);
             var lrPrange = _dataset != null ? LogRange(0.3 / settings.PrototypesPerClass, 0.01 / settings.PrototypesPerClass, 6) : LogRange(0.5, 0.03, 8);
             var lrBrange = settings.ModelType != LvqModelType.Ggm && settings.ModelType != LvqModelType.G2m && settings.ModelType != LvqModelType.Gpq && settings.ModelType != LvqModelType.Fgm ? new[] { 0.0 }
@@ -188,28 +198,30 @@ namespace LvqGui {
             return Task.Factory.ContinueWhenAll(errorRates,
                 tasks => {
                     var lrAndErrors = tasks.Select(t => t.Result).ToArray();
-                    foreach (var lrErr in lrAndErrors.OrderBy(lrErr => lrErr.Errors.CanonicalError)) 
+                    foreach (var lrErr in lrAndErrors.OrderBy(lrErr => lrErr.Errors.CanonicalError))
                         sink.Write("\n" + lrErr.ToStorageString());
-                    
+
                     sink.WriteLine();
                 }, cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
         }
 
-        static IEnumerable<double> LogRange(double start, double end, int steps) {
+        static IEnumerable<double> LogRange(double start, double end, int steps)
+        {
             //start*exp(ln(end/start) *  i/(steps-1) )
-            double lnScale = Math.Log(end / start);
-            for (int i = 0; i < steps; i++)
+            var lnScale = Math.Log(end / start);
+            for (var i = 0; i < steps; i++)
                 yield return start * Math.Exp(lnScale * ((double)i / (steps - 1)));
         }
 
-        Task<LrAndError> ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings, CancellationToken cancel) {
-            int nnErrorIdx = -1;
+        Task<LrAndError> ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings, CancellationToken cancel)
+        {
+            var nnErrorIdx = -1;
             var results = new Task<LvqTrainingStatCli>[_folds];
 
-            for (int i = 0; i < _folds; i++) {
+            for (var i = 0; i < _folds; i++) {
 
                 var dataset = _dataset ?? basedatasets[i];
-                int fold = _dataset != null ? i : 0;
+                var fold = _dataset != null ? i : 0;
                 results[i] = Task.Factory.StartNew(() => {
                     var model = new LvqModelCli("model", dataset, fold, settings, false);
 
@@ -230,16 +242,19 @@ namespace LvqGui {
 
 
 
-        bool AttemptToClaimSettings(LvqModelSettingsCli settings, TextWriter sink) {
+        bool AttemptToClaimSettings(LvqModelSettingsCli settings, TextWriter sink)
+        {
             var saveFile = GetLogfilepath(settings).First();
             lock (fsSync)
                 if (saveFile.Exists) {
                     if (saveFile.Length > 0) {
                         //Console.WriteLine("already done:" + DatasetLabel + "\\" + ShortnameFor(settings));
-                        if (sink != null) sink.WriteLine("already done!");
+                        if (sink != null)
+                            sink.WriteLine("already done!");
                     } else {
                         //Console.WriteLine("already started:" + DatasetLabel + "\\" + ShortnameFor(settings));
-                        if (sink != null) sink.WriteLine("already started!");
+                        if (sink != null)
+                            sink.WriteLine("already started!");
                     }
                     return true;
                 } else {
@@ -250,34 +265,39 @@ namespace LvqGui {
                 }
         }
 
-        bool AttemptToUnclaimSettings(LvqModelSettingsCli settings, TextWriter sink) {
+        bool AttemptToUnclaimSettings(LvqModelSettingsCli settings, TextWriter sink)
+        {
             var saveFile = GetLogfilepath(settings).First();
             lock (fsSync)
                 if (saveFile.Exists) {
                     if (saveFile.Length > 0) {
-                        string message = "Won't cancel completed results:" + DatasetLabel + "\\" + ShortnameFor(settings);
+                        var message = "Won't cancel completed results:" + DatasetLabel + "\\" + ShortnameFor(settings);
                         Console.WriteLine(message);
-                        if (sink != null) sink.WriteLine(message);
+                        if (sink != null)
+                            sink.WriteLine(message);
                         return false;
                     } else {
-                        string message = "Cancelling:" + DatasetLabel + "\\" + ShortnameFor(settings);
+                        var message = "Cancelling:" + DatasetLabel + "\\" + ShortnameFor(settings);
                         Console.WriteLine(message);
-                        if (sink != null) sink.WriteLine(message);
+                        if (sink != null)
+                            sink.WriteLine(message);
 
                         saveFile.Delete();
                         return true;
                     }
                 } else {
-                    string message = "Already cancelled??? " + DatasetLabel + "\\" + ShortnameFor(settings);
+                    var message = "Already cancelled??? " + DatasetLabel + "\\" + ShortnameFor(settings);
                     Console.WriteLine(message);
-                    if (sink != null) sink.WriteLine(message);
+                    if (sink != null)
+                        sink.WriteLine(message);
                     return false;
                 }
         }
 
 
 
-        Task Run(LvqModelSettingsCli settings, StringWriter sw, TextWriter extraSink, CancellationToken cancel) {
+        Task Run(LvqModelSettingsCli settings, StringWriter sw, TextWriter extraSink, CancellationToken cancel)
+        {
             if (extraSink == null)
                 return Run(settings, TextWriter.Synchronized(sw), cancel);
             else {
@@ -288,14 +308,15 @@ namespace LvqGui {
             }
         }
 
-        Task Run(LvqModelSettingsCli settings, TextWriter sink, CancellationToken cancel) {
+        Task Run(LvqModelSettingsCli settings, TextWriter sink, CancellationToken cancel)
+        {
             sink.WriteLine("Evaluating: " + settings.ToShorthand());
             sink.WriteLine("Against: " + DatasetLabel);
-            Stopwatch timer = Stopwatch.StartNew();
+            var timer = Stopwatch.StartNew();
             LowPriorityTaskScheduler.DefaultLowPriorityScheduler.StartNewTask(() => timer = Stopwatch.StartNew());
 
             return FindOptimalLr(sink, settings, cancel).ContinueWith(_ => {
-                double durationSec = timer.Elapsed.TotalSeconds;
+                var durationSec = timer.Elapsed.TotalSeconds;
                 sink.WriteLine("Search Complete!  Took " + durationSec + "s");
                 Console.WriteLine("Optimizing " + ShortnameFor(settings) + " took " + durationSec + "s (" + DateTime.Now + ")");
             }, TaskContinuationOptions.ExecuteSynchronously);
@@ -303,13 +324,15 @@ namespace LvqGui {
 
         string DatasetLabel { get { return _dataset != null ? _dataset.DatasetLabel : "base"; } }
 
-        void SaveLogFor(LvqModelSettingsCli settings, string logcontents) {
-            FileInfo logfilepath = GetLogfilepath(settings).First(path => path.Exists || path.Length == 0);
+        void SaveLogFor(LvqModelSettingsCli settings, string logcontents)
+        {
+            var logfilepath = GetLogfilepath(settings).First(path => path.Exists || path.Length == 0);
             logfilepath.Directory.Create();
             File.WriteAllText(logfilepath.FullName, logcontents);
         }
 
-        IEnumerable<FileInfo> GetLogfilepath(LvqModelSettingsCli settings) {
+        IEnumerable<FileInfo> GetLogfilepath(LvqModelSettingsCli settings)
+        {
             return
                 new[] { SettingsFile(settings) }.Concat(
                 Enumerable.Range(1, 1000)
@@ -317,15 +340,17 @@ namespace LvqGui {
                 .Select(filename => new FileInfo(Path.Combine(LrGuesser.resultsDir.FullName, DatasetLabel + "\\" + filename))));
         }
 
-        FileInfo SettingsFile(LvqModelSettingsCli settings) {
+        FileInfo SettingsFile(LvqModelSettingsCli settings)
+        {
 
-            string mSettingsShorthand = settings.ToShorthand();
-            string prefix = LvqMultiModel.ItersPrefix(_itersToRun) + "-";
+            var mSettingsShorthand = settings.ToShorthand();
+            var prefix = LvqMultiModel.ItersPrefix(_itersToRun) + "-";
 
             return new FileInfo(Path.Combine(datasetResultsDir.FullName + "\\", prefix + mSettingsShorthand + ".txt"));
         }
 
-        static DirectoryInfo ResultsDatasetDir(LvqDatasetCli dataset) {
+        static DirectoryInfo ResultsDatasetDir(LvqDatasetCli dataset)
+        {
             if (dataset == null)
                 return LrGuesser.resultsDir.CreateSubdirectory("base");
             else
@@ -335,7 +360,8 @@ namespace LvqGui {
 
         public static IEnumerable<LvqModelType> ModelTypes { get { return new[] { LvqModelType.Ggm, LvqModelType.G2m, LvqModelType.Gm }; } }//  (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
         public static IEnumerable<int> PrototypesPerClassOpts { get { yield return 5; yield return 1; } }
-        static IEnumerable<LvqDatasetCli> Datasets() {
+        static IEnumerable<LvqDatasetCli> Datasets()
+        {
             // ReSharper disable RedundantAssignment
             uint rngParam = 1000;
             uint rngInst = 1001;
@@ -350,7 +376,8 @@ namespace LvqGui {
         }
         static LvqDatasetCli[] m_basedatasets;
 
-        static LvqDatasetCli[] basedatasets {
+        static LvqDatasetCli[] basedatasets
+        {
             get {
                 return m_basedatasets ?? (m_basedatasets = Datasets().ToArray());
             }

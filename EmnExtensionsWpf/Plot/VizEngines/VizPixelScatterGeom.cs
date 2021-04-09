@@ -5,25 +5,30 @@ using System;
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.VizEngines {
-    public class VizPixelScatterGeom : VizTransformed<Point[], StreamGeometry>, IVizPixelScatter {
+namespace EmnExtensions.Wpf.VizEngines
+{
+    public class VizPixelScatterGeom : VizTransformed<Point[], StreamGeometry>, IVizPixelScatter
+    {
         readonly VizGeometry impl;
         Point[] currentData;
         Rect? computedInnerBounds;
         StreamGeometry transformedData;
-        public override void ChangeData(Point[] newData) {
+        public override void ChangeData(Point[] newData)
+        {
             currentData = newData;
             transformedData = GraphUtils.PointCloud(newData);
             impl.ChangeData(transformedData);
 
             InvalidateBounds();
-            
+
         }
-        public VizPixelScatterGeom(IPlotMetaData metadata) {
-             impl = new VizGeometry(metadata) { AutosizeBounds = false };
+        public VizPixelScatterGeom(IPlotMetaData metadata)
+        {
+            impl = new VizGeometry(metadata) { AutosizeBounds = false };
         }
 
-        void InvalidateBounds() {
+        void InvalidateBounds()
+        {
             computedInnerBounds = null;
             if (!MetaData.OverrideBounds.HasValue)
                 MetaData.GraphChanged(GraphChange.Projection);
@@ -31,11 +36,13 @@ namespace EmnExtensions.Wpf.VizEngines {
         public int? OverridePointCountEstimate { get; set; }
 
         double lastAreaScale = 1.0;
-        void SetPenSize() {
-            int pointCount = OverridePointCountEstimate ?? (currentData == null ? 0 : currentData.Length);
-            double thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(pointCount);
+        void SetPenSize()
+        {
+            var pointCount = OverridePointCountEstimate ?? (currentData == null ? 0 : currentData.Length);
+            var thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(pointCount);
             thickness *= lastAreaScale;
-            if (Math.Abs(impl.Pen.Thickness - thickness) < 0.1) return;
+            if (Math.Abs(impl.Pen.Thickness - thickness) < 0.1)
+                return;
 
 #if PERMIT_SQUARE_CAPS
             var linecap = PenLineCap.Round;
@@ -46,7 +53,7 @@ namespace EmnExtensions.Wpf.VizEngines {
 #else
             const PenLineCap linecap = PenLineCap.Round;
 #endif
-            Pen penCopy = impl.Pen.CloneCurrentValue();
+            var penCopy = impl.Pen.CloneCurrentValue();
             penCopy.EndLineCap = linecap;
             penCopy.StartLineCap = linecap;
             penCopy.Thickness = thickness;
@@ -54,8 +61,9 @@ namespace EmnExtensions.Wpf.VizEngines {
             impl.Pen = penCopy;
         }
 
-        public override void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY) {
-            lastAreaScale=Math.Sqrt(displayClip.Width*displayClip.Height / 90000.0);
+        public override void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY)
+        {
+            lastAreaScale = Math.Sqrt(displayClip.Width * displayClip.Height / 90000.0);
             SetPenSize();
             base.SetTransform(boundsToDisplay, displayClip, forDpiX, forDpiY);
         }
@@ -66,7 +74,8 @@ namespace EmnExtensions.Wpf.VizEngines {
         double m_CoverageGradient = 5.0;
         public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; InvalidateBounds(); } }
 
-        Rect RecomputeBounds() {
+        Rect RecomputeBounds()
+        {
             Rect innerBounds, outerBounds;
             VizPixelScatterHelpers.RecomputeBounds(currentData, CoverageRatio, CoverageRatio, CoverageGradient, out outerBounds, out innerBounds);
             return innerBounds;

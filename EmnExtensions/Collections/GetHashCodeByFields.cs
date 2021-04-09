@@ -1,21 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace EmnExtensions.Collections {
-    public static class GetHashCodeByFields<T> {
+namespace EmnExtensions.Collections
+{
+    public static class GetHashCodeByFields<T>
+    {
         public static readonly Func<T, int> Func = init();
-        static Func<T, int> init() {
+        static Func<T, int> init()
+        {
             var objParam = Expression.Parameter(typeof(T), "obj");
             var fields = typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             var fieldHashCodes = fields.Select((fi, n) => {
-                MemberExpression fieldExpr = Expression.Field(objParam, fi);
+                var fieldExpr = Expression.Field(objParam, fi);
 
-                UnaryExpression ulongHashCodeExpr =
+                var ulongHashCodeExpr =
                     Expression.Convert(
                         Expression.Convert(Expression.Call(fieldExpr, GetHashcodeMethod(fi.FieldType)), typeof(uint)),
                         typeof(ulong));
@@ -38,7 +38,8 @@ namespace EmnExtensions.Collections {
             return compiled;
         }
 
-        static MethodInfo GetHashcodeMethod(Type type) {
+        static MethodInfo GetHashcodeMethod(Type type)
+        {
             var objectHashcodeMethod = ((Func<int>)(new object().GetHashCode)).Method;
             var method = type.GetMethod("GetHashCode", BindingFlags.Public | BindingFlags.Instance) ?? objectHashcodeMethod;
             return method.GetBaseDefinition() != objectHashcodeMethod ? objectHashcodeMethod : method;

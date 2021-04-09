@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
+using System.Linq;
 
 namespace EmnExtensions.Collections
 {
@@ -19,15 +18,16 @@ namespace EmnExtensions.Collections
         public T DefaultElement { get; set; }
 
 
-        public int ElementCount {
+        public int ElementCount
+        {
             set {
-                int oldMatSize = matSize(elementCount);
+                var oldMatSize = matSize(elementCount);
                 elementCount = value;
-                int newMatSize = matSize(elementCount);
+                var newMatSize = matSize(elementCount);
 
                 if (distances.Length < newMatSize) {
                     Array.Resize(ref distances, (int)(newMatSize * resizefactor + 0.9));
-                    for (int i = oldMatSize; i < newMatSize; i++)
+                    for (var i = oldMatSize; i < newMatSize; i++)
                         distances[i] = DefaultElement;
                 } else if (distances.Length > (int)(newMatSize * resizefactor * resizefactor + 0.9)) {
                     Array.Resize(ref distances, (int)(newMatSize * resizefactor + 0.9));
@@ -40,7 +40,8 @@ namespace EmnExtensions.Collections
 
         public int DistCount { get { return matSize(elementCount); } }
 
-        public void TrimCapacityToFit() {
+        public void TrimCapacityToFit()
+        {
             Array.Resize(ref distances, matSize(elementCount));
         }
 
@@ -49,15 +50,18 @@ namespace EmnExtensions.Collections
         public SymmetricDistanceMatrixGen() { }
 
         static int matSize(int elemCount) { return elemCount * (elemCount - 1) >> 1; }
-        int calcOffset(int i, int j) {
+        int calcOffset(int i, int j)
+        {
             if (i > j) {
-                if (i > elementCount) throw new ArgumentOutOfRangeException("i" ,"i is out of range");
-                int tmp = i;
+                if (i > elementCount)
+                    throw new ArgumentOutOfRangeException("i", "i is out of range");
+                var tmp = i;
                 i = j;
                 j = tmp;
             } else if (i == j) {
                 return -1;
-            } else if (j > elementCount) throw new ArgumentOutOfRangeException("j","j is out of range");
+            } else if (j > elementCount)
+                throw new ArgumentOutOfRangeException("j", "j is out of range");
             return i + ((j * (j - 1)) >> 1);
         }
 
@@ -67,7 +71,8 @@ namespace EmnExtensions.Collections
         /// Access to this array is read/write.  element i,j is at location i + ((j * (j - 1)) >> 1) given that i is less than j.
         /// </summary>
         /// <returns></returns>
-        public T[] DirectArrayAccess() {
+        public T[] DirectArrayAccess()
+        {
             return distances;
         }
 
@@ -75,7 +80,8 @@ namespace EmnExtensions.Collections
         /// It is an error to access the diagonal which must be 0!
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1023:IndexersShouldNotBeMultidimensional")]
-        public T this[int i, int j] {
+        public T this[int i, int j]
+        {
             get {
                 return distances[calcOffset(i, j)];
             }
@@ -90,8 +96,9 @@ namespace EmnExtensions.Collections
         /// <param name="i"></param>
         /// <param name="j"></param>
         /// <returns></returns>
-        public T GetDist(int i, int j) {
-            int ind = calcOffset(i, j);
+        public T GetDist(int i, int j)
+        {
+            var ind = calcOffset(i, j);
             return ind < 0 ? default(T) : distances[ind];
         }
     }
@@ -100,28 +107,31 @@ namespace EmnExtensions.Collections
 
     public class SymmetricDistanceMatrix : SymmetricDistanceMatrixGen<float>
     {
-        public void WriteTo(BinaryWriter writer) {
+        public void WriteTo(BinaryWriter writer)
+        {
             writer.Write(ElementCount);
             writer.Write(DistCount);
             foreach (var f in Values) {
                 writer.Write((float)f);
             }
         }
-        public SymmetricDistanceMatrix(BinaryReader reader) {
+        public SymmetricDistanceMatrix(BinaryReader reader)
+        {
             ElementCount = reader.ReadInt32();
-            int distCount = reader.ReadInt32();
-            float[] distances = DirectArrayAccess();
-            for (int i = 0; i < distCount; i++)
+            var distCount = reader.ReadInt32();
+            var distances = DirectArrayAccess();
+            for (var i = 0; i < distCount; i++)
                 distances[i] = reader.ReadSingle();
         }
         public SymmetricDistanceMatrix() { }
 
-        public void FloydWarshall(Action<double> progress) {
-            for (int k = 0; k < this.ElementCount; k++) {
+        public void FloydWarshall(Action<double> progress)
+        {
+            for (var k = 0; k < this.ElementCount; k++) {
                 progress(k / (double)this.ElementCount);
-                for (int i = 0; i < this.ElementCount - 1; i++)
+                for (var i = 0; i < this.ElementCount - 1; i++)
                     if (i != k)
-                        for (int j = i + 1; j < this.ElementCount; j++)
+                        for (var j = i + 1; j < this.ElementCount; j++)
                             if (j != k)
                                 this[i, j] = Math.Min(this[i, j], this[i, k] + this[k, j]);
             }
@@ -141,15 +151,16 @@ namespace EmnExtensions.Collections
         //used when growing the matrix;
         public T DefaultElement { get; set; }
 
-        public int ElementCount {
+        public int ElementCount
+        {
             set {
-                int oldMatSize = matSize(elementCount);
+                var oldMatSize = matSize(elementCount);
                 elementCount = value;
-                int newMatSize = matSize(elementCount);
+                var newMatSize = matSize(elementCount);
 
                 if (distances.Length < newMatSize) {
                     Array.Resize(ref distances, (int)(newMatSize * resizefactor + 0.9));
-                    for (int i = oldMatSize; i < newMatSize; i++)
+                    for (var i = oldMatSize; i < newMatSize; i++)
                         distances[i] = DefaultElement;
                 } else if (distances.Length > (int)(newMatSize * resizefactor * resizefactor + 0.9)) {
                     Array.Resize(ref distances, (int)(newMatSize * resizefactor + 0.9));
@@ -162,7 +173,8 @@ namespace EmnExtensions.Collections
 
         public int DistCount { get { return matSize(elementCount); } }
 
-        public void TrimCapacityToFit() {
+        public void TrimCapacityToFit()
+        {
             Array.Resize(ref distances, matSize(elementCount));
         }
 
@@ -172,13 +184,16 @@ namespace EmnExtensions.Collections
         public TriangularMatrix() { }
 
         static int matSize(int elemCount) { return elemCount * (elemCount + 1) >> 1; }
-        int calcOffset(int i, int j) {
+        int calcOffset(int i, int j)
+        {
             if (i > j) {
-                if (i > elementCount) throw new ArgumentOutOfRangeException("i","i is out of range");
-                int tmp = i;
+                if (i > elementCount)
+                    throw new ArgumentOutOfRangeException("i", "i is out of range");
+                var tmp = i;
                 i = j;
                 j = tmp;
-            } else if (j > elementCount) throw new ArgumentOutOfRangeException("j","j is out of range");
+            } else if (j > elementCount)
+                throw new ArgumentOutOfRangeException("j", "j is out of range");
             return i + ((j * (j + 1)) >> 1);
         }
 
@@ -188,7 +203,8 @@ namespace EmnExtensions.Collections
         /// Access to this array is read/write.  element i,j is at location i + ((j * (j + 1)) >> 1) given that i is less than j.
         /// </summary>
         /// <returns></returns>
-        public T[] DirectArrayAccess() {
+        public T[] DirectArrayAccess()
+        {
             return distances;
         }
 
@@ -196,7 +212,8 @@ namespace EmnExtensions.Collections
         /// It is an error to access the diagonal which must be 0!
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1023:IndexersShouldNotBeMultidimensional")]
-        public T this[int i, int j] {
+        public T this[int i, int j]
+        {
             get {
                 return distances[calcOffset(i, j)];
             }

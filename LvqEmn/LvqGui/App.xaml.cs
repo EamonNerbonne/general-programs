@@ -1,11 +1,11 @@
-﻿using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 
 namespace LvqGui
 {
     public partial class App : Application
     {
-        void Application_Startup(object sender, StartupEventArgs e) {
+        void Application_Startup(object sender, StartupEventArgs e)
+        {
             new LvqWindow().Show();
         }
     }

@@ -3,8 +3,10 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace EmnExtensions.Wpf.VizEngines {
-    public sealed class VizDelegateBitmap<T> : VizDynamicBitmap<T> {
+namespace EmnExtensions.Wpf.VizEngines
+{
+    public sealed class VizDelegateBitmap<T> : VizDynamicBitmap<T>
+    {
         public VizDelegateBitmap(IPlotMetaData owner) : base(owner) { UpdateBitmapDelegate = DefaultUpdateBitmapDelegate; BoundsComputer = DefaultComputeBounds; }
         static void DefaultUpdateBitmapDelegate(WriteableBitmap bmp, Matrix mat, int pixelWidth, int pixelHeight, T data) { }
         static Rect DefaultComputeBounds(T data) { return Rect.Empty; }

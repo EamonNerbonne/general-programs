@@ -8,26 +8,33 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EmnExtensions {
-    public sealed class LowPriorityTaskScheduler : TaskScheduler {
+namespace EmnExtensions
+{
+    public sealed class LowPriorityTaskScheduler : TaskScheduler
+    {
         [ThreadStatic]
         static bool isWorkerThread;
-        sealed class WorkerThread {
+        sealed class WorkerThread
+        {
 #if DEBUG_TRACK_ITEMS
             public int normalCount;
 #endif
             readonly LowPriorityTaskScheduler owner;
             readonly SemaphoreSlim sem = new SemaphoreSlim(1);
             bool shouldExit;
-            public WorkerThread(LowPriorityTaskScheduler owner, ThreadPriority priority) {
+            public WorkerThread(LowPriorityTaskScheduler owner, ThreadPriority priority)
+            {
                 this.owner = owner;
                 new Thread(DoWork) { IsBackground = true, Name = "LowPriorityTaskScheduler:" + priority, Priority = priority }.Start();
             }
-            void DoWork() {
+            void DoWork()
+            {
                 isWorkerThread = true;
                 while (true) {
-                    if (!sem.Wait(owner.IdleAfterMilliseconds)) owner.TerminateThread();//idle for 10 seconds, terminate a thread.
-                    else if (!shouldExit) owner.ProcessTask(this);//got signal, wasn't exit signal... go!
+                    if (!sem.Wait(owner.IdleAfterMilliseconds))
+                        owner.TerminateThread();//idle for 10 seconds, terminate a thread.
+                    else if (!shouldExit)
+                        owner.ProcessTask(this);//got signal, wasn't exit signal... go!
                     else {//termination signal
                         sem.Dispose();
 #if DEBUG_TRACK_ITEMS
@@ -72,8 +79,9 @@ namespace EmnExtensions {
         readonly ThreadPriority Priority;
         readonly int IdleAfterMilliseconds;
         int currPar;
-        public LowPriorityTaskScheduler(int? maxParallelism = null, ThreadPriority priority = ThreadPriority.Lowest, int? idleMilliseconds = null) {
-            MaxParallel = maxParallelism ?? Environment.ProcessorCount*2;
+        public LowPriorityTaskScheduler(int? maxParallelism = null, ThreadPriority priority = ThreadPriority.Lowest, int? idleMilliseconds = null)
+        {
+            MaxParallel = maxParallelism ?? Environment.ProcessorCount * 2;
             Priority = priority;
             IdleAfterMilliseconds = idleMilliseconds ?? 10000;
         }
@@ -81,7 +89,8 @@ namespace EmnExtensions {
         public int WorkerCountEstimate { get { return currPar; } }
         public int IdleWorkerCountEstimate { get { return threads.Count; } }
 
-        void WakeAnyThread() {
+        void WakeAnyThread()
+        {
             WorkerThread idleThread;
             if (TryGetThread(out idleThread))
                 idleThread.WakeThread();
@@ -93,12 +102,14 @@ namespace EmnExtensions {
             }
         }
 
-        void TerminateThread() {
+        void TerminateThread()
+        {
             WorkerThread idleThread;
             if (TryGetThread(out idleThread)) {
                 Interlocked.Decrement(ref currPar);
                 idleThread.ExitThread();
-                if (TasksAreQueued()) WakeAnyThread();//unlikely, but to guarrantee liveness.
+                if (TasksAreQueued())
+                    WakeAnyThread();//unlikely, but to guarrantee liveness.
             }
         }
 
@@ -115,8 +126,9 @@ namespace EmnExtensions {
 
         protected override void QueueTask(Task task) { AddTaskToQueue(task); WakeAnyThread(); }
 
-        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued) {
-            bool okInline = isWorkerThread;// || Thread.CurrentThread.Priority >= Priority && IdleWorkerCountEstimate > 0;
+        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
+        {
+            var okInline = isWorkerThread;// || Thread.CurrentThread.Priority >= Priority && IdleWorkerCountEstimate > 0;
             if (okInline) {
 #if DEBUG_TRACK_ITEMS
                 Interlocked.Increment(ref inlined);
@@ -127,7 +139,8 @@ namespace EmnExtensions {
         }
 
         // ReSharper disable UnusedParameter.Local
-        void SlipstreamQueueExecute(WorkerThread t) {
+        void SlipstreamQueueExecute(WorkerThread t)
+        {
             // ReSharper restore UnusedParameter.Local
             Task another;
             while (TryGetQueuedTask(out another)) {
@@ -138,14 +151,16 @@ namespace EmnExtensions {
             }
         }
 
-        void ProcessTask(WorkerThread t) {
+        void ProcessTask(WorkerThread t)
+        {
             try {
                 SlipstreamQueueExecute(t);
                 //X: after slipstream, a new task *could* be added
             } finally {
                 AddThread(t);
                 //Y:now all threads *could* be halted leaving task added at X in limbo
-                if (TasksAreQueued()) WakeAnyThread();//...so we need to ensure liveness.
+                if (TasksAreQueued())
+                    WakeAnyThread();//...so we need to ensure liveness.
                 //if task is added @ Y or later, no limbo possible since thread was returned to pool.
             }
         }

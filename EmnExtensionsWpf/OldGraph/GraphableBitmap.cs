@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows;
 
 namespace EmnExtensions.Wpf.Plot
 {
@@ -16,11 +12,12 @@ namespace EmnExtensions.Wpf.Plot
         /// Sets DrawingRect + IrrelevantDrawingMargins for you; you should set RelevantDataBounds to Rect describing the data in the image youself.
         /// for an image of WxH pixels, pixel (0,0) corresponds to the top-left relevant data bound, and  pixel (W-1,H-1) to the bottom right. 
         /// </summary>
-        public BitmapSource Bitmap {
+        public BitmapSource Bitmap
+        {
             get { return bmp; }
             set {
                 if (bmp != value) {
-                    
+
                     bmp = value;
                     OnChange(GraphChange.Drawing);
                     OnChange(GraphChange.Projection);
@@ -28,7 +25,8 @@ namespace EmnExtensions.Wpf.Plot
             }
         }
 
-        public Rect InnerDataBounds {
+        public Rect InnerDataBounds
+        {
             get { return Rect.Transform(DataBounds, GraphUtils.TransformShape(DrawingRect, InnerDrawingRect, false)); }
             set { DataBounds = ComputeDataBounds(InnerDrawingRect, value, DrawingRect); }
         }

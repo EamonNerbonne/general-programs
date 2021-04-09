@@ -6,9 +6,12 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using EmnExtensions.Wpf.VizEngines;
 
-namespace EmnExtensions.Wpf {
-    public static class PlotHelpers {
-        static T HelpCreate<T>(Func<IPlotMetaData, T> factory,IPlotMetaData metadata = null) where T:IVizEngine {
+namespace EmnExtensions.Wpf
+{
+    public static class PlotHelpers
+    {
+        static T HelpCreate<T>(Func<IPlotMetaData, T> factory, IPlotMetaData metadata = null) where T : IVizEngine
+        {
             var newmetadata = metadata == null ? new PlotMetaData() : new PlotMetaData(metadata);
             var plot = factory(newmetadata);
             newmetadata.Visualisation = plot;
@@ -19,20 +22,24 @@ namespace EmnExtensions.Wpf {
         public static VizDataRange CreateDataRange(IPlotMetaData metadata = null) { return HelpCreate(md => new VizDataRange(md), metadata); }
         public static VizPixelScatterSmart CreatePixelScatter(IPlotMetaData metadata = null) { return HelpCreate(md => new VizPixelScatterSmart(md), metadata); }
         public static VizPointCloudBitmap CreatePointCloud(IPlotMetaData metadata = null) { return HelpCreate(md => new VizPointCloudBitmap(md), metadata); }
-        public static VizDelegateBitmap<T> CreateBitmapDelegate<T>(Action<WriteableBitmap, Matrix, int, int, T> bitmapDelegate, IPlotMetaData metadata = null) { 
-            return HelpCreate(md => new VizDelegateBitmap<T>(md), metadata).Update(plot=>plot.UpdateBitmapDelegate = bitmapDelegate); 
+        public static VizDelegateBitmap<T> CreateBitmapDelegate<T>(Action<WriteableBitmap, Matrix, int, int, T> bitmapDelegate, IPlotMetaData metadata = null)
+        {
+            return HelpCreate(md => new VizDelegateBitmap<T>(md), metadata).Update(plot => plot.UpdateBitmapDelegate = bitmapDelegate);
         }
 
     }
 
-    public static class PlotExtensions {
-        public static T Update<T>(this T plot, Action<T> process) where T:IVizEngine { process(plot); return plot; }
+    public static class PlotExtensions
+    {
+        public static T Update<T>(this T plot, Action<T> process) where T : IVizEngine { process(plot); return plot; }
         public static Rect EffectiveDataBounds(this IVizEngine plot) { return plot.MetaData.OverrideBounds ?? Rect.Union(plot.DataBounds, plot.MetaData.MinimalBounds ?? Rect.Empty); }
         public static IVizEngine<TIn> Map<TOut, TIn>(this IVizEngine<TOut> impl, Func<TIn, TOut> map) { return new VizMapped<TIn, TOut>(impl, map); }
-        public static DispatcherOperation BeginDataChange<T>(this IVizEngine<T> sink, T data, DispatcherPriority priority = DispatcherPriority.Background) { 
+        public static DispatcherOperation BeginDataChange<T>(this IVizEngine<T> sink, T data, DispatcherPriority priority = DispatcherPriority.Background)
+        {
             return sink.MetaData.Container.Dispatcher.BeginInvoke((Action<T>)sink.ChangeData, priority, data);
         }
-        public static Dispatcher GetDispatcher<T>(this IVizEngine<T> sink) {
+        public static Dispatcher GetDispatcher<T>(this IVizEngine<T> sink)
+        {
             return sink == null || sink.MetaData == null || sink.MetaData.Container == null ? null : sink.MetaData.Container.Dispatcher;
         }
     }

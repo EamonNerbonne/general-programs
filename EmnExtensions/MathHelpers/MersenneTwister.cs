@@ -108,8 +108,8 @@ namespace EmnExtensions.MathHelpers
         /// </remarks>
         public MersenneTwister() //changed by eamon; was:            : this(new Random().Next()) /* a default initial seed is used   */
         {
-            uint[] initkey = new uint[N];
-            for (int i = 0; i < initkey.Length; i++)
+            var initkey = new uint[N];
+            for (var i = 0; i < initkey.Length; i++)
                 initkey[i] = RndHelper.MakeSecureUInt();
             init(initkey);
         }
@@ -120,15 +120,13 @@ namespace EmnExtensions.MathHelpers
         /// <param name="initKey">The array for initializing keys.</param>
         public MersenneTwister(Int32[] initKey)
         {
-            if (initKey == null)
-            {
+            if (initKey == null) {
                 throw new ArgumentNullException("initKey");
             }
 
-            UInt32[] initArray = new UInt32[initKey.Length];
+            var initArray = new UInt32[initKey.Length];
 
-            for (int i = 0; i < initKey.Length; ++i)
-            {
+            for (var i = 0; i < initKey.Length; ++i) {
                 initArray[i] = (UInt32)initKey[i];
             }
 
@@ -174,8 +172,7 @@ namespace EmnExtensions.MathHelpers
         /// </exception>
         public UInt32 NextUInt32(UInt32 minValue, UInt32 maxValue) /* throws ArgumentOutOfRangeException */
         {
-            if (minValue >= maxValue)
-            {
+            if (minValue >= maxValue) {
                 throw new ArgumentOutOfRangeException("minValue", "minValue >= maxValue");
             }
 
@@ -203,10 +200,8 @@ namespace EmnExtensions.MathHelpers
         /// </exception>
         public override Int32 Next(Int32 maxValue)
         {
-            if (maxValue <= 1)
-            {
-                if (maxValue < 0)
-                {
+            if (maxValue <= 1) {
+                if (maxValue < 0) {
                     throw new ArgumentOutOfRangeException("maxValue");
                 }
 
@@ -232,13 +227,11 @@ namespace EmnExtensions.MathHelpers
         /// </exception>
         public override Int32 Next(Int32 minValue, Int32 maxValue)
         {
-            if (maxValue <= minValue)
-            {
+            if (maxValue <= minValue) {
                 throw new ArgumentOutOfRangeException("maxValue", "maxValue <= minValue");
             }
 
-            if (maxValue == minValue)
-            {
+            if (maxValue == minValue) {
                 return minValue;
             }
 
@@ -255,15 +248,13 @@ namespace EmnExtensions.MathHelpers
         public override void NextBytes(Byte[] buffer)
         {
             // [codekaizen: corrected this to check null before checking length.]
-            if (buffer == null)
-            {
+            if (buffer == null) {
                 throw new ArgumentNullException("buffer");
             }
 
-            Int32 bufLen = buffer.Length;
+            var bufLen = buffer.Length;
 
-            for (Int32 idx = 0; idx < bufLen; ++idx)
-            {
+            for (var idx = 0; idx < bufLen; ++idx) {
                 buffer[idx] = (Byte)Next(256);
             }
         }
@@ -389,14 +380,12 @@ namespace EmnExtensions.MathHelpers
             {
                 Int16 kk = 0;
 
-                for (; kk < N - M; ++kk)
-                {
+                for (; kk < N - M; ++kk) {
                     y = (_mt[kk] & UpperMask) | (_mt[kk + 1] & LowerMask);
                     _mt[kk] = _mt[kk + M] ^ (y >> 1) ^ _mag01[y & 0x1];
                 }
 
-                for (; kk < N - 1; ++kk)
-                {
+                for (; kk < N - 1; ++kk) {
                     y = (_mt[kk] & UpperMask) | (_mt[kk + 1] & LowerMask);
                     _mt[kk] = _mt[kk + (M - N)] ^ (y >> 1) ^ _mag01[y & 0x1];
                 }
@@ -456,8 +445,7 @@ namespace EmnExtensions.MathHelpers
         {
             _mt[0] = seed & 0xffffffffU;
 
-            for (_mti = 1; _mti < N; _mti++)
-            {
+            for (_mti = 1; _mti < N; _mti++) {
                 _mt[_mti] = (uint)(1812433253U * (_mt[_mti - 1] ^ (_mt[_mti - 1] >> 30)) + _mti);
                 // See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. 
                 // In the previous versions, MSBs of the seed affect   
@@ -473,31 +461,32 @@ namespace EmnExtensions.MathHelpers
             Int32 i, j, k;
             init(19650218U);
 
-            Int32 keyLength = key.Length;
-            i = 1; j = 0;
+            var keyLength = key.Length;
+            i = 1;
+            j = 0;
             k = (N > keyLength ? N : keyLength);
 
-            for (; k > 0; k--)
-            {
+            for (; k > 0; k--) {
                 _mt[i] = (uint)((_mt[i] ^ ((_mt[i - 1] ^ (_mt[i - 1] >> 30)) * 1664525U)) + key[j] + j); /* non linear */
                 _mt[i] &= 0xffffffffU; // for WORDSIZE > 32 machines
-                i++; j++;
+                i++;
+                j++;
                 if (i >= N) { _mt[0] = _mt[N - 1]; i = 1; }
-                if (j >= keyLength) j = 0;
+                if (j >= keyLength)
+                    j = 0;
             }
 
-            for (k = N - 1; k > 0; k--)
-            {
+            for (k = N - 1; k > 0; k--) {
                 _mt[i] = (uint)((_mt[i] ^ ((_mt[i - 1] ^ (_mt[i - 1] >> 30)) * 1566083941U)) - i); /* non linear */
                 _mt[i] &= 0xffffffffU; // for WORDSIZE > 32 machines
                 i++;
 
-                if (i < N)
-                {
+                if (i < N) {
                     continue;
                 }
 
-                _mt[0] = _mt[N - 1]; i = 1;
+                _mt[0] = _mt[N - 1];
+                i = 1;
             }
 
             _mt[0] = 0x80000000U; // MSB is 1; assuring non-zero initial array
@@ -515,9 +504,9 @@ namespace EmnExtensions.MathHelpers
         Double compute53BitRandom(Double translate, Double scale)
         {
             // get 27 pseudo-random bits
-            UInt64 a = (UInt64)GenerateUInt32() >> 5;
+            var a = (UInt64)GenerateUInt32() >> 5;
             // get 26 pseudo-random bits
-            UInt64 b = (UInt64)GenerateUInt32() >> 6;
+            var b = (UInt64)GenerateUInt32() >> 6;
 
             // shift the 27 pseudo-random bits (a) over by 26 bits (* 67108864.0) and
             // add another pseudo-random 26 bits (+ b).

@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Media;
 using System.Windows;
-using System.Windows.Media.Imaging;
+using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot
 {
@@ -13,7 +9,7 @@ namespace EmnExtensions.Wpf.Plot
         string m_xUnitLabel, m_yUnitLabel, m_DataLabel;
         Rect m_DataBounds = Rect.Empty;
         Thickness m_Margin;
-        TickedAxisLocation m_axisBindings = TickedAxisLocation.LeftOfGraph | TickedAxisLocation.BelowGraph ;
+        TickedAxisLocation m_axisBindings = TickedAxisLocation.LeftOfGraph | TickedAxisLocation.BelowGraph;
 
         public string XUnitLabel { get { return m_xUnitLabel; } set { if (m_xUnitLabel != value) { m_xUnitLabel = value; OnChange(GraphChange.Labels); } } }
         public string YUnitLabel { get { return m_yUnitLabel; } set { if (m_yUnitLabel != value) { m_yUnitLabel = value; OnChange(GraphChange.Labels); } } }
@@ -28,8 +24,9 @@ namespace EmnExtensions.Wpf.Plot
         protected void OnChange(GraphChange changeType)
         {
             var handler = Changed;
-            
-            if (handler != null) handler(this, changeType);
+
+            if (handler != null)
+                handler(this, changeType);
         }
 
         public abstract void DrawGraph(DrawingContext context);

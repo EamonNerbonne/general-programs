@@ -1,6 +1,5 @@
-﻿using System.Linq;
-
-namespace LvqGui {
+﻿namespace LvqGui
+{
     public partial class AppSettings
     {
         public AppSettings() { InitializeComponent(); }
