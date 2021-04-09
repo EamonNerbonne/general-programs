@@ -54,8 +54,8 @@ namespace EmnExtensions.Wpf.Plot
             return dim.AtEnd == dim.AtStart ? dim.AtStart.ToString(culture) : dim.AtStart.ToString(culture) + "," + dim.AtEnd.ToString(culture);
         }
 
-        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) => sourceType.Equals(typeof(string)) || base.CanConvertFrom(context, sourceType);
+        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) => sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
 
-        public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) => destinationType.Equals(typeof(string)) || base.CanConvertTo(context, destinationType);
+        public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) => destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
     }
 }

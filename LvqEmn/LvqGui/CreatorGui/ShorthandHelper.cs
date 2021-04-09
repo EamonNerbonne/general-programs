@@ -220,7 +220,7 @@ namespace LvqGui.CreatorGui
                     if (captureGroup.Success) {
                         var prop = PropertyStore.properties[propIdx];
                         var captureVal = captureGroup.Value;
-                        var val = prop.Type.Equals(typeof(bool))
+                        var val = prop.Type == typeof(bool)
                             ? captureVal != "" ^ isHexEncodedOrNegated
                             : isHexEncodedOrNegated && prop.Type == typeof(uint)
                                 ? Convert.ToUInt32(captureVal, 16)
