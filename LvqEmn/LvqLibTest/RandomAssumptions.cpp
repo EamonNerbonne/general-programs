@@ -23,7 +23,9 @@ BOOST_AUTO_TEST_CASE( random_test )
 
 	mt19937 rnd3(rnd1);
 	BOOST_CHECK(rnd1 == rnd3);
-	BOOST_CHECK_EQUAL(rnd1(), rnd3()); rnd2();
+	BOOST_CHECK_EQUAL(rnd1(), rnd3()); 
+	
+	auto ignore = rnd2();
 
 	container x(rnd2);
 
