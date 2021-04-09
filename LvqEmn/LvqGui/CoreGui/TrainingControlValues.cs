@@ -50,10 +50,11 @@ namespace LvqGui.CoreGui
 
         LvqDatasetCli _SelectedDataset;
 
-        public IEnumerable<LvqMultiModel> MatchingLvqModels => Owner.LvqModels.Where(model => model == null || model.InitSet == SelectedDataset); // model.FitsDataShape(SelectedDataset) is unhandy
+        public IEnumerable<LvqMultiModel> MatchingLvqModels
+            => Owner.LvqModels.Where(model => model == null || model.InitSet == SelectedDataset); // model.FitsDataShape(SelectedDataset) is unhandy
 
-        public double ItersPerEpoch => SelectedDataset == null ? double.NaN : LvqMultiModel.GetItersPerEpoch(SelectedDataset, 0);
-
+        public double ItersPerEpoch
+            => SelectedDataset == null ? double.NaN : LvqMultiModel.GetItersPerEpoch(SelectedDataset, 0);
 
         public LvqMultiModel SelectedLvqModel
         {
@@ -71,11 +72,12 @@ namespace LvqGui.CoreGui
 
         LvqMultiModel _SelectedLvqModel;
 
-        public IEnumerable<int> ModelIndexes => Enumerable.Range(0, SelectedLvqModel == null ? 0 : SelectedLvqModel.ModelCount);
+        public IEnumerable<int> ModelIndexes
+            => Enumerable.Range(0, SelectedLvqModel?.ModelCount ?? 0);
 
         public int SubModelIndex
         {
-            get => SelectedLvqModel == null ? 0 : SelectedLvqModel.SelectedSubModel;
+            get => SelectedLvqModel?.SelectedSubModel ?? 0;
             set {
                 if (SelectedLvqModel != null && (value < 0 || value >= SelectedLvqModel.ModelCount)) {
                     throw new ArgumentException("Model only has " + SelectedLvqModel.ModelCount + " sub-models.");
@@ -88,7 +90,8 @@ namespace LvqGui.CoreGui
             }
         }
 
-        public IEnumerable<StatisticsViewMode> StatisticsViewModes => (StatisticsViewMode[])Enum.GetValues(typeof(StatisticsViewMode));
+        public IEnumerable<StatisticsViewMode> StatisticsViewModes
+            => (StatisticsViewMode[])Enum.GetValues(typeof(StatisticsViewMode));
 
         public StatisticsViewMode CurrProjStats
         {
@@ -104,7 +107,9 @@ namespace LvqGui.CoreGui
         StatisticsViewMode _CurrProjStats;
 
         public IEnumerable<ColoredClassLabels> ModelClasses
-            => SelectedDataset == null ? Array.Empty<ColoredClassLabels>() : SelectedDataset.ClassColors.Zip(SelectedDataset.ClassNames, (col, name) => new ColoredClassLabels(name, (SolidColorBrush)new SolidColorBrush(col).GetAsFrozen())).ToArray();
+            => SelectedDataset == null
+                ? Array.Empty<ColoredClassLabels>()
+                : SelectedDataset.ClassColors.Zip(SelectedDataset.ClassNames, (col, name) => new ColoredClassLabels(name, (SolidColorBrush)new SolidColorBrush(col).GetAsFrozen())).ToArray();
 
         public bool ShowBoundaries
         {
@@ -261,7 +266,8 @@ namespace LvqGui.CoreGui
 
         bool _AnimateTraining;
 
-        void LvqModels_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => _propertyChanged("MatchingLvqModels");
+        void LvqModels_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+            => _propertyChanged("MatchingLvqModels");
 
         public void PrintCurrentStats()
         {
@@ -272,18 +278,24 @@ namespace LvqGui.CoreGui
         public void ConfirmTraining()
         {
             var epochsToTrainFor = EpochsPerClick;
-            TrainSelectedModel((dataset, model) => {
+            TrainSelectedModel(
+                (dataset, model) => {
                     using (new DTimer("Training " + epochsToTrainFor + " epochs")) {
                         model.TrainEpochs(epochsToTrainFor, Owner.WindowClosingToken);
                     }
                     //var newIdx = model.GetBestSubModelIdx(dataset);
                     //owner.Dispatcher.BeginInvoke(() => { SubModelIndex = newIdx; });
-                }, SelectedDataset, SelectedLvqModel
+                },
+                SelectedDataset,
+                SelectedLvqModel
             );
         }
 
-        public void ConfirmTrainingPrintOrder() => TrainSelectedModel((dataset, model) => model.TrainAndPrintOrder(Owner.WindowClosingToken), SelectedDataset, SelectedLvqModel);
-        public void ConfirmTrainingSortedOrder() => TrainSelectedModel((dataset, model) => model.SortedTrain(Owner.WindowClosingToken), SelectedDataset, SelectedLvqModel);
+        public void ConfirmTrainingPrintOrder()
+            => TrainSelectedModel((dataset, model) => model.TrainAndPrintOrder(Owner.WindowClosingToken), SelectedDataset, SelectedLvqModel);
+
+        public void ConfirmTrainingSortedOrder()
+            => TrainSelectedModel((dataset, model) => model.SortedTrain(Owner.WindowClosingToken), SelectedDataset, SelectedLvqModel);
 
         void TrainSelectedModel(Action<LvqDatasetCli, LvqMultiModel> trainImpl, LvqDatasetCli selectedDataset, LvqMultiModel selectedModel)
         {
@@ -310,13 +322,15 @@ namespace LvqGui.CoreGui
         public void TrainUptoIters()
         {
             var uptoIters = ItersToTrainUpto;
-            TrainSelectedModel((dataset, model) => {
+            TrainSelectedModel(
+                (dataset, model) => {
                     using (new DTimer("Training up to " + uptoIters + " iters")) {
                         model.TrainUptoIters(uptoIters, Owner.WindowClosingToken);
                     }
 
                     var newIdx = model.GetBestSubModelIdx();
-                    Owner.Dispatcher.BeginInvoke(() => {
+                    Owner.Dispatcher.BeginInvoke(
+                        () => {
                             if (SelectedLvqModel == model) {
                                 SubModelIndex = newIdx;
                             } else {
@@ -324,7 +338,9 @@ namespace LvqGui.CoreGui
                             }
                         }
                     );
-                }, SelectedDataset, SelectedLvqModel
+                },
+                SelectedDataset,
+                SelectedLvqModel
             );
         }
 
@@ -332,15 +348,20 @@ namespace LvqGui.CoreGui
         {
             var uptoIters = ItersToTrainUpto;
             var allModels = Owner.LvqModels.ToArray();
-            Parallel.ForEach(Partitioner.Create(allModels, true), new() { MaxDegreeOfParallelism = 3, CancellationToken = Owner.WindowClosingToken }, model => {
+            Parallel.ForEach(
+                Partitioner.Create(allModels, true),
+                new() { MaxDegreeOfParallelism = 3, CancellationToken = Owner.WindowClosingToken },
+                model => {
                     var dataset = model.InitSet;
-                    TrainSelectedModel((_dataset, _model) => {
+                    TrainSelectedModel(
+                        (_dataset, _model) => {
                             using (new DTimer("Training up to " + uptoIters + " iters")) {
                                 _model.TrainUptoIters(uptoIters, Owner.WindowClosingToken);
                             }
 
                             var newIdx = _model.GetBestSubModelIdx();
-                            Owner.Dispatcher.BeginInvoke(() => {
+                            Owner.Dispatcher.BeginInvoke(
+                                () => {
                                     if (SelectedLvqModel == _model) {
                                         SubModelIndex = newIdx;
                                     } else {
@@ -348,7 +369,9 @@ namespace LvqGui.CoreGui
                                     }
                                 }
                             );
-                        }, dataset, model
+                        },
+                        dataset,
+                        model
                     );
                 }
             );
@@ -366,12 +389,17 @@ namespace LvqGui.CoreGui
                 while (_AnimateTraining && !token.IsCancellationRequested && !Owner.WindowClosingToken.IsCancellationRequested) {
                     var epochsToTrainFor = EpochsPerAnimation;
                     if (selectedDataset == null || selectedModel == null || epochsToTrainFor < 1) {
-                        Owner.Dispatcher.BeginInvoke(() => { AnimateTraining = false; });
+                        Owner.Dispatcher.BeginInvoke(
+                            () => {
+                                AnimateTraining = false;
+                            }
+                        );
                         break;
                     }
 
                     overallTask.Enqueue(
-                        Task.Factory.StartNew(() => {
+                        Task.Factory.StartNew(
+                            () => {
                                 selectedModel.TrainEpochs(epochsToTrainFor, Owner.WindowClosingToken);
                                 PotentialUpdate(selectedDataset, selectedModel);
                             },
@@ -417,7 +445,8 @@ namespace LvqGui.CoreGui
             var trainingStats = model.TrainingStats;
             if (trainingStats.Length >= 2) {
                 var lastStat = trainingStats[^1];
-                Console.WriteLine("Avg cpu seconds per iter: {0}{1}",
+                Console.WriteLine(
+                    "Avg cpu seconds per iter: {0}{1}",
                     lastStat.Value[LvqTrainingStatCli.ElapsedSecondsI] / lastStat.Value[LvqTrainingStatCli.TrainingIterationI],
                     lastStat.StandardError != null
                         ? " ~ " + lastStat.StandardError[LvqTrainingStatCli.ElapsedSecondsI] / lastStat.Value[LvqTrainingStatCli.TrainingIterationI]
@@ -462,7 +491,7 @@ namespace LvqGui.CoreGui
         public double GetLearningRate()
         {
             var selectedModel = SelectedLvqModel;
-            return selectedModel != null ? selectedModel.CurrentMeanLearningRate : 0.0;
+            return selectedModel?.CurrentMeanLearningRate ?? 0.0;
         }
 
         public void DoExtendDatasetWithProtoDistances()

@@ -64,8 +64,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
             var pW = (int)(0.5 + snappedDrawingClip.Width * scaleX);
             var pH = (int)(0.5 + snappedDrawingClip.Height * scaleY);
             if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH || dpiX != m_bmp.DpiX || dpiY != m_bmp.DpiY) {
-                var width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + EXTRA_RESIZE_PIX);
-                var height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + EXTRA_RESIZE_PIX);
+                var width = Math.Max(m_bmp?.PixelWidth ?? 1, pW + EXTRA_RESIZE_PIX);
+                var height = Math.Max(m_bmp?.PixelHeight ?? 1, pH + EXTRA_RESIZE_PIX);
                 m_bmp = new(width, height, dpiX, dpiY, PixelFormats.Bgra32, null);
                 using (var context = m_drawing.Open()) {
                     context.PushGuidelineSet(new(new[] { 0.0 }, new[] { 0.0 }));

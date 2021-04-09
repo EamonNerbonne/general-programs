@@ -135,12 +135,12 @@ namespace EmnExtensions.Wpf.Plot
 
         double Thickness => Math.Max(0.0, IsHorizontal ? m_bestGuessCurrentSize.Height : m_bestGuessCurrentSize.Width);
 
-        double ThicknessOfNext => Math.Max(ClockwiseNextAxis == null ? 0.0 : ClockwiseNextAxis.Thickness, RequiredThicknessOfNext);
-        double ThicknessOfPrev => Math.Max(ClockwisePrevAxis == null ? 0.0 : ClockwisePrevAxis.Thickness, RequiredThicknessOfPrev);
+        double ThicknessOfNext => Math.Max(ClockwiseNextAxis?.Thickness ?? 0.0, RequiredThicknessOfNext);
+        double ThicknessOfPrev => Math.Max(ClockwisePrevAxis?.Thickness ?? 0.0, RequiredThicknessOfPrev);
 
         double RequiredThickness => Math.Max(
-            ClockwiseNextAxis == null ? 0.0 : ClockwiseNextAxis.RequiredThicknessOfPrev,
-            ClockwisePrevAxis == null ? 0.0 : ClockwisePrevAxis.RequiredThicknessOfNext
+            ClockwiseNextAxis?.RequiredThicknessOfPrev ?? 0.0,
+            ClockwisePrevAxis?.RequiredThicknessOfNext ?? 0.0
         );
 
         public double EffectiveThickness => Math.Max(Thickness, RequiredThickness);
@@ -865,7 +865,7 @@ namespace EmnExtensions.Wpf.Plot
 
             var oppFirst = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph;
             var oppAxis = ClockwiseNextAxis.ClockwiseNextAxis ?? ClockwisePrevAxis.ClockwisePrevAxis;
-            var oppositeThickness = oppAxis != null ? oppAxis.EffectiveThickness : 0.0;
+            var oppositeThickness = oppAxis?.EffectiveThickness ?? 0.0;
 
             var overallLength = IsHorizontal ? outerBounds.Height : outerBounds.Width;
             var startAt = oppFirst ? oppositeThickness : Thickness;

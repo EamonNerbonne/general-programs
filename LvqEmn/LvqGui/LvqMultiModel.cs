@@ -118,7 +118,7 @@ namespace LvqGui
             get {
                 lock (statCacheSync) {
                     var newstats = subModels.Select(m => m.GetTrainingStatsAfter(statProcIdx)).ToArray();
-                    var newStatCount = newstats.Min(statArray => statArray == null ? 0 : statArray.Length);
+                    var newStatCount = newstats.Min(statArray => statArray?.Length ?? 0);
                     if (newStatCount == 0) {
                         return cachedStatCache;
                     }

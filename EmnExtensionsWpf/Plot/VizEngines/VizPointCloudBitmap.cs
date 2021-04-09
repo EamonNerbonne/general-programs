@@ -84,7 +84,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
         void RecomputeColors()
         {
-            m_MappedColors = m_ClassColors == null ? null : m_ClassColors.Select(c => new UintColor(c)).ToArray();
+            m_MappedColors = m_ClassColors?.Select(c => new UintColor(c)).ToArray();
             OnRenderOptionsChanged();
         }
 
@@ -98,7 +98,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
                 return; //this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
             }
 
-            var thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data == null ? 0 : Data.Length));
+            var thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data?.Length ?? 0));
             //Console.WriteLine(thickness + " * " + Math.Sqrt(viewAreaSize / 90000.0));
             thickness *= Math.Sqrt(viewAreaSize / 90000.0);
             var thicknessTranslation = DecodeThickness(thickness);

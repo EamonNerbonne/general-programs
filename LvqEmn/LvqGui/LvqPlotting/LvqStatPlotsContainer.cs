@@ -389,9 +389,7 @@ namespace LvqGui.LvqPlotting
 
         static Task GetDisplayUpdateTask(LvqStatPlots currsubplots) => DisplayUpdateOperations(currsubplots)
             .Aggregate(default(Task),
-                (current, currentOp) => current == null
-                    ? Task.Factory.StartNew((Action)(() => currentOp.Wait()))
-                    : current.ContinueWith(task => currentOp.Wait())
+                (current, currentOp) => current?.ContinueWith(task => currentOp.Wait()) ?? Task.Factory.StartNew((Action)(() => currentOp.Wait()))
             );
 
         static IEnumerable<DispatcherOperation> DisplayUpdateOperations(LvqStatPlots subplots)

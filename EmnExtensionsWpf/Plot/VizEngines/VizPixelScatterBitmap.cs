@@ -49,7 +49,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
                 return; //this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
             }
 
-            var thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data == null ? 0 : Data.Length));
+            var thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data?.Length ?? 0));
             var thicknessTranslation = DecodeThickness(thickness);
 
             Make2dHistogramInRegion(pW, pH, dataToBitmap, thicknessTranslation.Item2);

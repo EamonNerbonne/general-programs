@@ -83,7 +83,7 @@ namespace EmnExtensions
 
         //}
 
-        public static string ToStringOrNull(this object value) => value == null ? null : value.ToString();
+        public static string ToStringOrNull(this object value) => value?.ToString();
 
         public static int IndexOfMax<T>(this IEnumerable<T> sequence, Func<int, T, bool> filter)
             where T : IComparable<T>

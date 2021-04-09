@@ -39,7 +39,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
         void SetPenSize()
         {
-            var pointCount = OverridePointCountEstimate ?? (currentData == null ? 0 : currentData.Length);
+            var pointCount = OverridePointCountEstimate ?? (currentData?.Length ?? 0);
             var thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(pointCount);
             thickness *= lastAreaScale;
             if (Math.Abs(impl.Pen.Thickness - thickness) < 0.1) {

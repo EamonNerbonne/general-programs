@@ -45,7 +45,7 @@ namespace LvqGui.LvqPlotting
         public LvqMultiModel.ModelProjectionAndImage CurrentProjection()
         {
             var widthHeight = LastWidthHeight;
-            return model.CurrentProjectionAndImage(dataset, widthHeight == null ? 0 : widthHeight.Item1, widthHeight == null ? 0 : widthHeight.Item2, classBoundaries != null && classBoundaries.MetaData.Hidden, selectedSubModel, showTestEmbedding);
+            return model.CurrentProjectionAndImage(dataset, widthHeight?.Item1 ?? 0, widthHeight?.Item2 ?? 0, classBoundaries != null && classBoundaries.MetaData.Hidden, selectedSubModel, showTestEmbedding);
         }
 
 

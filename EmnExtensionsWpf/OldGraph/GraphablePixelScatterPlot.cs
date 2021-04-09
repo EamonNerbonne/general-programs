@@ -231,8 +231,8 @@ namespace EmnExtensions.Wpf.OldGraph
             }
 
             if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH) {
-                var width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + (int)(EXTRA_RESIZE_PIX * m_dpiX / 96.0));
-                var height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + (int)(EXTRA_RESIZE_PIX * m_dpiY / 96.0));
+                var width = Math.Max(m_bmp?.PixelWidth ?? 1, pW + (int)(EXTRA_RESIZE_PIX * m_dpiX / 96.0));
+                var height = Math.Max(m_bmp?.PixelHeight ?? 1, pH + (int)(EXTRA_RESIZE_PIX * m_dpiY / 96.0));
                 m_bmp = new(width, height, m_dpiX, m_dpiY, PixelFormats.Bgra32, null);
                 RenderOptions.SetBitmapScalingMode(m_bmp, m_scalingMode);
                 OnChange(GraphChange.Drawing);

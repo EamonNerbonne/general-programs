@@ -16,7 +16,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
         public void OnRenderOptionsChanged() => Implementation.OnRenderOptionsChanged();
         public IPlotMetaData MetaData => Implementation.MetaData;
         public bool SupportsColor => Implementation.SupportsColor;
-        public Drawing SampleDrawing => Implementation == null ? null : Implementation.SampleDrawing;
+        public Drawing SampleDrawing => Implementation?.SampleDrawing;
 
         public VizMapped(IVizEngine<TOut> impl, Func<TIn, TOut> map)
         {

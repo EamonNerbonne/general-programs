@@ -73,8 +73,8 @@ namespace EmnExtensions.Wpf.OldGraph
             //TODO2: this clips to nearest pixel boundary; but a tighter clip is possible to sub-pixel accuracy.
 
             if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH) {
-                var width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + EXTRA_RESIZE_PIX);
-                var height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + EXTRA_RESIZE_PIX);
+                var width = Math.Max(m_bmp?.PixelWidth ?? 1, pW + EXTRA_RESIZE_PIX);
+                var height = Math.Max(m_bmp?.PixelHeight ?? 1, pH + EXTRA_RESIZE_PIX);
                 m_bmp = new(width, height, m_dpiX, m_dpiY, PixelFormats.Bgra32, null);
                 using (var context = m_drawing.Open()) {
                     context.PushGuidelineSet(new(new[] { 0.0 }, new[] { 0.0 }));
