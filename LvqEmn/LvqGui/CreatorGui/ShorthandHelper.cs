@@ -206,7 +206,7 @@ namespace LvqGui.CreatorGui
             for (var i = 0; i < groups.Length; i++) {
                 var captureGroup = groups[i];
                 var groupName = shR.GroupNameFromNumber(i);
-                var isHexEncodedOrNegated = groupName.EndsWith("_");
+                var isHexEncodedOrNegated = groupName.EndsWith("_", StringComparison.Ordinal);
                 if (isHexEncodedOrNegated) {
                     groupName = groupName.Substring(0, groupName.Length - 1);
                 }
