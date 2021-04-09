@@ -23,8 +23,8 @@ namespace LvqGui
 
         public static IEnumerable<IVizEngine<LvqStatPlots>> Create(string statisticGroup, IEnumerable<LvqStatName> stats, bool isMultiModel, bool hasTestSet, Color[] classColors, int protosPerClass)
         {
-            var relevantStatistics = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Test"))).ToArray();
-            var colors = statisticGroup.StartsWith("Per-prototype:") && relevantStatistics.Length == classColors.Length * protosPerClass
+            var relevantStatistics = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Test", StringComparison.Ordinal))).ToArray();
+            var colors = statisticGroup.StartsWith("Per-prototype:", StringComparison.Ordinal) && relevantStatistics.Length == classColors.Length * protosPerClass
                 ? classColors.SelectMany(color => Enumerable.Repeat(color, protosPerClass)).ToArray()
                 : GetColors(relevantStatistics.Length);
             var isSpecialGroup = statisticGroup == "Error Rates" || statisticGroup == "Cost Function";
@@ -35,9 +35,9 @@ namespace LvqGui
             var i = 0;
             foreach (var stat in relevantStatistics) {
                 var color =
-                    isSpecialGroup && stat.TrainingStatLabel.StartsWith("Training") ? Color.FromRgb(190, 140, 0)
-                    : isSpecialGroup && stat.TrainingStatLabel.StartsWith("Test") ? Color.FromRgb(190, 0, 255)
-                    : isSpecialGroup && stat.TrainingStatLabel.StartsWith("NN") ? Color.FromRgb(0, 140, 255)
+                    isSpecialGroup && stat.TrainingStatLabel.StartsWith("Training", StringComparison.Ordinal) ? Color.FromRgb(190, 140, 0)
+                    : isSpecialGroup && stat.TrainingStatLabel.StartsWith("Test", StringComparison.Ordinal) ? Color.FromRgb(190, 0, 255)
+                    : isSpecialGroup && stat.TrainingStatLabel.StartsWith("NN", StringComparison.Ordinal) ? Color.FromRgb(0, 140, 255)
                     : colors[i];
                 i++;
                 foreach (var plot in MakePlotsForStatIdx(stat.TrainingStatLabel, stat.UnitLabel, color, stat.Index, isMultiModel)) {
@@ -49,8 +49,8 @@ namespace LvqGui
 
         static IEnumerable<IVizEngine<LvqStatPlots>> MakePlotsForStatIdx(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants)
         {
-            var isTest = dataLabel.StartsWith("Test");
-            var isNn = dataLabel.StartsWith("NN Error");
+            var isTest = dataLabel.StartsWith("Test", StringComparison.Ordinal);
+            var isNn = dataLabel.StartsWith("NN Error", StringComparison.Ordinal);
             if (doVariants) {
                 yield return MakeStderrRangePlot(yunitLabel, color, statIdx, isTest, isNn);
                 yield return MakeCurrentModelPlot(yunitLabel, color, statIdx, isTest, isNn);
@@ -82,7 +82,7 @@ namespace LvqGui
         static IVizEngine<LvqStatPlots> MakePlotHelper(string dataLabel, Color color, string yunitLabel, object tag, Func<LvqStatPlots, Point[]> mapper, DashStyle dashStyle = null)
         {
             var lineplot = PlotHelpers.CreateLine(new PlotMetaData {
-                    DataLabel = string.IsNullOrEmpty(dataLabel) || dataLabel.StartsWith("#") ? null : dataLabel,
+                    DataLabel = string.IsNullOrEmpty(dataLabel) || dataLabel.StartsWith("#", StringComparison.Ordinal) ? null : dataLabel,
                     RenderColor = color,
                     XUnitLabel = "Training iterations",
                     YUnitLabel = yunitLabel,
@@ -91,7 +91,7 @@ namespace LvqGui
                     Tag = tag,
                 }
             );
-            lineplot.CoverageRatioY = yunitLabel.StartsWith("max") ? 1.0 : 0.90;
+            lineplot.CoverageRatioY = yunitLabel.StartsWith("max", StringComparison.Ordinal) ? 1.0 : 0.90;
             lineplot.CoverageRatioGrad = 20.0;
             lineplot.DashStyle = dashStyle ?? DashStyles.Solid;
             return lineplot.Map(mapper);
@@ -111,7 +111,7 @@ namespace LvqGui
                     ZIndex = 0
                 }
             );
-            rangeplot.CoverageRatioY = yunitLabel.StartsWith("max") ? 1.0 : 0.90;
+            rangeplot.CoverageRatioY = yunitLabel.StartsWith("max", StringComparison.Ordinal) ? 1.0 : 0.90;
             rangeplot.CoverageRatioGrad = 20.0;
             return rangeplot.Map(ModelToRangeMapper(statIdx));
         }

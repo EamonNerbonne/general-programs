@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace LvqGui
 {
@@ -27,7 +27,7 @@ namespace LvqGui
             TrainingStatLabel = splitName[0];
             UnitLabel = splitName[1];
             StatGroup = splitName.Length > 2 ? splitName[2] : null;
-            HideByDefault = StatGroup != null && StatGroup.StartsWith("$");
+            HideByDefault = StatGroup != null && StatGroup.StartsWith("$", StringComparison.Ordinal);
             if (HideByDefault) {
                 StatGroup = StatGroup.Substring(1);
             }

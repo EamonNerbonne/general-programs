@@ -60,7 +60,7 @@ namespace LvqGui
                 return Tuple.Create(false, default(double), default(LvqModelSettingsCli));
             }
 
-            var iters = double.Parse(match.Groups["iters"].Value.StartsWith("e") ? "1" + match.Groups["iters"].Value : match.Groups["iters"].Value);
+            var iters = double.Parse(match.Groups["iters"].Value.StartsWith("e", StringComparison.Ordinal) ? "1" + match.Groups["iters"].Value : match.Groups["iters"].Value);
             var shorthand = match.Groups["shorthand"].Value;
             var modelSettings = CreateLvqModelValues.ParseShorthand(shorthand);
             return Tuple.Create(true, iters, modelSettings);

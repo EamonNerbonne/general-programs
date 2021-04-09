@@ -1,6 +1,7 @@
-﻿// ReSharper disable ParameterTypeCanBeEnumerable.Local
+// ReSharper disable ParameterTypeCanBeEnumerable.Local
 // ReSharper disable MemberCanBePrivate.Global
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -47,10 +48,10 @@ namespace LvqGui
                 return Enumerable.Empty<LrAndError>();
             }
 
-            var lr0range = ExtractLrs(fileLines.First(line => line.StartsWith("lr0range:")));
-            var lrPrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrPrange:")));
-            var lrBrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrBrange:")));
-            var resultLines = fileLines.SkipWhile(line => !line.StartsWith(".")).Skip(1).Where(line => !line.StartsWith("Search Complete!") && !string.IsNullOrWhiteSpace(line)).ToArray();
+            var lr0range = ExtractLrs(fileLines.First(line => line.StartsWith("lr0range:", StringComparison.Ordinal)));
+            var lrPrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrPrange:", StringComparison.Ordinal)));
+            var lrBrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrBrange:", StringComparison.Ordinal)));
+            var resultLines = fileLines.SkipWhile(line => !line.StartsWith(".", StringComparison.Ordinal)).Skip(1).Where(line => !line.StartsWith("Search Complete!", StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(line)).ToArray();
             return resultLines.Select(resLine => LrAndError.ParseLine(resLine, lr0range, lrPrange, lrBrange));
         }
 
