@@ -481,7 +481,7 @@ namespace EmnExtensions.Wpf
 
         protected override Size MeasureOverride(Size constraint)
         {
-            this.pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
+            pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
             var origThickness = Thickness;
             try {
                 m_minReqTickCount = OppositeAxis == null || OppositeAxis.IsCollapsedOrEmpty || !MatchOppositeTicks ? 0 : OppositeAxis.m_tickCount;
@@ -1010,7 +1010,7 @@ namespace EmnExtensions.Wpf
         /// </param>
         /// <param name="tickCount">output: the number of major ticks the range has been subdived over.</param>
         /// <param name="slotOrderOfMagnitude">output: The order of magnitude of the difference between consecutive major ticks, in base 10 - useful for deciding how many digits of a label to print.</param>
-        /// <param name="fixedSlot"></param>
+        /// <param name="fixedSlot">?</param>
         static void CalcTickPositions(DimensionBounds range, int minReqTickCount, double preferredNum, out double slotSize, out int slotOrderOfMagnitude, out long firstTickAtSlotMultiple, out long lastTickAtSlotMultiple, out int[] ticks, out int tickCount, out int fixedSlot)
         {
             if (preferredNum > 10.0) {
