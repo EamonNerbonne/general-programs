@@ -12,25 +12,16 @@ namespace LvqGui
         static readonly Brush BAD = Brushes.Yellow;
 
         public static bool IsInt32(string value)
-        {
-            return int.TryParse(value, out var ignore);
-        }
+            => int.TryParse(value, out _);
 
         public static bool IsDouble(string value)
-        {
-            return double.TryParse(value, out var ignore);
-        }
+            => double.TryParse(value, out _);
 
         public static bool IsDoublePositive(string value)
-        {
-            return double.TryParse(value, out var ignore) && ignore > 0.0;
-        }
+            => double.TryParse(value, out var ignore) && ignore > 0.0;
 
         public static bool IsInt32Positive(string value)
-        {
-            return int.TryParse(value, out var intVal) && intVal > 0;
-        }
-
+            => int.TryParse(value, out var intVal) && intVal > 0;
         public static void VerifyTextBox(TextBox textBox, Func<string, bool> isOK) => textBox.Background = isOK(textBox.Text) ? OK : BAD;
     }
 }
