@@ -23,7 +23,7 @@ namespace EmnExtensions.Wpf
         public static void PrintXPS(FrameworkElement el, double reqWidth, double reqHeight, Stream toStream, FileMode fileMode, FileAccess fileAccess)
         {
             //MemoryStream ms = new MemoryStream();
-            //  using (var stream = File.Open(@"C:\test.xps",FileMode.,FileAccess.ReadWrite)) 
+            //  using (var stream = File.Open(@"C:\test.xps",FileMode.,FileAccess.ReadWrite))
             var oldWidth = el.Width;
             var oldHeight = el.Height;
 #if USELAYOUTTRANSFORM
@@ -43,8 +43,8 @@ namespace EmnExtensions.Wpf
                 //el.Height = reqHeight;
                 el.InvalidateVisual();
 
-                //now IF we already have a size, we'll make a layout-transform that maps the requested size to the current 
-                //size.  This way, if there's something forcing it to the current size, the element must choose to take the 
+                //now IF we already have a size, we'll make a layout-transform that maps the requested size to the current
+                //size.  This way, if there's something forcing it to the current size, the element must choose to take the
                 //requested size in order to maintain its size.
                 //Doing this fixes bugs in saving complex grid layouts that probably are doing some layout calcs outside of
                 //UpdateLayout but aren't influenced by our .Measure and .Arrange calls (which is nasty, but seems to be

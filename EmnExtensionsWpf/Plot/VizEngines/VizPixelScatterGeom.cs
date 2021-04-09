@@ -48,7 +48,7 @@ namespace EmnExtensions.Wpf.VizEngines
 
 #if PERMIT_SQUARE_CAPS
             var linecap = PenLineCap.Round;
-            if (thickness <= 3) { 
+            if (thickness <= 3) {
                 linecap = PenLineCap.Square;
                 thickness *= VizPixelScatterHelpers.SquareSidePerThickness;
             }

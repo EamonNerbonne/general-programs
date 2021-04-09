@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
@@ -109,7 +109,7 @@ namespace EmnExtensions.Wpf.VizEngines
 
         protected abstract void UpdateBitmap(int pW, int pH, Matrix dataToBitmap, double externalViewArea);
 
-        //DataBound includes the portion of the data to display; may exclude irrelevant portions.  
+        //DataBound includes the portion of the data to display; may exclude irrelevant portions.
         //The actual display may be larger due to various reasons and that can be inefficient.
         //We can't clip to DataBound, however, since _if_ there's more space leaving out irrelevant portions is misleading (cut-off scatter plots, etc.)
         //OuterDataBound is the utmost outer bound:

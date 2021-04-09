@@ -523,7 +523,7 @@ namespace EmnExtensions.Wpf
                     return DontShow(constraint);
                 }
 
-                //At the end of Measure, m_bestGuessCurrentSize is either 0x0 if we don't think we can render, 
+                //At the end of Measure, m_bestGuessCurrentSize is either 0x0 if we don't think we can render,
                 //or it's a reasonable estimate of a final layout size, producing reasonable thickness.
                 return m_bestGuessCurrentSize;
             } finally {
@@ -580,7 +580,7 @@ namespace EmnExtensions.Wpf
                 var constraintAxisAlignedWidth = CondTranspose(constraint).Width;
                 m_bestGuessCurrentSize = CondTranspose(ComputeSize(constraintAxisAlignedWidth));
 
-                //At the end of arrange, the ticks+labels have been set, and m_bestGuessCurrentSize of this axis and it's neighbours 
+                //At the end of arrange, the ticks+labels have been set, and m_bestGuessCurrentSize of this axis and it's neighbours
                 //is valid.  This means that we can caluculate the precise position of the axis as being within m_bestGuessCurrentSize, with margins on either side
                 //corresponding to the neighbors' thicknesses (when shown) or the minimum required thickness (when not shown)
                 //This layout will therefore be used for rendering (although if ArrangeOverride isn't happy, it will have triggered a remeasure.

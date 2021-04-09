@@ -59,7 +59,7 @@ namespace EmnExtensions.Algorithms
                 if (endIndex - startIndex < minBucketSize || sortedData[endIndex] - sortedData[startIndex] < minBucketWidth) { //make sure we satisfy minimum bucket size.
                     curSum += sortedData[endIndex];
                     endIndex++;
-                } else { //ok my window is at least as big as necessary! 
+                } else { //ok my window is at least as big as necessary!
                     var density = (endIndex - startIndex) / (sortedData[endIndex] - sortedData[startIndex]);
                     if (density > maxDensity) {
                         maxDensity = density;

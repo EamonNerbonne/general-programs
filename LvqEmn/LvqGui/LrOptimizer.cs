@@ -122,7 +122,7 @@ namespace LvqGui
             var testingTasks =
             (
                 from settings in allsettings
-                //let bi=false 
+                //let bi=false
                 let shortname = ShortnameFor(settings)
                 select TestLrIfNecessary(null, settings, cancel)
             ).ToArray();

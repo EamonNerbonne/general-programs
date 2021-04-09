@@ -410,10 +410,10 @@ namespace EmnExtensions.MathHelpers
 
             for (_mti = 1; _mti < N; _mti++) {
                 _mt[_mti] = (uint)(1812433253U * (_mt[_mti - 1] ^ _mt[_mti - 1] >> 30) + _mti);
-                // See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. 
-                // In the previous versions, MSBs of the seed affect   
-                // only MSBs of the array _mt[].                        
-                // 2002/01/09 modified by Makoto Matsumoto             
+                // See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier.
+                // In the previous versions, MSBs of the seed affect
+                // only MSBs of the array _mt[].
+                // 2002/01/09 modified by Makoto Matsumoto
                 _mt[_mti] &= 0xffffffffU;
                 // for >32 bit machines
             }
@@ -481,7 +481,7 @@ namespace EmnExtensions.MathHelpers
             // add another pseudo-random 26 bits (+ b).
             return (a * 67108864.0 + b + translate) * scale;
 
-            // What about the following instead of the above? Is the multiply better? 
+            // What about the following instead of the above? Is the multiply better?
             // Why? (Is it the FMUL instruction? Does this count in .Net? Will the JITter notice?)
             //return BitConverter.Int64BitsToDouble((a << 26) + b));
         }

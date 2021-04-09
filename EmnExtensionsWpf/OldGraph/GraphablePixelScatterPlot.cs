@@ -200,7 +200,7 @@ namespace EmnExtensions.Wpf.Plot
                         image[x + pW * (y + 1)]++;
                     }
                 }
-            } else //non-diamond case 
+            } else //non-diamond case
             {
                 foreach (var point in Points) {
                     var displaypoint = matrix.Transform(point);
