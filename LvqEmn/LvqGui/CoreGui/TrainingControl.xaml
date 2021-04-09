@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:lvqLibCli="clr-namespace:LvqLibCli;assembly=LvqLibCli"
+             xmlns:coreGui="clr-namespace:LvqGui.CoreGui"
              mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="450">
     <UserControl.Resources>
         <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
@@ -102,7 +103,7 @@
         </StackPanel>
         <ListView ItemsSource="{Binding ModelClasses, Mode=OneWay}" Grid.Row="9" Grid.ColumnSpan="2" Grid.Column="0" Background="Transparent" BorderThickness="0">
             <ListView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate DataType="coreGui:ColoredClassLabels">
                     <Label Content="{Binding ClassLabel}" Background="{Binding ClassColor}" Foreground="White"/>
                 </DataTemplate>
             </ListView.ItemTemplate>

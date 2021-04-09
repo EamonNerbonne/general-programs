@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:lvqLibCli="clr-namespace:LvqLibCli;assembly=LvqLibCli"
              mc:Ignorable="d" 
              d:DesignHeight="759" d:DesignWidth="300">
     <UserControl.Resources>
@@ -75,13 +76,13 @@
         <Label Grid.Row="0">For Dataset</Label>
         <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Owner.Datasets}" SelectedItem="{Binding ForDataset}">
             <ComboBox.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate DataType="lvqLibCli:LvqDatasetCli">
                     <TextBlock Text="{Binding DatasetLabel}"/>
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
         <Label Grid.Row="2" Grid.Column="0">Model Type</Label>
-        <ComboBox Grid.Row="2"  Grid.Column="1"  Name="modelType" SelectedItem="{Binding ModelType, Mode=TwoWay, ValidatesOnExceptions=True}" ItemsSource="{Binding  RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type UserControl} }, Path=ModelTypes}"/>
+        <ComboBox Grid.Row="2"  Grid.Column="1" SelectedItem="{Binding ModelType, Mode=TwoWay, ValidatesOnExceptions=True}" ItemsSource="{Binding  RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type UserControl} }, Path=ModelTypes}"/>
         <Label Grid.Row="3" Grid.Column="0">Internal Dimensionality</Label>
         <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Dimensionality, Mode=TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="4" Grid.Column="0">Prototypes per class</Label>
