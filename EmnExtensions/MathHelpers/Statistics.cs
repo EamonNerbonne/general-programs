@@ -36,17 +36,17 @@ namespace EmnExtensions.MathHelpers
         }
 
 
-        public static float CentralMoment(IEnumerable<float> list, float average, int moment) => (float)list.Average(x => Math.Pow(x - average, moment));
-        public static float Covariance(Statistics A, Statistics B) => (float)(A.Seq.Cast<double>().ZipWith(B.Seq.Cast<double>(), (a, b) => (a - A.Mean) * (b - B.Mean)).Average() / Math.Sqrt(A.Var) / Math.Sqrt(B.Var));
-        public readonly float Mean, Var, Skew, Kurtosis;
+        public static double CentralMoment(IEnumerable<double> list, double average, int moment) => list.Average(x => Math.Pow(x - average, moment));
+        public static double Covariance(Statistics A, Statistics B) => A.Seq.ZipWith(B.Seq, (a, b) => (a - A.Mean) * (b - B.Mean)).Average() / Math.Sqrt(A.Var) / Math.Sqrt(B.Var);
+        public readonly double Mean, Var, Skew, Kurtosis;
         public readonly int Count;
-        public readonly IEnumerable<float> Seq;
+        public readonly IReadOnlyList<double> Seq;
 
 
-        public Statistics(IEnumerable<float> seq)
+        public Statistics(IReadOnlyList<double> seq)
         {
             Mean = seq.Average();
-            Count = seq.Count();
+            Count = seq.Count;
             Var = CentralMoment(seq, Mean, 2);
             Skew = CentralMoment(seq, Mean, 3);
             Kurtosis = CentralMoment(seq, Mean, 4);
