@@ -123,7 +123,7 @@ namespace EmnExtensions.MathHelpers
         public MersenneTwister(int[] initKey)
         {
             if (initKey == null) {
-                throw new ArgumentNullException("initKey");
+                throw new ArgumentNullException(nameof(initKey));
             }
 
             var initArray = new uint[initKey.Length];
@@ -169,7 +169,7 @@ namespace EmnExtensions.MathHelpers
         public uint NextUInt32(uint minValue, uint maxValue) /* throws ArgumentOutOfRangeException */
         {
             if (minValue >= maxValue) {
-                throw new ArgumentOutOfRangeException("minValue", "minValue >= maxValue");
+                throw new ArgumentOutOfRangeException(nameof(minValue), "minValue >= maxValue");
             }
 
             return (uint)(GenerateUInt32() / ((double)uint.MaxValue / (maxValue - minValue)) + minValue);
@@ -195,7 +195,7 @@ namespace EmnExtensions.MathHelpers
         {
             if (maxValue <= 1) {
                 if (maxValue < 0) {
-                    throw new ArgumentOutOfRangeException("maxValue");
+                    throw new ArgumentOutOfRangeException(nameof(maxValue));
                 }
 
                 return 0;
@@ -222,7 +222,7 @@ namespace EmnExtensions.MathHelpers
         public override int Next(int minValue, int maxValue)
         {
             if (maxValue <= minValue) {
-                throw new ArgumentOutOfRangeException("maxValue", "maxValue <= minValue");
+                throw new ArgumentOutOfRangeException(nameof(maxValue), "maxValue <= minValue");
             }
 
             if (maxValue == minValue) {
@@ -243,7 +243,7 @@ namespace EmnExtensions.MathHelpers
         {
             // [codekaizen: corrected this to check null before checking length.]
             if (buffer == null) {
-                throw new ArgumentNullException("buffer");
+                throw new ArgumentNullException(nameof(buffer));
             }
 
             var bufLen = buffer.Length;

@@ -83,7 +83,7 @@ namespace LvqGui.CoreGui
         public LvqWindowValues(LvqWindow win)
         {
             if (win == null) {
-                throw new ArgumentNullException("win");
+                throw new ArgumentNullException(nameof(win));
             }
 
             this.win = win;

@@ -49,7 +49,7 @@ namespace EmnExtensions.Collections
         {
             if (i > j) {
                 if (i > elementCount) {
-                    throw new ArgumentOutOfRangeException("i", "i is out of range");
+                    throw new ArgumentOutOfRangeException(nameof(i), "i is out of range");
                 }
 
                 var tmp = i;
@@ -58,7 +58,7 @@ namespace EmnExtensions.Collections
             } else if (i == j) {
                 return -1;
             } else if (j > elementCount) {
-                throw new ArgumentOutOfRangeException("j", "j is out of range");
+                throw new ArgumentOutOfRangeException(nameof(j), "j is out of range");
             }
 
             return i + (j * (j - 1) >> 1);
@@ -180,14 +180,14 @@ namespace EmnExtensions.Collections
         {
             if (i > j) {
                 if (i > elementCount) {
-                    throw new ArgumentOutOfRangeException("i", "i is out of range");
+                    throw new ArgumentOutOfRangeException(nameof(i), "i is out of range");
                 }
 
                 var tmp = i;
                 i = j;
                 j = tmp;
             } else if (j > elementCount) {
-                throw new ArgumentOutOfRangeException("j", "j is out of range");
+                throw new ArgumentOutOfRangeException(nameof(j), "j is out of range");
             }
 
             return i + (j * (j + 1) >> 1);
