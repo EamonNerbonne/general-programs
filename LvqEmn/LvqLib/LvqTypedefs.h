@@ -27,4 +27,4 @@ typedef Eigen::Matrix<LvqFloat, LVQ_LOW_DIM_SPACE, 1> Vector_2;
 
 typedef Eigen::Matrix<LvqStat, Eigen::Dynamic, 1> Vector_Stat;
 
-typedef Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> ClassDiagramT;
+typedef Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> ClassDiagramT;

@@ -17,16 +17,16 @@ namespace LvqLibCli {
     typedef std::queue<std::vector<double>> Statistics;
     struct StatCollector {
         Statistics statsList;
-        void Callback(size_t statsCount, LvqStat* stats) { statsList.push(std::vector<LvqStat>(stats, stats+statsCount)); }
+        void Callback(size_t statsCount, LvqStat* stats) { statsList.push(std::vector<LvqStat>(stats, stats + statsCount)); }
     };
-    extern "C" void StatCallbackTrampoline(void* context, size_t statsCount, LvqStat* stats) {
+    extern "C" void StatCallbackTrampoline(void* context, size_t statsCount, LvqStat * stats) {
         static_cast<StatCollector*>(context)->Callback(statsCount, stats);
     }
-    void SinkStats(List<LvqTrainingStatCli>^ stats, Statistics & nativeStats) {
-        if(stats)
-            while(!nativeStats.empty()) {
+    void SinkStats(List<LvqTrainingStatCli>^ stats, Statistics& nativeStats) {
+        if (stats)
+            while (!nativeStats.empty()) {
                 LvqTrainingStatCli cliStat;
-                cppToCli(nativeStats.front(),cliStat);
+                cppToCli(nativeStats.front(), cliStat);
                 nativeStats.pop();
                 stats->Add(cliStat);
             }
@@ -35,12 +35,12 @@ namespace LvqLibCli {
     struct NameCollector {
         gcroot<List<String^>^> nameList;
         NameCollector() : nameList(gcnew List<String^>()) {}
-        void Callback(size_t statsCount, wchar_t const **names) {
-            for(size_t i=0;i<statsCount;i++)
-                nameList->Add(Marshal::PtrToStringUni((IntPtr)const_cast<wchar_t*>( names[i])));
+        void Callback(size_t statsCount, wchar_t const** names) {
+            for (size_t i = 0;i < statsCount;i++)
+                nameList->Add(Marshal::PtrToStringUni((IntPtr)const_cast<wchar_t*>(names[i])));
         }
     };
-    extern "C" void NameCollectorTrampoline(void* context, size_t statsCount, wchar_t const **names) {
+    extern "C" void NameCollectorTrampoline(void* context, size_t statsCount, wchar_t const** names) {
         static_cast<NameCollector*>(context)->Callback(statsCount, names);
     }
 
@@ -54,11 +54,11 @@ namespace LvqLibCli {
         , dataFold(datafold)
         , trainSync(gcnew Object())
         , copySync(gcnew Object())
-        , stats(!trackStats?nullptr: gcnew List<LvqTrainingStatCli>())
-    { 
+        , stats(!trackStats ? nullptr : gcnew List<LvqTrainingStatCli>())
+    {
         msclr::lock l(trainSync);
         trainingSet->LastModel = this;
-        LvqModel* nativeModel =  CreateLvqModel(modelSettings->ToNativeSettings(), trainingSet->GetTrainingDataset(datafold), datafold);
+        LvqModel* nativeModel = CreateLvqModel(modelSettings->ToNativeSettings(), trainingSet->GetTrainingDataset(datafold), datafold);
         model = Wrap(nativeModel);
 
         DataShape modelShape = GetModelShape(nativeModel);
@@ -68,7 +68,7 @@ namespace LvqLibCli {
 
         StatCollector statCollector;
         msclr::lock l2(copySync);
-        if(stats) {
+        if (stats) {
             ComputeModelStats(trainingSet->GetTrainingDataset(datafold), trainingSet->GetTestDataset(datafold), nativeModel, StatCallbackTrampoline, &statCollector);
             SinkStats(stats, statCollector.statsList);
         }
@@ -79,44 +79,45 @@ namespace LvqLibCli {
 
     int LvqModelCli::ClassCount::get() { return classCount; }
     int LvqModelCli::Dimensions::get() { return dimCount; }
-    bool LvqModelCli::IsProjectionModel::get(){ try{return ::IsProjectionModel(modelCopy->get()); }finally{GC::KeepAlive(this);} }
+    bool LvqModelCli::IsProjectionModel::get() { try { return ::IsProjectionModel(modelCopy->get()); } finally { GC::KeepAlive(this); } }
 
-    double LvqModelCli::MeanUnscaledLearningRate::get() { try { return GetMeanUnscaledLearningRate(modelCopy->get());}finally{ GC::KeepAlive(this); } }
+    double LvqModelCli::MeanUnscaledLearningRate::get() { try { return GetMeanUnscaledLearningRate(modelCopy->get()); } finally { GC::KeepAlive(this); } }
 
 
-    bool LvqModelCli::FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
+    bool LvqModelCli::FitsDataShape(LvqDatasetCli^ dataset) { return dataset != nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions; }
 
-    LvqTrainingStatCli LvqModelCli::EvaluateStats(){
+    LvqTrainingStatCli LvqModelCli::EvaluateStats() {
         try {
             StatCollector statCollector;
             LvqTrainingStatCli cliStat;
             msclr::lock l2(copySync);
             ComputeModelStats(trainingSet->GetTrainingDataset(dataFold), trainingSet->GetTestDataset(dataFold), modelCopy->get(), StatCallbackTrampoline, &statCollector);
-            cppToCli(statCollector.statsList.front(),cliStat);
+            cppToCli(statCollector.statsList.front(), cliStat);
             //double err =  cliStat.values[LvqTrainingStatCli::TrainingErrorI];
             //if(err == 0.0)
             //    Console::WriteLine(L"Wow, no errors!");
 
             GC::KeepAlive(this);
             return cliStat;
-        } finally {
+        }
+        finally {
             GC::KeepAlive(this);
         }
     }
 
-    LvqTrainingStatCli LvqModelCli::GetTrainingStat(int statI){
+    LvqTrainingStatCli LvqModelCli::GetTrainingStat(int statI) {
         msclr::lock l(copySync);
         return stats[statI];
     }
 
-    int LvqModelCli::TrainingStatCount::get(){
-        if(!stats) return 0;
+    int LvqModelCli::TrainingStatCount::get() {
+        if (!stats) return 0;
         msclr::lock l(copySync);
         return stats->Count;
     }
 
     array<LvqTrainingStatCli>^ LvqModelCli::TrainingStats::get() {
-        if(!stats) return nullptr;
+        if (!stats) return nullptr;
         msclr::lock l(copySync);
         auto copy = gcnew array<LvqTrainingStatCli>(stats->Count);
         stats->CopyTo(copy);
@@ -124,27 +125,28 @@ namespace LvqLibCli {
     }
 
     array<LvqTrainingStatCli>^ LvqModelCli::GetTrainingStatsAfter(int statI) {
-        if(!stats) return nullptr;
+        if (!stats) return nullptr;
         msclr::lock l(copySync);
-        return Enumerable::ToArray(Enumerable::Skip(stats,statI));
+        return Enumerable::ToArray(Enumerable::Skip(stats, statI));
     }
 
     array<String^>^ LvqModelCli::TrainingStatNames::get() {
-        try{
+        try {
             NameCollector nameCollector;
             GetTrainingStatNames(model->get(), NameCollectorTrampoline, &nameCollector);
             return nameCollector.nameList->ToArray();
-        } finally {
+        }
+        finally {
             GC::KeepAlive(this);
         }
     }
 
-    void LvqModelCli::ResetLearningRate() { try{ msclr::lock l(trainSync); ::ResetLearningRate(model->get());}finally{GC::KeepAlive(this);} }
+    void LvqModelCli::ResetLearningRate() { try { msclr::lock l(trainSync); ::ResetLearningRate(model->get()); } finally { GC::KeepAlive(this); } }
 
     template<typename T>
-    array<CliLvqLabelledPoint>^ ToCliLabelledPoints(T const & pointmatrix,vector<int> const labels) {
+    array<CliLvqLabelledPoint>^ ToCliLabelledPoints(T const& pointmatrix, vector<int> const labels) {
         array<CliLvqLabelledPoint>^ retval = gcnew array<CliLvqLabelledPoint>(static_cast<int>(labels.size()));
-        for(int i=0;i<static_cast<int>(labels.size()); ++i) {
+        for (int i = 0;i < static_cast<int>(labels.size()); ++i) {
             cppToCli(pointmatrix.col(i), retval[i].point);
             cppToCli(labels[i], retval[i].label);
         }
@@ -152,13 +154,13 @@ namespace LvqLibCli {
     }
 
     ModelProjection LvqModelCli::CurrentProjectionAndPrototypes(bool showTestEmbedding) {
-        if(modelCopy==nullptr || !IsProjectionModel) return ModelProjection();
-        LvqDatasetCli^ realdataset = showTestEmbedding&& trainingSet->HasTestSet()?trainingSet->TestSet:trainingSet;
+        if (modelCopy == nullptr || !IsProjectionModel) return ModelProjection();
+        LvqDatasetCli^ realdataset = showTestEmbedding && trainingSet->HasTestSet() ? trainingSet->TestSet : trainingSet;
 
-        LvqDataset const * underlyingDataset = realdataset->GetTrainingDataset(dataFold);
+        LvqDataset const* underlyingDataset = realdataset->GetTrainingDataset(dataFold);
         int datasetSubsetSize = realdataset->PointCount(dataFold);
 
-        Matrix_2N points(LVQ_LOW_DIM_SPACE, datasetSubsetSize), prototypes(LVQ_LOW_DIM_SPACE,(size_t)protoCount);
+        Matrix_2N points(LVQ_LOW_DIM_SPACE, datasetSubsetSize), prototypes(LVQ_LOW_DIM_SPACE, (size_t)protoCount);
 
         vector<int> pointLabels(datasetSubsetSize), protoLabels(protoCount);
 
@@ -171,7 +173,7 @@ namespace LvqLibCli {
         GetPrototypeLabels(modelCopy->get(), &protoLabels[0]);
         l.release();
         GC::KeepAlive(this);
-        return ModelProjection(ToCliLabelledPoints(points, pointLabels) ,ToCliLabelledPoints(prototypes,protoLabels));
+        return ModelProjection(ToCliLabelledPoints(points, pointLabels), ToCliLabelledPoints(prototypes, protoLabels));
     }
 
     array<int>^ LvqModelCli::PrototypeLabels::get() {
@@ -184,14 +186,14 @@ namespace LvqLibCli {
     }
 
     MatrixContainer<unsigned char> LvqModelCli::ClassBoundaries(double x0, double x1, double y0, double y1, int xCols, int yRows) {
-        if(modelCopy==nullptr || !IsProjectionModel || !xCols || !yRows) return MatrixContainer<unsigned char>();
+        if (modelCopy == nullptr || !IsProjectionModel || !xCols || !yRows) return MatrixContainer<unsigned char>();
 
         MatrixContainer<unsigned char> image(yRows, xCols);
         pin_ptr<unsigned char> pinImage = &image.arr[0];
         msclr::lock l(copySync);
-        LvqModel* clone=CloneLvqModel(modelCopy->get());
+        LvqModel* clone = CloneLvqModel(modelCopy->get());
         l.release();
-        ::ClassBoundaries(clone,x0,x1,y0,y1,xCols,yRows, pinImage);
+        ::ClassBoundaries(clone, x0, x1, y0, y1, xCols, yRows, pinImage);
         FreeModel(clone);
         return image;
 
@@ -201,35 +203,35 @@ namespace LvqLibCli {
         //return ToCli<MatrixContainer<unsigned char> >::From(classDiagram.transpose());
     }
 
-    array<int>^ LvqModelCli::Train(int epochsToDo,bool getOrder, bool sortedTrain){
+    array<int>^ LvqModelCli::Train(int epochsToDo, bool getOrder, bool sortedTrain) {
         trainingSet->LastModel = this;
         StatCollector statCollector;
-        LvqModel* nativeModel=model->get();
+        LvqModel* nativeModel = model->get();
         std::vector<int> classLabelOrdering;
-        if(getOrder)
+        if (getOrder)
             classLabelOrdering.resize(trainingSet->PointCount(dataFold) * epochsToDo);
         msclr::lock l(trainSync);
-        TrainModel(trainingSet->GetTrainingDataset(dataFold), trainingSet->GetTestDataset(dataFold), nativeModel, epochsToDo, stats?StatCallbackTrampoline:nullptr, &statCollector, getOrder?&classLabelOrdering[0]:nullptr,sortedTrain);
+        TrainModel(trainingSet->GetTrainingDataset(dataFold), trainingSet->GetTestDataset(dataFold), nativeModel, epochsToDo, stats ? StatCallbackTrampoline : nullptr, &statCollector, getOrder ? &classLabelOrdering[0] : nullptr, sortedTrain);
         GC::KeepAlive(trainingSet);
         msclr::lock l2(copySync);
         SinkStats(stats, statCollector.statsList);
-        CopyLvqModel((LvqModel const *)nativeModel,modelCopy->get());
+        CopyLvqModel((LvqModel const*)nativeModel, modelCopy->get());
 
         NormalizeProjectionRotation(modelCopy->get());
 
         array<int>^ retval;
-        if(getOrder)
+        if (getOrder)
             cppToCli(classLabelOrdering, retval);
         GC::KeepAlive(this);
         return retval;
     }
 
-    Tuple<GcManualPtr<LvqDataset>^,GcManualPtr<LvqDataset>^>^ LvqModelCli::ExtendDatasetByProjection(LvqDatasetCli^ dataset, LvqDatasetCli^ toInclude, int datafold) {
+    Tuple<GcManualPtr<LvqDataset>^, GcManualPtr<LvqDataset>^>^ LvqModelCli::ExtendDatasetByProjection(LvqDatasetCli^ dataset, LvqDatasetCli^ toInclude, int datafold) {
         msclr::lock l2(copySync);
-        LvqModel* nativeModel=modelCopy->get();
-        LvqDataset* newDataset, *newTestDataset;
-        
-        CreateExtendedDataset(dataset->GetTrainingDataset(datafold),dataset->GetTestDataset(datafold),toInclude->GetTrainingDataset(datafold),toInclude->GetTestDataset(datafold), nativeModel,&newDataset, &newTestDataset);
+        LvqModel* nativeModel = modelCopy->get();
+        LvqDataset* newDataset, * newTestDataset;
+
+        CreateExtendedDataset(dataset->GetTrainingDataset(datafold), dataset->GetTestDataset(datafold), toInclude->GetTrainingDataset(datafold), toInclude->GetTestDataset(datafold), nativeModel, &newDataset, &newTestDataset);
 
         GC::KeepAlive(this);
         return
@@ -239,9 +241,9 @@ namespace LvqLibCli {
             );
     }
 
-    void LvqModelCli::TrainUpto(int epochsToReach){
+    void LvqModelCli::TrainUpto(int epochsToReach) {
         msclr::lock l(trainSync);
-        Train(epochsToReach - GetEpochsTrained(model->get()), false,false);
+        Train(epochsToReach - GetEpochsTrained(model->get()), false, false);
         GC::KeepAlive(this);
     }
 }

@@ -5,7 +5,7 @@
 
 using namespace Eigen;
 
-BOOST_AUTO_TEST_CASE( pca_vs_svd_test )
+BOOST_AUTO_TEST_CASE(pca_vs_svd_test)
 {
     using std::mt19937;
     using std::cout;
@@ -17,12 +17,12 @@ BOOST_AUTO_TEST_CASE( pca_vs_svd_test )
     Vector_N eigenvalues;
     PcaHighDim::DoPca(points, transform, eigenvalues);
 
-    Matrix_NN newCov = Covariance::ComputeWithMean( transform * points );
+    Matrix_NN newCov = Covariance::ComputeWithMean(transform * points);
 
     BOOST_CHECK(newCov.isDiagonal());
     BOOST_CHECK(newCov.diagonal().isApprox(eigenvalues));
-    for(ptrdiff_t i=1;i<eigenvalues.size();++i) {
-        BOOST_CHECK(eigenvalues(i-1)>= eigenvalues(i));
+    for (ptrdiff_t i = 1;i < eigenvalues.size();++i) {
+        BOOST_CHECK(eigenvalues(i - 1) >= eigenvalues(i));
     }
 
     BOOST_CHECK(transform.topRows(2).isApprox(PcaProjectInto2d(points)));

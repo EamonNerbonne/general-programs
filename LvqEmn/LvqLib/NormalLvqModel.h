@@ -47,7 +47,7 @@ class NormalLvqModel : public LvqModel, public LvqModelFindMatches<NormalLvqMode
     vector<Vector_N> prototype;
     VectorXi pLabel;
     Vector_N pBias;
-    double totalMuJLr,totalMuKLr;
+    double totalMuJLr, totalMuKLr;
     double sumUpdateSize;
 
     unsigned updatesOverOne;
@@ -55,27 +55,27 @@ class NormalLvqModel : public LvqModel, public LvqModelFindMatches<NormalLvqMode
     //calls dimensionality of input-space DIMS, output space DIMSOUT
     //we will preallocate a few vectors to reduce malloc/free overhead.
 
-    mutable Vector_N tmpSrcDimsV1, tmpSrcDimsV2,tmpSrcDimsV3,tmpSrcDimsV4; //vectors of dimension DIMS
-    mutable Vector_N tmpDestDimsV1,tmpDestDimsV2,tmpDestDimsV3,tmpDestDimsV4; //vector of dimension DIMSOUT
+    mutable Vector_N tmpSrcDimsV1, tmpSrcDimsV2, tmpSrcDimsV3, tmpSrcDimsV4; //vectors of dimension DIMS
+    mutable Vector_N tmpDestDimsV1, tmpDestDimsV2, tmpDestDimsV3, tmpDestDimsV4; //vector of dimension DIMSOUT
 
-    
+
 protected:
-    virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
-    virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const;
-    virtual bool IdenticalMu() const {return true;}
+    virtual void AppendTrainingStatNames(std::vector<std::wstring>& retval) const;
+    virtual void AppendOtherStats(std::vector<double>& stats, LvqDataset const* trainingSet, LvqDataset const* testSet) const;
+    virtual bool IdenticalMu() const { return true; }
 
 public:
-    virtual Matrix_NN PrototypeDistances(Matrix_NN const & points) const;
+    virtual Matrix_NN PrototypeDistances(Matrix_NN const& points) const;
     virtual Matrix_NN GetCombinedTransforms() const;
 
 
     static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::NormalModelType;
     //for templates:
 
-    inline int PrototypeLabel(size_t protoIndex) const {return pLabel(protoIndex);}
-    inline int PrototypeCount() const {return static_cast<int>(prototype.size());}
-    
-    EIGEN_STRONG_INLINE double SqrDistanceTo(size_t protoIndex, Vector_N const & otherPoint) const { 
+    inline int PrototypeLabel(size_t protoIndex) const { return pLabel(protoIndex); }
+    inline int PrototypeCount() const { return static_cast<int>(prototype.size()); }
+
+    EIGEN_STRONG_INLINE double SqrDistanceTo(size_t protoIndex, Vector_N const& otherPoint) const {
         tmpSrcDimsV1.noalias() = otherPoint - prototype[protoIndex];
         tmpDestDimsV1.noalias() = P[protoIndex] * tmpSrcDimsV1;
         return (tmpDestDimsV1).squaredNorm() + pBias[protoIndex];
@@ -83,29 +83,29 @@ public:
 
     //end for templates
     virtual size_t MemAllocEstimate() const;
-    virtual int Dimensions() const {return static_cast<int>(P[0].cols());}
+    virtual int Dimensions() const { return static_cast<int>(P[0].cols()); }
 
-    NormalLvqModel(LvqModelSettings & initSettings);
-    MatchQuality ComputeMatches(Vector_N const & unknownPoint, int pointLabel) const { return this->findMatches(unknownPoint, pointLabel).GgmQuality(); }
+    NormalLvqModel(LvqModelSettings& initSettings);
+    MatchQuality ComputeMatches(Vector_N const& unknownPoint, int pointLabel) const { return this->findMatches(unknownPoint, pointLabel).GgmQuality(); }
     virtual void DoOptionalNormalization();
     virtual std::vector<int> GetPrototypeLabels() const;
-    virtual int classify(Vector_N const & unknownPoint) const {
+    virtual int classify(Vector_N const& unknownPoint) const {
         double distance(std::numeric_limits<double>::infinity());
         int match(-1);
 
-        for(int i=0;i<int(prototype.size());i++) {
+        for (int i = 0;i<int(prototype.size());i++) {
             double curDist = SqrDistanceTo(i, unknownPoint);
-            if(curDist < distance) { match=i; distance = curDist; }
+            if (curDist < distance) { match = i; distance = curDist; }
         }
-        assert( match >= 0 );
+        assert(match >= 0);
         return pLabel(match);
     }
 
-    MatchQuality learnFrom(Vector_N const & newPoint, int classLabel);
+    MatchQuality learnFrom(Vector_N const& newPoint, int classLabel);
     virtual NormalLvqModel* clone() const { return new NormalLvqModel(*this); }
 
-    virtual void CopyTo(LvqModel& target) const{ 
-        NormalLvqModel & typedTarget = dynamic_cast<NormalLvqModel&>(target);
+    virtual void CopyTo(LvqModel& target) const {
+        NormalLvqModel& typedTarget = dynamic_cast<NormalLvqModel&>(target);
         typedTarget = *this;
     }
 };

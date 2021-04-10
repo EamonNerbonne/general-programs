@@ -2,40 +2,40 @@
 
 bool rowFromCol() {
     Matrix_NN matA, matB;
-    
-    matA = Matrix_NN::Random(12,15);
-    matB.resize(matA.cols(),matA.rows());
-    for(ptrdiff_t i=0;i<matA.cols();++i) 
+
+    matA = Matrix_NN::Random(12, 15);
+    matB.resize(matA.cols(), matA.rows());
+    for (ptrdiff_t i = 0;i < matA.cols();++i)
         matB.row(i) = matA.col(i);
     return matB.isApprox(matA.transpose());
 }
 
 bool colFromRow() {
     Matrix_NN matA, matB;
-    
-    matA = Matrix_NN::Random(12,15);
-    matB.resize(matA.cols(),matA.rows());
-    for(ptrdiff_t i=0;i<matA.rows();++i) 
+
+    matA = Matrix_NN::Random(12, 15);
+    matB.resize(matA.cols(), matA.rows());
+    for (ptrdiff_t i = 0;i < matA.rows();++i)
         matB.col(i) = matA.row(i);
     return matB.isApprox(matA.transpose());
 }
 
 bool rowFromColNoalias() {
     Matrix_NN matA, matB;
-    
-    matA = Matrix_NN::Random(12,15);
-    matB.resize(matA.cols(),matA.rows());
-    for(ptrdiff_t i=0;i<matA.cols();++i) 
+
+    matA = Matrix_NN::Random(12, 15);
+    matB.resize(matA.cols(), matA.rows());
+    for (ptrdiff_t i = 0;i < matA.cols();++i)
         matB.row(i).noalias() = matA.col(i);
     return matB.isApprox(matA.transpose());
 }
 
 bool colFromRowNoalias() {
     Matrix_NN matA, matB;
-    
-    matA = Matrix_NN::Random(12,15);
-    matB.resize(matA.cols(),matA.rows());
-    for(ptrdiff_t i=0;i<matA.rows();++i) 
+
+    matA = Matrix_NN::Random(12, 15);
+    matB.resize(matA.cols(), matA.rows());
+    for (ptrdiff_t i = 0;i < matA.rows();++i)
         matB.col(i).noalias() = matA.row(i);
     return matB.isApprox(matA.transpose());
 }
@@ -43,7 +43,7 @@ bool colFromRowNoalias() {
 
 #ifndef STANDALONE
 
-BOOST_AUTO_TEST_CASE( rowColMixedTest )
+BOOST_AUTO_TEST_CASE(rowColMixedTest)
 {
     BOOST_CHECK(rowFromCol());
     BOOST_CHECK(rowFromColNoalias());
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE( rowColMixedTest )
 #else
 #include <iostream>
 
-int main(int argc, char *argv[] ) {
+int main(int argc, char* argv[]) {
     VERIFY(rowFromCol());
     VERIFY(rowFromColNoalias());
     VERIFY(colFromRow());

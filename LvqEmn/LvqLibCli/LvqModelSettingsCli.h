@@ -29,17 +29,17 @@ namespace LvqLibCli {
         Nullable<double> _iterScaleFactor;
         Nullable<LvqModelType> _ModelType;
     public:
-        property LvqModelType ModelType { LvqModelType get() { return _ModelType.HasValue?_ModelType.Value:LvqModelType::Ggm; } void set(LvqModelType val) { _ModelType = val==LvqModelType::Ggm?Nullable<LvqModelType>():Nullable<LvqModelType>(val); } }
+        property LvqModelType ModelType { LvqModelType get() { return _ModelType.HasValue ? _ModelType.Value : LvqModelType::Ggm; } void set(LvqModelType val) { _ModelType = val == LvqModelType::Ggm ? Nullable<LvqModelType>() : Nullable<LvqModelType>(val); } }
 
-        property int Dimensionality { int get() {return _Dimensionality; } void set(int val) { _Dimensionality = val; } }
-        property int PrototypesPerClass  { int get() {return _PrototypesPerClass + 1; } void set(int val) { _PrototypesPerClass = val - 1; } }
-        property unsigned ParamsSeed  { unsigned get() {return _ParamsSeed + 1; } void set(unsigned val) { _ParamsSeed = val - 1; } }
-        property int ParallelModels  { int get() {return _ParallelModels + 10; } void set(int val) { _ParallelModels = val - 10; } }
-        property int FoldOffset  { int get() {return _FoldOffset ; } void set(int val) { _FoldOffset = val; } }
+        property int Dimensionality { int get() { return _Dimensionality; } void set(int val) { _Dimensionality = val; } }
+        property int PrototypesPerClass { int get() { return _PrototypesPerClass + 1; } void set(int val) { _PrototypesPerClass = val - 1; } }
+        property unsigned ParamsSeed { unsigned get() { return _ParamsSeed + 1; } void set(unsigned val) { _ParamsSeed = val - 1; } }
+        property int ParallelModels { int get() { return _ParallelModels + 10; } void set(int val) { _ParallelModels = val - 10; } }
+        property int FoldOffset { int get() { return _FoldOffset; } void set(int val) { _FoldOffset = val; } }
 
-        property double LrScaleBad { double get() { return _LrScaleBad.HasValue?_LrScaleBad.Value:LVQ_LrScaleBad; } void set(double val) { _LrScaleBad = val==LVQ_LrScaleBad?Nullable<double>(): Nullable<double>(val); } }
-        property double decay { double get() { return _decay.HasValue?_decay.Value:1.0; } void set(double val) { _decay = val==1.0?Nullable<double>() : Nullable<double>(val); } }
-        property double iterScaleFactor { double get() { return _iterScaleFactor.HasValue?_iterScaleFactor.Value: LVQ_ITERFACTOR_PERPROTO; } void set(double val) { _iterScaleFactor = val==LVQ_ITERFACTOR_PERPROTO?Nullable<double>() : Nullable<double>(val); } }
+        property double LrScaleBad { double get() { return _LrScaleBad.HasValue ? _LrScaleBad.Value : LVQ_LrScaleBad; } void set(double val) { _LrScaleBad = val == LVQ_LrScaleBad ? Nullable<double>() : Nullable<double>(val); } }
+        property double decay { double get() { return _decay.HasValue ? _decay.Value : 1.0; } void set(double val) { _decay = val == 1.0 ? Nullable<double>() : Nullable<double>(val); } }
+        property double iterScaleFactor { double get() { return _iterScaleFactor.HasValue ? _iterScaleFactor.Value : LVQ_ITERFACTOR_PERPROTO; } void set(double val) { _iterScaleFactor = val == LVQ_ITERFACTOR_PERPROTO ? Nullable<double>() : Nullable<double>(val); } }
 
         double LR0, LrScaleP, LrScaleB;
         bool RandomInitialBorders, NGu, NGi, Ppca, Popt, Bcov, LrRaw, LrPp, wGMu, NoNnErrorRateTracking;
@@ -73,7 +73,7 @@ namespace LvqLibCli {
         virtual bool Equals(LvqModelSettingsCli other) { return Object::Equals(*this, other); }
 
         static inline bool IsFixedDimensionalityModel(LvqModelType modelType) {
-            return  
+            return
                 modelType == LvqModelType::Fgm
                 || modelType == LvqModelType::Ggm
                 || modelType == LvqModelType::Gpq
@@ -84,7 +84,7 @@ namespace LvqLibCli {
         }
 
         inline bool IsProjectionModel() {
-            return  
+            return
                 ModelType == LvqModelType::Fgm
                 || ModelType == LvqModelType::Ggm
                 || ModelType == LvqModelType::Gpq
@@ -95,6 +95,6 @@ namespace LvqLibCli {
 
     private:
         String^ toShorthandRaw();
-        static LvqModelSettingsCli() {defaults = LvqModelSettingsCli(); }
+        static LvqModelSettingsCli() { defaults = LvqModelSettingsCli(); }
     };
 }

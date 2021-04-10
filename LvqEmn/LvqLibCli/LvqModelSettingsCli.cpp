@@ -15,26 +15,26 @@ namespace LvqLibCli {
     String^ LvqModelSettingsCli::toShorthandRaw() {
         return ModelType.ToString()
             + (Dimensionality != LvqModelSettingsCli().Dimensionality && !IsFixedDimensionalityModel(ModelType) ? "[" + Dimensionality + "]" : "") + "-" + PrototypesPerClass + ","
-            + (Ppca ? "Ppca,":"") + (RandomInitialBorders ? "RandomInitialBorders,":"") + (neiP ? "neiP," : "") + (scP?"scP,":"")+ (noKP ? "noKP," : "") + (neiB ? "neiB," : "")
+            + (Ppca ? "Ppca," : "") + (RandomInitialBorders ? "RandomInitialBorders," : "") + (neiP ? "neiP," : "") + (scP ? "scP," : "") + (noKP ? "noKP," : "") + (neiB ? "neiB," : "")
             + (LocallyNormalize ? "LocallyNormalize," : "") + (NGu ? "NGu," : "") + (NGi ? "NGi," : "") + (Popt ? "Popt," : "") + (Bcov ? "Bcov," : "") + (wGMu ? "wGMu," : "") + (SlowK ? "SlowK," : "")
             + (NoNnErrorRateTracking ? "NoNnErrorRateTracking," : "") + (LrRaw ? "LrRaw," : "") + (LrPp ? "LrPp," : "")
-            + (LR0==0.0 && LrScaleP==0.0 && LrScaleB==0.0 ?"" : "lr" + LR0.ToString("r") + "," + "lrP" + LrScaleP.ToString("r") + "," + (LrScaleB==0.0 ? "" : "lrB" + LrScaleB.ToString("r") + ","))
-            + (LrScaleBad != LvqModelSettingsCli().LrScaleBad ? "lrX" + LrScaleBad.ToString("r") + ",":"") + (MuOffset ==  LvqModelSettingsCli().MuOffset ? "" : "mu" + MuOffset.ToString("r") + ",")
-            + (decay ==  LvqModelSettingsCli().decay ? "" : "d" + decay.ToString("r") + ",")
-            + (iterScaleFactor ==  LvqModelSettingsCli().iterScaleFactor ? "" : "is" + iterScaleFactor.ToString("r") + ",")
-            + (ParamsSeed != LvqModelSettingsCli().ParamsSeed ||InstanceSeed != LvqModelSettingsCli().InstanceSeed
-            ? "[" +  ( ParamsSeed != LvqModelSettingsCli().ParamsSeed ? ParamsSeed.ToString("x"):"") 
-            + "," +  (InstanceSeed != LvqModelSettingsCli().InstanceSeed?InstanceSeed.ToString("x"):"") + "]"
-            : "" )
-            + (ParallelModels!=LvqModelSettingsCli().ParallelModels?"^" + ParallelModels: "")
-            + (FoldOffset!=LvqModelSettingsCli().FoldOffset?"_" + FoldOffset: "");
+            + (LR0 == 0.0 && LrScaleP == 0.0 && LrScaleB == 0.0 ? "" : "lr" + LR0.ToString("r") + "," + "lrP" + LrScaleP.ToString("r") + "," + (LrScaleB == 0.0 ? "" : "lrB" + LrScaleB.ToString("r") + ","))
+            + (LrScaleBad != LvqModelSettingsCli().LrScaleBad ? "lrX" + LrScaleBad.ToString("r") + "," : "") + (MuOffset == LvqModelSettingsCli().MuOffset ? "" : "mu" + MuOffset.ToString("r") + ",")
+            + (decay == LvqModelSettingsCli().decay ? "" : "d" + decay.ToString("r") + ",")
+            + (iterScaleFactor == LvqModelSettingsCli().iterScaleFactor ? "" : "is" + iterScaleFactor.ToString("r") + ",")
+            + (ParamsSeed != LvqModelSettingsCli().ParamsSeed || InstanceSeed != LvqModelSettingsCli().InstanceSeed
+                ? "[" + (ParamsSeed != LvqModelSettingsCli().ParamsSeed ? ParamsSeed.ToString("x") : "")
+                + "," + (InstanceSeed != LvqModelSettingsCli().InstanceSeed ? InstanceSeed.ToString("x") : "") + "]"
+                : "")
+            + (ParallelModels != LvqModelSettingsCli().ParallelModels ? "^" + ParallelModels : "")
+            + (FoldOffset != LvqModelSettingsCli().FoldOffset ? "_" + FoldOffset : "");
     }
 
     LvqModelSettingsCli LvqModelSettingsCli::Canonicalize() {
-        bool isG2mVariant = ModelType == LvqModelType::G2m ||  ModelType == LvqModelType::Gpq;
-        bool isGgmVariant = ModelType == LvqModelType::Ggm ||  ModelType == LvqModelType::Fgm;
-        bool isLgmVariant = ModelType == LvqModelType::Lgm ||  ModelType == LvqModelType::Lpq;
-        bool hasLocalizedP = isLgmVariant || ModelType== LvqModelType::Normal;
+        bool isG2mVariant = ModelType == LvqModelType::G2m || ModelType == LvqModelType::Gpq;
+        bool isGgmVariant = ModelType == LvqModelType::Ggm || ModelType == LvqModelType::Fgm;
+        bool isLgmVariant = ModelType == LvqModelType::Lgm || ModelType == LvqModelType::Lpq;
+        bool hasLocalizedP = isLgmVariant || ModelType == LvqModelType::Normal;
         bool hasB = isG2mVariant || isGgmVariant;
         bool hasGlobalP = hasB || ModelType == LvqModelType::Gm;
         LvqModelSettingsCli retval = *this;
@@ -45,7 +45,7 @@ namespace LvqLibCli {
         retval.Ppca = retval.Ppca && (hasGlobalP || hasLocalizedP);
         retval.NoNnErrorRateTracking = retval.NoNnErrorRateTracking && hasGlobalP;
         retval.NGu = retval.NGu && PrototypesPerClass > 1 && hasGlobalP;
-        retval.NGi =retval.NGi && PrototypesPerClass > 1;
+        retval.NGi = retval.NGi && PrototypesPerClass > 1;
         retval.neiB = retval.neiB && isG2mVariant;
         retval.neiP = retval.neiP && !isGgmVariant;
         retval.scP = retval.scP && hasGlobalP;
@@ -53,18 +53,18 @@ namespace LvqLibCli {
         retval.LocallyNormalize = retval.LocallyNormalize && (isLgmVariant || isG2mVariant);
         retval.RandomInitialBorders = retval.RandomInitialBorders && hasB;
         retval.Bcov = retval.Bcov && (hasB || hasLocalizedP || ModelType == LvqModelType::Lgr);
-        if(!hasB) retval.LrScaleB=0.0;
-        if(!isGgmVariant && ModelType != LvqModelType::Normal) retval.MuOffset = 0.0;
-        if(IsFixedDimensionalityModel(ModelType)) retval.Dimensionality=0;
+        if (!hasB) retval.LrScaleB = 0.0;
+        if (!isGgmVariant && ModelType != LvqModelType::Normal) retval.MuOffset = 0.0;
+        if (IsFixedDimensionalityModel(ModelType)) retval.Dimensionality = 0;
         return retval;
     }
-    LvqModelSettingsCli LvqModelSettingsCli::WithChanges(LvqModelType type, int protos){
+    LvqModelSettingsCli LvqModelSettingsCli::WithChanges(LvqModelType type, int protos) {
         LvqModelSettingsCli retval = *this;
         retval.ModelType = type;
         retval.PrototypesPerClass = protos;
         return retval;
     }
-    LvqModelSettingsCli LvqModelSettingsCli::WithSeeds(unsigned rngParams, unsigned rngIter){
+    LvqModelSettingsCli LvqModelSettingsCli::WithSeeds(unsigned rngParams, unsigned rngIter) {
         LvqModelSettingsCli retval = *this;
         retval.ParamsSeed = rngParams;
         retval.InstanceSeed = rngIter;
@@ -89,27 +89,27 @@ namespace LvqLibCli {
         return retval;
     }
 
-    LvqModelSettingsCli LvqModelSettingsCli::WithCanonicalizedDefaults(){
+    LvqModelSettingsCli LvqModelSettingsCli::WithCanonicalizedDefaults() {
         return WithLr(LvqModelSettingsCli().LR0, LvqModelSettingsCli().LrScaleP, LvqModelSettingsCli().LrScaleB)
             .WithSeeds(LvqModelSettingsCli().ParamsSeed, LvqModelSettingsCli().InstanceSeed)
-            .WithIterScale(LvqModelSettingsCli().iterScaleFactor) 
+            .WithIterScale(LvqModelSettingsCli().iterScaleFactor)
             .WithDecay(LvqModelSettingsCli().decay)
             .Canonicalize();
     }
-    LvqModelSettingsCli LvqModelSettingsCli::WithLrAndDecay(double lr0, double lrP, double lrB, double decay, double iterScaleFactor){
+    LvqModelSettingsCli LvqModelSettingsCli::WithLrAndDecay(double lr0, double lrP, double lrB, double decay, double iterScaleFactor) {
         return WithLr(lr0, lrP, lrB)
-            .WithIterScale(iterScaleFactor) 
+            .WithIterScale(iterScaleFactor)
             .WithDecay(decay);
     }
 
-    LvqModelSettingsCli LvqModelSettingsCli::WithDefaultNnTracking(){
+    LvqModelSettingsCli LvqModelSettingsCli::WithDefaultNnTracking() {
         LvqModelSettingsCli retval = *this;
         retval.NoNnErrorRateTracking = LvqModelSettingsCli().NoNnErrorRateTracking;
         return retval;
     }
 
-    static double costfactors[9][4] = 
-    {    
+    static double costfactors[9][4] =
+    {
         {9.9, 10.2, 2.11, 16.9},//g2m
         {7,8,2.54,700},//g2m ngu
         {10.7,9.1,2.18,441},//ggm
@@ -122,36 +122,36 @@ namespace LvqLibCli {
     };
 
     double LvqModelSettingsCli::EstimateCost(int classes, int dataDims) {
-        bool ngu = NGu && PrototypesPerClass >1;
-        double* currfactors    =
-            ModelType==LvqModelType::G2m && !ngu ? costfactors[0]
-        :    ModelType==LvqModelType::G2m && ngu ? costfactors[1]
-        :    ModelType==LvqModelType::Ggm && !ngu ? costfactors[2] 
-        :    ModelType==LvqModelType::Ggm && ngu || ModelType==LvqModelType::Fgm ? costfactors[3] //unreasonable for Fgm, but whatever
-        :    ModelType==LvqModelType::Gm && !ngu ? costfactors[4]
-        :    ModelType==LvqModelType::Gm && ngu ? costfactors[5]
-        :    ModelType==LvqModelType::Gpq && !ngu ? costfactors[6]
-        :    ModelType==LvqModelType::Gpq && ngu ? costfactors[7]
-        :    costfactors[8]//Lgm, Lpq, Normal
-        ;
+        bool ngu = NGu && PrototypesPerClass > 1;
+        double* currfactors =
+            ModelType == LvqModelType::G2m && !ngu ? costfactors[0]
+            : ModelType == LvqModelType::G2m && ngu ? costfactors[1]
+            : ModelType == LvqModelType::Ggm && !ngu ? costfactors[2]
+            : ModelType == LvqModelType::Ggm && ngu || ModelType == LvqModelType::Fgm ? costfactors[3] //unreasonable for Fgm, but whatever
+            : ModelType == LvqModelType::Gm && !ngu ? costfactors[4]
+            : ModelType == LvqModelType::Gm && ngu ? costfactors[5]
+            : ModelType == LvqModelType::Gpq && !ngu ? costfactors[6]
+            : ModelType == LvqModelType::Gpq && ngu ? costfactors[7]
+            : costfactors[8]//Lgm, Lpq, Normal
+            ;
 
         //double effDims =  ModelType==LvqModelType::Normal  ?  dataDims * sqrt((double) dataDims)  :  dataDims;
 
-        return ((classes*PrototypesPerClass + currfactors[0])*(dataDims + currfactors[1])*currfactors[2] + currfactors[3])*0.001;
+        return ((classes * PrototypesPerClass + currfactors[0]) * (dataDims + currfactors[1]) * currfactors[2] + currfactors[3]) * 0.001;
     }
 
-    int LvqModelSettingsCli::ActiveRefinementCount() { return (int)RandomInitialBorders  + (int)NGu  + (int)NGi  + (int)Ppca  + (int)Popt  + (int)Bcov + (int)LrRaw + (int)LrPp + (int)wGMu  + (int)NoNnErrorRateTracking + (int)SlowK  + (int)neiP  + (int)scP  + (int)noKP  + (int)neiB  + (int)LocallyNormalize;}
-    int LvqModelSettingsCli::LikelyRefinementRanking() { 
+    int LvqModelSettingsCli::ActiveRefinementCount() { return (int)RandomInitialBorders + (int)NGu + (int)NGi + (int)Ppca + (int)Popt + (int)Bcov + (int)LrRaw + (int)LrPp + (int)wGMu + (int)NoNnErrorRateTracking + (int)SlowK + (int)neiP + (int)scP + (int)noKP + (int)neiB + (int)LocallyNormalize; }
+    int LvqModelSettingsCli::LikelyRefinementRanking() {
         LvqModelSettingsCli copy = *this;
-        if(ModelType == LvqModelType::Lgm || ModelType == LvqModelType::Lpq)
+        if (ModelType == LvqModelType::Lgm || ModelType == LvqModelType::Lpq)
             copy.Popt = !copy.Popt;
         else
             copy.Ppca = !copy.Ppca;
-        if(ModelType == LvqModelType::Ggm)
+        if (ModelType == LvqModelType::Ggm)
             copy.SlowK = !copy.SlowK;
-        if(ModelType == LvqModelType::Gpq)
+        if (ModelType == LvqModelType::Gpq)
             copy.scP = !copy.scP;
-        if(PrototypesPerClass >1)
+        if (PrototypesPerClass > 1)
             copy.NGi = !copy.NGi;
         //maybe: GM: noKP, GM SlowK?
         return copy.ActiveRefinementCount();

@@ -6,13 +6,13 @@ namespace LvqLibCli {
     public:
         Point point;
         int label;
-        CliLvqLabelledPoint(Point point, int label) :point(point),label(label){}
+        CliLvqLabelledPoint(Point point, int label) :point(point), label(label) {}
     };
     public value class ModelProjection {
     public:
         initonly array<CliLvqLabelledPoint>^ Points;
         initonly array<CliLvqLabelledPoint>^ Prototypes;
-        ModelProjection(array<CliLvqLabelledPoint>^ points,array<CliLvqLabelledPoint>^ prototypes) :Points(points),Prototypes(prototypes) {}
-        property bool HasValue {bool get(){return Points!=nullptr && Prototypes!=nullptr;}}
+        ModelProjection(array<CliLvqLabelledPoint>^ points, array<CliLvqLabelledPoint>^ prototypes) :Points(points), Prototypes(prototypes) {}
+        property bool HasValue {bool get() { return Points != nullptr && Prototypes != nullptr; }}
     };
 }

@@ -18,10 +18,10 @@ namespace LvqLibCli {
         literal int ExtraI = 11;
 
         array<LvqStat>^ values;
-        
+
     };
 
-    void cliToCpp(LvqTrainingStatCli % stat, Vector_Stat &retval);
-    void cppToCli(Vector_Stat const & stat, LvqTrainingStatCli% retval);
-    void cppToCli(std::vector<LvqStat> const & stat, LvqTrainingStatCli% retval);
+    void cliToCpp(LvqTrainingStatCli% stat, Vector_Stat& retval);
+    void cppToCli(Vector_Stat const& stat, LvqTrainingStatCli% retval);
+    void cppToCli(std::vector<LvqStat> const& stat, LvqTrainingStatCli% retval);
 }

@@ -9,28 +9,28 @@
 //from http://www.codeproject.com/KB/files/filesize.aspx
 int file_size(const char* sFileName)
 {
-  std::ifstream f;
-  f.open(sFileName, std::ios_base::binary | std::ios_base::in);
-  if (!f.good() || f.eof() || !f.is_open()) { return 0; }
-  f.seekg(0, std::ios_base::beg);
-  std::ifstream::pos_type begin_pos = f.tellg();
-  f.seekg(0, std::ios_base::end);
-  return static_cast<int>(f.tellg() - begin_pos);
+    std::ifstream f;
+    f.open(sFileName, std::ios_base::binary | std::ios_base::in);
+    if (!f.good() || f.eof() || !f.is_open()) { return 0; }
+    f.seekg(0, std::ios_base::beg);
+    std::ifstream::pos_type begin_pos = f.tellg();
+    f.seekg(0, std::ios_base::end);
+    return static_cast<int>(f.tellg() - begin_pos);
 }
 
-int main(int , char*argv []){ 
+int main(int, char* argv[]) {
 #ifdef _MSC_VER
-    _controlfp(_DN_FLUSH, _MCW_DN); 
+    _controlfp(_DN_FLUSH, _MCW_DN);
 #endif
     using std::cout;
-    cout<<"LvqBench";
+    cout << "LvqBench";
 #ifdef EIGEN_DONT_VECTORIZE
-    cout<< "NV";
+    cout << "NV";
 #else
-    cout<< "V";
+    cout << "V";
 #endif
 #ifndef NDEBUG
-    cout<< "[DEBUG]";
+    cout << "[DEBUG]";
 #endif
 #ifdef _MSC_VER
     cout << " on MSC";
@@ -41,16 +41,16 @@ int main(int , char*argv []){
     cout << " on ???";
 #endif
 #endif
-    cout<<": ";
-    std::cerr<<" ("<<sizeof(G2mLvqModel) <<") ";
-    std::cerr<<" ("<<sizeof(GmLvqModel) <<") ";
-    std::cerr<<" ("<<sizeof(LgmLvqModel) <<") ";
+    cout << ": ";
+    std::cerr << " (" << sizeof(G2mLvqModel) << ") ";
+    std::cerr << " (" << sizeof(GmLvqModel) << ") ";
+    std::cerr << " (" << sizeof(LgmLvqModel) << ") ";
     Eigen::BenchTimer t;
     t.start();
     EasyLvqTest();
     t.stop();
-    cout<<"; "<< file_size(argv[0])/1024 <<"KB\n";
-    std::cerr<<"Total time:"<<t.value()<<"s\n";
+    cout << "; " << file_size(argv[0]) / 1024 << "KB\n";
+    std::cerr << "Total time:" << t.value() << "s\n";
 
     return 0;
 }

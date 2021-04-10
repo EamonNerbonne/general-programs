@@ -3,24 +3,24 @@
 #include "LvqDataset.h"
 #include "utils.h"
 #include "GgmLvqModel.h"
-void LvqProjectionModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const { 
+void LvqProjectionModel::AppendTrainingStatNames(std::vector<std::wstring>& retval) const {
     LvqModel::AppendTrainingStatNames(retval);
-    if(!dynamic_cast<GgmLvqModel const*>(this))
+    if (!dynamic_cast<GgmLvqModel const*>(this))
         retval.push_back(L"Projection Norm!norm!$Projection Norm");
-    if(!settings.NoNnErrorRateTracking)
+    if (!settings.NoNnErrorRateTracking)
         retval.push_back(L"NN Error!error rate!Error Rates");
 }
 
-void LvqProjectionModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const { 
-    LvqModel::AppendOtherStats(stats,trainingSet,testSet);
-    if(!dynamic_cast<GgmLvqModel const*>(this))
+void LvqProjectionModel::AppendOtherStats(std::vector<double>& stats, LvqDataset const* trainingSet, LvqDataset const* testSet) const {
+    LvqModel::AppendOtherStats(stats, trainingSet, testSet);
+    if (!dynamic_cast<GgmLvqModel const*>(this))
         stats.push_back(P.squaredNorm());
-    if(!settings.NoNnErrorRateTracking)
-        stats.push_back(trainingSet ? trainingSet->NearestNeighborProjectedErrorRate(*testSet,this->P) : 0.0);
+    if (!settings.NoNnErrorRateTracking)
+        stats.push_back(trainingSet ? trainingSet->NearestNeighborProjectedErrorRate(*testSet, this->P) : 0.0);
 }
 
 
-LvqProjectionModel::LvqProjectionModel(LvqModelSettings & initSettings) 
+LvqProjectionModel::LvqProjectionModel(LvqModelSettings& initSettings)
     : LvqModel(initSettings)
     , P(initSettings.OutputDimensions(), initSettings.InputDimensions())
 {
@@ -35,9 +35,9 @@ void LvqProjectionModel::normalizeProjectionRotation() {
     auto S = svd.singularValues();
 
     P = S.asDiagonal() * Vt;
-    double scale=1.0;
-    if(!settings.neiP && !settings.scP)
+    double scale = 1.0;
+    if (!settings.neiP && !settings.scP)
         scale = normalizeProjection(P);
 
-    compensateProjectionUpdate(U,scale);
+    compensateProjectionUpdate(U, scale);
 }

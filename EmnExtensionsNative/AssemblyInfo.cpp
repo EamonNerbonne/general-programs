@@ -10,13 +10,13 @@ using namespace System::Security::Permissions;
 // associated with an assembly.
 //
 [assembly:AssemblyTitleAttribute("EmnExtensionsNative")];
-[assembly:AssemblyDescriptionAttribute("")];
-[assembly:AssemblyConfigurationAttribute("")];
-[assembly:AssemblyCompanyAttribute("Microsoft")];
-[assembly:AssemblyProductAttribute("EmnExtensionsNative")];
-[assembly:AssemblyCopyrightAttribute("Copyright (c) Microsoft 2009")];
-[assembly:AssemblyTrademarkAttribute("")];
-[assembly:AssemblyCultureAttribute("")];
+[assembly:AssemblyDescriptionAttribute("")] ;
+[assembly:AssemblyConfigurationAttribute("")] ;
+[assembly:AssemblyCompanyAttribute("Microsoft")] ;
+[assembly:AssemblyProductAttribute("EmnExtensionsNative")] ;
+[assembly:AssemblyCopyrightAttribute("Copyright (c) Microsoft 2009")] ;
+[assembly:AssemblyTrademarkAttribute("")] ;
+[assembly:AssemblyCultureAttribute("")] ;
 
 //
 // Version information for an assembly consists of the following four values:
@@ -31,6 +31,6 @@ using namespace System::Security::Permissions;
 
 [assembly:AssemblyVersionAttribute("1.0.*")];
 
-[assembly:ComVisible(false)];
+[assembly:ComVisible(false)] ;
 
-[assembly:CLSCompliantAttribute(true)];
+[assembly:CLSCompliantAttribute(true)] ;

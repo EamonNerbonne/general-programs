@@ -5,14 +5,16 @@ class NearestNeighbor
 {
     Matrix_22 transform;
     Matrix_P sortedPoints;
-    std::vector<unsigned> idxs;    
+    std::vector<unsigned> idxs;
     void init();
 public:
     template<typename TDerived>
-    NearestNeighbor(Eigen::MatrixBase<TDerived> const & points)
+    NearestNeighbor(Eigen::MatrixBase<TDerived> const& points)
         : sortedPoints(points)
-        , idxs(points.cols()) { init(); }
-    int nearestIdx(Vector_2 const & point) const;
+        , idxs(points.cols()) {
+        init();
+    }
+    int nearestIdx(Vector_2 const& point) const;
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };

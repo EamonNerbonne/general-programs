@@ -23,7 +23,7 @@ int file_size(const char* sFileName)
 }
 
 
-int main(int , char*argv []){ 
+int main(int , char*argv []){
     //std::vector<Vector2d, Eigen::aligned_allocator<Vector2d>> stlvec;
     cout<<"EigenBench";
 #ifdef EIGEN_DONT_VECTORIZE
