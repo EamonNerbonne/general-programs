@@ -72,7 +72,6 @@ NeuralGas::NeuralGas(std::mt19937& rng, unsigned proto_count, Matrix_NN const& d
     : trainIter(0)
     , finalIter(totalIterCount)
     , trainCosts(min(statMoments, (size_t)totalIterCount))
-    , totalElapsed(0.0)
 {
     prototypes.resize(dataset.rows(), proto_count);
     tmp_deltaFrom.resizeLike(prototypes);

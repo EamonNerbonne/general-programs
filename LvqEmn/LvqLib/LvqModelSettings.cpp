@@ -248,7 +248,6 @@ template <int TPointDims>
 vector< Matrix<LvqFloat, TPointDims, 1>, Eigen::aligned_allocator<Matrix<LvqFloat, TPointDims, 1>> > DistMatByProtos(Matrix<LvqFloat, TPointDims, Eigen::Dynamic> const& points, VectorXi const& pointLabels, Matrix<LvqFloat, TPointDims, Eigen::Dynamic> const& protos, VectorXi const& protoLabels) {
     typedef Matrix<LvqFloat, TPointDims, Eigen::Dynamic> TPoints;
     typedef Matrix<LvqFloat, TPointDims, 1> TPoint;
-    typedef Matrix<LvqFloat, TPointDims, TPointDims> TCov;
 
     int classCount = protoLabels.maxCoeff() + 1;
     vector<TPoints> protosByClass;

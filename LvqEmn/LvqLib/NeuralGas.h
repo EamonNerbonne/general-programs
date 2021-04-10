@@ -15,7 +15,6 @@ class NeuralGas {
 
     int trainIter, finalIter;
     std::vector<std::pair<int, double> > trainCosts;
-    double totalElapsed;
 
     Matrix_NN prototypes;
 
