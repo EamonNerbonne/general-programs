@@ -9,11 +9,9 @@ using std::vector;
 void makeRandomOrder(std::mt19937& randGen, int* const toFill, int count) {
     using std::shuffle;
     using std::accumulate;
-    using boost::bind;
 
     for (int i = 0;i < count;++i)
         toFill[i] = i;
-
 
     shuffle(toFill, toFill + count, randGen);
     assert(accumulate(toFill, toFill + count, 0ll) == (sqr((long long)count) - count) / 2);

@@ -22,9 +22,6 @@
 
 #include <iostream>
 
-#include <boost/random/variate_generator.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/normal_distribution.hpp>
 #include <random>
 
 #ifdef _MSC_VER

@@ -50,15 +50,6 @@
 #include <random>
 #include <numeric>
 #include <vector>
-
-
-
-#include <boost/function.hpp>
-#include <boost/bind/bind.hpp>
-
-#include <boost/random/variate_generator.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/normal_distribution.hpp>
 #include <random>
 
 using Eigen::MatrixBase;

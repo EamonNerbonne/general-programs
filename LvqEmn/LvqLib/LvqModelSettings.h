@@ -3,7 +3,6 @@
 #include <random>
 #include <Eigen/Core>
 #include <tuple>
-#include <boost/shared_ptr.hpp>
 #include "LvqConstants.h"
 #include "LvqTypedefs.h"
 #include "copy_ptr.h"

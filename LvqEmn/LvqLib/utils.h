@@ -6,12 +6,7 @@
 #include <Eigen/QR> 
 #include <Eigen/SVD> 
 
-#include <boost/random/variate_generator.hpp>
 #include <random>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/normal_distribution.hpp>
-#include <boost/function.hpp>
-#include <boost/bind/bind.hpp>
 #include <random>
 #include <math.h>
 #include <sstream>
@@ -35,13 +30,13 @@ template <typename T> EIGEN_STRONG_INLINE LvqFloat normalizeProjection(T& projec
 
 
 inline bool almostEqual(double x, double y, double leeway = 1.0) {
-    double diff = fabs(x - y);
-    double sum = fabs(x + y);
+    const double diff = fabs(x - y);
+    const double sum = fabs(x + y);
     return diff <= leeway * std::numeric_limits<double>::epsilon() * sum;
 }
 
 template <typename T> void projectionRandomizeUniformScaled(std::mt19937& randGen, T& projectionMatrix) { //initializes all coefficients randomly to -1..1, then normalizes.
-    boost::uniform_01<std::mt19937> uniform01_rand(randGen);
+    auto uniform01_rand = std::bind(std::uniform_real_distribution(0.0, 1.0), randGen);
 
     for (int col = 0; col < projectionMatrix.cols(); col++)
         for (int row = 0; row < projectionMatrix.rows(); row++) //column-major storage

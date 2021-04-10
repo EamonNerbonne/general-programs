@@ -51,8 +51,7 @@ vector<Matrix_NN> MakeTailTransforms(std::mt19937& rndGen, int numStarTails, int
     return tailTransforms;
 }
 
-typedef boost::uniform_int<> starChoiceDistrib;
-typedef boost::variate_generator<std::mt19937&, starChoiceDistrib> starChoiceGen;
+typedef std::uniform_int_distribution<> starChoiceDistrib;
 
 LvqDataset* CreateDataset::ConstructStarDataset(std::mt19937& rngParams, std::mt19937& rngInst, int dims, int starDims, int numStarTails, int classCount, int pointsPerClass,
     double starMeanSep, double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma) {
@@ -62,7 +61,7 @@ LvqDataset* CreateDataset::ConstructStarDataset(std::mt19937& rngParams, std::mt
     vector<Matrix_NN> tailTransforms = MakeTailTransforms(rngParams, numStarTails, starDims);
     Matrix_NN tailMeans = MakeTailMeans(rngParams, numStarTails, starDims, starMeanSep);
 
-    starChoiceGen starRndChoose(rngInst, starChoiceDistrib(0, numStarTails - 1));
+    auto starRndChoose = std::bind(starChoiceDistrib(0, numStarTails - 1), rngInst);
 
     Vector_N starRaw(starDims), fullPoint(dims);
     Matrix_NN points(dims, pointsPerClass * classCount);
@@ -72,7 +71,7 @@ LvqDataset* CreateDataset::ConstructStarDataset(std::mt19937& rngParams, std::mt
     for (int label = 0;label < classCount;++label) {
         Matrix_NN currentTailMeans = tailMeans + MakeTailMeans(rngParams, numStarTails, starDims, starMeanSep * starClassRelOffset);
         for (int i = 0;i < pointsPerClass;++i) {
-            int starIdx = starRndChoose();
+            const int starIdx = starRndChoose();
             randomMatrixInit(rngInst, starRaw, 0, 1.0);
 
             fullPoint.block(0, 0, starDims, 1) = currentTailMeans.col(starIdx) + tailTransforms[starIdx] * starRaw;

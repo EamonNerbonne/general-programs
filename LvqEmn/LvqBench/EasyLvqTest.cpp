@@ -11,7 +11,7 @@
 #include <vector>
 
 using std::mt19937;
-using boost::normal_distribution;
+using std::normal_distribution;
 using std::cerr;
 using std::cout;
 using namespace Eigen;
