@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "LgmLvqModel.h"
 #include "utils.h"
 #include "LvqConstants.h"
