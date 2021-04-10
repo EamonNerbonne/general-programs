@@ -442,8 +442,8 @@ namespace LvqGui
             var renderwidth = (width + 7) / 8;
             var renderheight = (height + 7) / 8;
 #else
-            int renderwidth = width;
-            int renderheight = height;
+            var renderwidth = width;
+            var renderheight = height;
 #endif
             var selectedModel = subModels[currSubModel];
             ModelProjection projection;

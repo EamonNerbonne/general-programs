@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace EmnExtensions.Enumerables
+namespace EmnExtensions
 {
     public static class BatchExtension
     {
