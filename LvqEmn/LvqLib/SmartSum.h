@@ -1,5 +1,4 @@
 #pragma once
-//#pragma managed(push, off)
 
 #include <Eigen/Core>
 using namespace Eigen;
@@ -63,5 +62,3 @@ public:
         weightSum = 0.0;
     }
 };
-
-//#pragma managed(pop)

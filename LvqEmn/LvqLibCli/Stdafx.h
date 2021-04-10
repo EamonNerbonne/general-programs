@@ -9,6 +9,8 @@
 #include <msclr/lock.h>  
 #include <iostream>
 
+#pragma warning(disable: 4127) //"conditional expression is constant" - tons of those in eigen
+#pragma warning(disable: 4714) //OK to ignore __forceinline
 #pragma warning(push)
 #pragma warning(disable: 4793) // I don't care that you do SSE stuff in native mode, not managed mode... that's kinda the point, actually!
 #pragma warning(disable: 4714) //OK to ignore __forceinline

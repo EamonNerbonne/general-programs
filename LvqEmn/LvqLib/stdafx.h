@@ -18,6 +18,7 @@
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 #pragma warning(disable: 4714) //OK to ignore __forceinline
+#pragma warning(disable: 4127) //"conditional expression is constant" - tons of those in eigen
 #pragma warning(push)
 #pragma warning(disable: 4996) // Don't warn about standard functions that are "unsafe" because they don't validate input.
 #pragma warning(disable: 4510) //OK to not create default constructor
@@ -26,7 +27,6 @@
 #pragma warning(disable: 4800)//eigen internal perf warning
 
 #pragma warning(disable: 4702) //unreachable code in eigen?  probably some kind of template specialization noise
-#pragma warning(disable: 4127) //"conditional expression is constant" - tons of those in eigen
 #endif
 
 #include <Eigen/Core>
@@ -34,12 +34,11 @@
 #include <Eigen/QR> 
 #include <Eigen/StdVector>
 #pragma warning(disable: 4100) //unreferenced formal parameter
-#pragma warning(disable: 4505) //unreferenced formal parameter
+#pragma warning(disable: 4505) //unreferenced local function has been removed
 #include <bench/BenchTimer.h>
 
 #ifdef _MSC_VER
 #pragma warning(pop)
-#pragma warning(disable: 4127) //"conditional expression is constant" - tons of those in eigen
 #endif
 
 
