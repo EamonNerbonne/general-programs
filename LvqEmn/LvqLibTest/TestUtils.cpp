@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include <random>
 #include "CreateDataset.h"
 #include "utils.h"
 
@@ -24,5 +23,4 @@ BOOST_AUTO_TEST_CASE(normtest)
 
     points *= LvqFloat(1.0 / std::sqrt(projectionSquareNorm(points)));
     BOOST_CHECK(fabs(projectionSquareNorm(points) - 1.0) < 0.01);
-
 }

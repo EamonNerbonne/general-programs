@@ -1,7 +1,4 @@
 #include "stdafx.h"
-#include <Eigen/Core>
-#include <bench/BenchTimer.h>
-#include <random>
 #include "CovarianceAndMean.h"
 #include "CreateDataset.h"
 #include "LvqTypedefs.h"

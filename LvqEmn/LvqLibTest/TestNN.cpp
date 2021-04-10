@@ -1,14 +1,10 @@
 #include "stdafx.h"
 
-#include <random>
 #include "LvqModelSettings.h"
-
 #include "CreateDataset.h"
 #include "LvqDataset.h"
 #include "PCA.h"
 #include "G2mLvqModel.h"
-
-#include <bench/BenchTimer.h>
 
 using std::mt19937;
 using std::cout;
