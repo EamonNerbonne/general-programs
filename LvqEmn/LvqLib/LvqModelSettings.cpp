@@ -176,7 +176,7 @@ void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_NN& P) {
     while (iter < finalIter) {
         shuffle(RngParams, shuffledset, (unsigned)shuffledset.size());
         for (size_t tI = 0;tI < shuffledset.size() && iter < finalIter; ++tI, ++iter) {
-            int classLabel = Dataset->getPointLabels()[shuffledset[tI]];
+            size_t classLabel = Dataset->getPointLabels()[shuffledset[tI]];
             double lr = 0.01 * (finalIter / 100.0) / (finalIter / 100.0 + iter);
             Matrix_P::Index wJi = -1, wKi = -1;
             double bestJd(std::numeric_limits<double>::infinity()), bestKd(std::numeric_limits<double>::infinity());
@@ -215,8 +215,8 @@ tuple<Matrix_NN, Matrix_NN, VectorXi> LvqModelSettings::InitProtosAndProjectionB
 
     auto P = initTransform();
     auto protos = InitProtosBySetting();
-    auto prototypes = protos.first;
-    auto labels = protos.second;
+    const auto & prototypes = protos.first;
+    const auto & labels = protos.second;
 
     if (Popt)
         ProjInit(prototypes, P);
@@ -271,7 +271,7 @@ vector< Matrix<LvqFloat, TPointDims, 1>, Eigen::aligned_allocator<Matrix<LvqFloa
     TPoint diff = TPoint::Zero(points.rows());
 
     for (ptrdiff_t pointI = 0; pointI < pointLabels.size(); ++pointI) {
-        typename TPoints::Index protoClasswiseI;
+        typename TPoints::Index protoClasswiseI = 0;
         (protosByClass[pointLabels[pointI]].colwise() - points.col(pointI)).colwise().squaredNorm().minCoeff(&protoClasswiseI);
 
         auto protoI = protoIdxesByClass[pointLabels[pointI]][protoClasswiseI];
@@ -322,8 +322,8 @@ tuple<vector<Matrix_NN>, Matrix_NN, VectorXi> LvqModelSettings::InitProjectionPr
 
 
     auto protos = InitProtosBySetting();
-    auto prototypes = protos.first;
-    auto labels = protos.second;
+    const auto & prototypes = protos.first;
+    const auto & labels = protos.second;
 
     auto coreP = initTransform();
     if (Popt)
@@ -358,8 +358,8 @@ tuple<Matrix_NN, Matrix_NN, VectorXi> LvqModelSettings::InitRelevanceProtosBySet
 
 
     auto protos = InitProtosBySetting();
-    auto prototypes = protos.first;
-    auto labels = protos.second;
+    const auto &  prototypes = protos.first;
+    const auto & labels = protos.second;
 
     //
     //Vector_N cwiseSqrSum((Dataset->getPoints().colwise() - meanPoint).array().square().rowwise().sum() / )
