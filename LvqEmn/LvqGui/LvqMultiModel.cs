@@ -1,4 +1,3 @@
-#pragma warning disable 420 //disable warning about reference to a volatile field; Interlocked is OK.
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -251,7 +250,7 @@ namespace LvqGui
                             LowPriorityTaskScheduler.DefaultLowPriorityScheduler
                         )
                 ).ToArray();
-            Task.WaitAll(helpers);
+            Task.WaitAll(helpers, CancellationToken.None);
         }
 
         public void TrainEpochs(int epochsToDo, CancellationToken cancel)
@@ -261,7 +260,7 @@ namespace LvqGui
             }
 
             var epochsTarget = Interlocked.Add(ref epochsDone, epochsToDo);
-            TrainImpl(cancel, epochsTarget - epochsToDo, epochsTarget);
+            TrainImpl(epochsTarget - epochsToDo, epochsTarget, cancel);
         }
 
         public void TrainUptoIters(double itersToTrainUpto, CancellationToken cancel)
@@ -287,7 +286,7 @@ namespace LvqGui
                 epochsCurrent = prevEpochs;
             }
 
-            TrainImpl(cancel, epochsCurrent, epochsToTrainUpto);
+            TrainImpl(epochsCurrent, epochsToTrainUpto, cancel);
         }
 
         static readonly BlockingCollection<string> toLog = new();
@@ -311,7 +310,7 @@ namespace LvqGui
                 }
             ) { Priority = ThreadPriority.AboveNormal, IsBackground = true }.Start();
 
-        void TrainImpl(CancellationToken cancel, int epochsCurrent, int epochsTarget)
+        void TrainImpl(int epochsCurrent, int epochsTarget, CancellationToken cancel)
         {
             _ = Interlocked.Increment(ref trainersRunning);
             try {
@@ -319,7 +318,7 @@ namespace LvqGui
                 while (epochsCurrent < epochsTarget) {
                     epochsCurrent += (epochsTarget - epochsCurrent + 1) / 2;
                     foreach (var model in subModels) {
-                        trainingqueue.Add((model, epochsCurrent));
+                        trainingqueue.Add((model, epochsCurrent), cancel);
                     }
                 }
 
@@ -341,7 +340,7 @@ namespace LvqGui
                             )
                     ).ToArray();
 
-                Task.WaitAll(helpers, cancel);
+                Task.WaitAll(helpers, CancellationToken.None);
             } finally {
                 _ = Interlocked.Decrement(ref trainersRunning);
             }
