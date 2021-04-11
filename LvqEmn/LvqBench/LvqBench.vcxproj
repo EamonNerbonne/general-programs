@@ -112,7 +112,6 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ExceptionHandling>Async</ExceptionHandling>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>/MP4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -145,7 +144,6 @@
       <MinimalRebuild>false</MinimalRebuild>
       <ExceptionHandling>Async</ExceptionHandling>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <AdditionalOptions>/MP4 %(AdditionalOptions)</AdditionalOptions>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -185,7 +183,6 @@
       <MinimalRebuild>false</MinimalRebuild>
       <ExceptionHandling>Async</ExceptionHandling>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <AdditionalOptions>/MP4 %(AdditionalOptions)</AdditionalOptions>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -226,7 +223,6 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalOptions>/MP4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLibV.lib;%(AdditionalDependencies)</AdditionalDependencies>
