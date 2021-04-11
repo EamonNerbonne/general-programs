@@ -7,3 +7,5 @@ bin/
 *.vcxproj.user
 x64/
 /LvqEmn/lvqlog/*.log
+/LvqEmn/build/
+/LvqEmn/allconfigs/_Build*
