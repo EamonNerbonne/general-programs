@@ -64,7 +64,7 @@ void main(void)
 								gp(x+1,y+1)) >> 3);
 */
 
-	c=0;
+	c=0; //or 255?
 	px = rand()%300+10;
 	py = rand()%180+10;
 	pp(px-1,py-1,c);
