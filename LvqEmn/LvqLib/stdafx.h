@@ -25,7 +25,6 @@
 #pragma warning(disable: 4610) //OK to not create default constructor
 #pragma warning(disable: 4701) //too many false positives for uninitalized locals
 #pragma warning(disable: 4800)//eigen internal perf warning
-
 #pragma warning(disable: 4702) //unreachable code in eigen?  probably some kind of template specialization noise
 #endif
 
@@ -33,8 +32,12 @@
 #include <Eigen/LU> 
 #include <Eigen/QR> 
 #include <Eigen/StdVector>
+
+#ifdef _MSC_VER
 #pragma warning(disable: 4100) //unreferenced formal parameter
 #pragma warning(disable: 4505) //unreferenced local function has been removed
+#endif
+
 #include <bench/BenchTimer.h>
 
 #ifdef _MSC_VER
@@ -43,7 +46,6 @@
 
 
 #include <cmath>
-
 #include <iostream>
 #include <algorithm>
 #include <random>

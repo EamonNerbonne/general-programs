@@ -19,9 +19,7 @@
 
 #include <bench/BenchTimer.h>
 #include <Eigen/StdVector>
-
 #include <iostream>
-
 #include <random>
 
 #ifdef _MSC_VER
@@ -32,6 +30,7 @@
 #pragma warning (disable:4701)
 #pragma warning (disable:4505)
 #endif
+
 #include <Eigen/Core>
 
 #ifdef _MSC_VER

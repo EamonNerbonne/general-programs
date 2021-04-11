@@ -1,5 +1,7 @@
 #pragma once
+#ifdef _MSC_VER
 #pragma warning(disable:4505)
+#endif
 
 #include <iostream>
 #include <bench/BenchTimer.h>

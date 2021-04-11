@@ -1,6 +1,4 @@
 #pragma once
-//#pragma managed(push, off)
-
 #include <random>
 #include "LvqTypedefs.h"
 
@@ -16,4 +14,3 @@ public:
     static LvqDataset* ConstructStarDataset(std::mt19937& rngParams, std::mt19937& rngInst, int dims, int starDims, int numStarTails, int classCount, int pointsPerClass, double starMeanSep,
         double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma);
 };
-//#pragma managed(pop)

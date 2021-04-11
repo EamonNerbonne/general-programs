@@ -23,6 +23,7 @@
 #pragma warning( push, 3 )
 #pragma warning (disable: 4242)
 #endif
+
 #include <bench/BenchTimer.h>
 #include <fstream>
 #include <iostream>
@@ -44,11 +45,12 @@
 typedef std::mt19937 mtGen;
 typedef std::normal_distribution<> normDistrib;
 typedef    std::uniform_real<> uniformDistrib;
+
 #ifdef _MSC_VER
 #pragma warning( pop)
 #pragma warning (disable: 4514)
-
 #endif
+
 using namespace Eigen;
 using namespace std;
 

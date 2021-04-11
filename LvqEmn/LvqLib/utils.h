@@ -1,7 +1,5 @@
 #pragma once
 
-//#pragma managed(push, off)
-
 #include <Eigen/Core>
 #include <Eigen/QR> 
 #include <Eigen/SVD> 
@@ -70,7 +68,6 @@ Matrix_NN shuffleMatrixCols(std::mt19937& randGen, Matrix_NN const& src);
 #define FOREACH(RANGEVAR_DECL, ITERATOR) for(RANGEVAR_DECL : ITERATOR)
 #endif
 
-//#pragma managed(pop)
 #ifdef _MSC_VER
 inline bool isfinite_emn(double x) { return _finite(x) != 0; }
 #else

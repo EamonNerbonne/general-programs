@@ -1,5 +1,4 @@
 #pragma once
-//#pragma managed(push, off)
 using namespace Eigen;
 #include "LvqTypedefs.h"
 #include "SmartSum.h"
@@ -95,4 +94,3 @@ public:
     std::vector<int> InRandomOrder(std::mt19937& rng) const;
     std::vector<int> GetTestSubset(int fold, int foldcount) const;
 };
-//#pragma managed(pop)

@@ -1,9 +1,6 @@
 #pragma once
 #include <msclr/marshal_cppstd.h>
-
-//#pragma managed(push, off)
 #include <Eigen/Core>
-//#pragma managed(pop)
 
 namespace LvqLibCli {
 

@@ -1,8 +1,6 @@
 #pragma once
-//#pragma managed(push, off)
 
 #include <Eigen/Core>
-
 #include "LvqModel.h"
 #include "LvqTypedefs.h"
 
@@ -25,5 +23,3 @@ public:
     virtual void normalizeProjectionRotation();
     virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT& classDiagram) const = 0;
 };
-
-//#pragma managed(pop)

@@ -1,12 +1,17 @@
 #pragma once
 #ifndef STANDALONE
 #define BOOST_TEST_INCLUDED
+#ifdef _MSC_VER
 #pragma warning (push)
 #pragma warning (disable: 4702)
+#endif
 #include <boost/test/unit_test.hpp>
+#ifdef _MSC_VER
 #pragma warning (pop)
 #endif
+#endif
 
+#ifdef _MSC_VER
 #pragma warning(disable: 4127) //"conditional expression is constant" - tons of those in eigen
 #pragma warning(disable: 4512)
 #pragma warning(disable: 4714) //OK to ignore __forceinline
@@ -16,10 +21,15 @@
 #pragma warning(disable: 4701) //potentially uninitialized local variable 'i' used
 #pragma warning(disable: 4100) //unreferenced formal parameter
 #pragma warning(disable: 4505) //unreferenced local function has been removed
+#endif
+
 #include <bench/BenchTimer.h>
 #include <Eigen/Core>
 #include <Eigen/StdVector>
+
+#ifdef _MSC_VER
 #pragma warning (pop)
+#endif
 
 #include <random>
 #include <iostream>
@@ -32,4 +42,3 @@ static bool failed = false;
 
 using std::cout;
 using std::cerr;
-

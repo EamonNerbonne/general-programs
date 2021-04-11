@@ -26,14 +26,3 @@ void shuffle(std::mt19937& randGen, arrayT& arr, unsigned size) {
 #ifdef _MSC_VER
 #pragma warning(pop) //don't warn about while(true)
 #endif
-
-// (Slower) alternative is something like:
-//    random_shuffle(start, end, shuffle_rnd_helper(randGen) );
-//
-//struct shuffle_rnd_helper {
-//    std::mt19937 & randGen;
-//    shuffle_rnd_helper(std::mt19937 & randGen) : randGen(randGen) {}
-//    int operator()(int max) {return randGen()%max;}
-//};
-
-//[& randGen](int max) -> int {return randGen()%max;}
