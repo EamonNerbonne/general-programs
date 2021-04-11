@@ -21,6 +21,9 @@
 #pragma warning(disable: 4701) //potentially uninitialized local variable 'i' used
 #pragma warning(disable: 4100) //unreferenced formal parameter
 #pragma warning(disable: 4505) //unreferenced local function has been removed
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
 #include <bench/BenchTimer.h>
@@ -29,6 +32,8 @@
 
 #ifdef _MSC_VER
 #pragma warning (pop)
+#else
+#pragma GCC diagnostic pop
 #endif
 
 #include <random>

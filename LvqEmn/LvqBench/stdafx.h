@@ -9,6 +9,9 @@
 #pragma warning (disable:4099)
 #pragma warning (disable:4701)
 #pragma warning (disable:4505)
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
 //#define EIGEN_DONT_VECTORIZE
@@ -35,5 +38,7 @@
 
 #ifdef _MSC_VER
 #pragma warning(pop)
+#else
+#pragma GCC diagnostic pop
 #endif
 

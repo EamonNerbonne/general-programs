@@ -39,12 +39,11 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
-
-
 #include <random>
+
 typedef std::mt19937 mtGen;
-typedef std::normal_distribution<> normDistrib;
-typedef    std::uniform_real<> uniformDistrib;
+typedef std::normal_distribution<double> normDistrib;
+typedef std::uniform_real_distribution<double> uniformDistrib;
 
 #ifdef _MSC_VER
 #pragma warning( pop)

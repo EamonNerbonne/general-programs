@@ -26,6 +26,9 @@
 #pragma warning(disable: 4701) //too many false positives for uninitalized locals
 #pragma warning(disable: 4800)//eigen internal perf warning
 #pragma warning(disable: 4702) //unreachable code in eigen?  probably some kind of template specialization noise
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 
 #include <Eigen/Core>
@@ -36,12 +39,16 @@
 #ifdef _MSC_VER
 #pragma warning(disable: 4100) //unreferenced formal parameter
 #pragma warning(disable: 4505) //unreferenced local function has been removed
+#else
+#pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
 #include <bench/BenchTimer.h>
 
 #ifdef _MSC_VER
 #pragma warning(pop)
+#else
+#pragma GCC diagnostic pop
 #endif
 
 
@@ -51,7 +58,8 @@
 #include <random>
 #include <numeric>
 #include <vector>
-#include <random>
+#include <memory>
+
 
 using Eigen::MatrixBase;
 

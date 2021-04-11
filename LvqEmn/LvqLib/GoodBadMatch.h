@@ -24,7 +24,6 @@ struct GoodBadMatch {
 
     MatchQuality LvqQuality();
     MatchQuality GgmQuality();
-
 };
 
 
@@ -37,17 +36,15 @@ struct CorrectAndWorstMatches {
         inline bool operator<(MatchOk const& other) const { return dist < other.dist; }
     };
 
+    MatchOk* matchesOk;
     double distBad;
     int matchBad;
-    MatchOk* matchesOk;
     int foundOk;
 
     inline CorrectAndWorstMatches(MatchOk* matchesOk)
-        : distBad(std::numeric_limits<double>::infinity())
-#ifndef NDEBUG
+        : matchesOk(matchesOk)
+        , distBad(std::numeric_limits<double>::infinity())
         , matchBad(-1)
-#endif
-        , matchesOk(matchesOk)
         , foundOk(0)
     {}
 
