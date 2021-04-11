@@ -66,19 +66,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(EIGEN3_DIR);$(BOOST_DIR);$(IncludePath)</IncludePath>
+    <IncludePath>$(EIGEN3_DIR);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(EIGEN3_DIR);$(BOOST_DIR);$(IncludePath)</IncludePath>
+    <IncludePath>$(EIGEN3_DIR);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseLlvm|X64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(EIGEN3_DIR);$(BOOST_DIR);$(IncludePath)</IncludePath>
+    <IncludePath>$(EIGEN3_DIR);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseMingw|X64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(EIGEN3_DIR);$(BOOST_DIR);$(IncludePath)</IncludePath>
+    <IncludePath>$(EIGEN3_DIR);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
     <ClCompile>
