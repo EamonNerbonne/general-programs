@@ -18,5 +18,5 @@ ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 ADD_LIBRARY(${libName} SHARED ${sources})
 
 IF (CMAKE_COMPILER_IS_GNUCXX)
-	add_custom_command(TARGET ${libName} POST_BUILD COMMAND "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/bin/amd64/lib.exe" ARGS /machine:x64 /def:${libName}.def WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} VERBATIM )
+    add_custom_command(TARGET ${libName} POST_BUILD COMMAND "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Tools/MSVC/14.28.29910/bin/Hostx64/x64/lib.exe" ARGS /machine:x64 /def:${libName}.def WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} VERBATIM )
 ENDIF (CMAKE_COMPILER_IS_GNUCXX)
