@@ -92,10 +92,10 @@ namespace LvqGui
             var meanstats = CurrentRawStats();
             var sb = new StringBuilder();
             for (var i = 0; i < TrainingStatNames.Length; i++) {
-                sb.AppendLine(TrainingStatNames[i].Split('!')[0] + ": " + Statistics.GetFormatted(meanstats.Value[i], meanstats.StandardError[i]));
+                _ = sb.AppendLine(TrainingStatNames[i].Split('!')[0] + ": " + Statistics.GetFormatted(meanstats.Value[i], meanstats.StandardError[i]));
             }
 
-            sb.AppendLine("Best idx: " + meanstats.BestIdx);
+            _ = sb.AppendLine("Best idx: " + meanstats.BestIdx);
 
             return sb.ToString();
         }
@@ -112,10 +112,10 @@ namespace LvqGui
 
             var sb = new StringBuilder();
             for (var i = 0; i < TrainingStatNames.Length; i++) {
-                sb.AppendLine(TrainingStatNames[i].Split('!')[0] + ": " + string.Join(", ", allstats.Select(stats => Statistics.GetFormatted(stats.values[i], meanstats.StandardError[i], 0, true))));
+                _ = sb.AppendLine(TrainingStatNames[i].Split('!')[0] + ": " + string.Join(", ", allstats.Select(stats => Statistics.GetFormatted(stats.values[i], meanstats.StandardError[i], 0, true))));
             }
 
-            sb.AppendLine("Best idx: " + meanstats.BestIdx);
+            _ = sb.AppendLine("Best idx: " + meanstats.BestIdx);
 
             return sb.ToString();
         }
@@ -125,7 +125,7 @@ namespace LvqGui
 
         readonly object statCacheSync = new();
         readonly List<Statistic> statCache = new();
-        Statistic[] cachedStatCache = { };
+        Statistic[] cachedStatCache = Array.Empty<Statistic>();
         int statProcIdx;
 
         public Statistic[] TrainingStats
@@ -243,7 +243,7 @@ namespace LvqGui
 
             var helpers = subModels
                 .Select(
-                    (model, modelIndex) =>
+                    model =>
                         Task.Factory.StartNew(
                             () => model.Train(1, false, true),
                             cancel,
@@ -295,18 +295,17 @@ namespace LvqGui
         static LvqMultiModel()
             => new Thread(
                 () => {
-                    using (var stream = File.Open(
+                    using var stream = File.Open(
                         Path.Combine(FSUtil.FindDataDir("lvqlog").FullName + "\\", "training-" + DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture) + ".log"),
                         FileMode.Append,
                         FileAccess.Write,
                         FileShare.Read
-                    ))
-                    using (var writer = new StreamWriter(stream, Encoding.UTF8)) {
-                        foreach (var line in toLog.GetConsumingEnumerable()) {
-                            writer.WriteLine(line);
-                            if (toLog.Count == 0) {
-                                writer.Flush();
-                            }
+                    );
+                    using var writer = new StreamWriter(stream, Encoding.UTF8);
+                    foreach (var line in toLog.GetConsumingEnumerable()) {
+                        writer.WriteLine(line);
+                        if (toLog.Count == 0) {
+                            writer.Flush();
                         }
                     }
                 }
@@ -314,13 +313,13 @@ namespace LvqGui
 
         void TrainImpl(CancellationToken cancel, int epochsCurrent, int epochsTarget)
         {
-            Interlocked.Increment(ref trainersRunning);
+            _ = Interlocked.Increment(ref trainersRunning);
             try {
-                var trainingqueue = new BlockingCollection<Tuple<LvqModelCli, int>>();
+                var trainingqueue = new BlockingCollection<(LvqModelCli model, int epochsToTrainTo)>();
                 while (epochsCurrent < epochsTarget) {
                     epochsCurrent += (epochsTarget - epochsCurrent + 1) / 2;
                     foreach (var model in subModels) {
-                        trainingqueue.Add(Tuple.Create(model, epochsCurrent));
+                        trainingqueue.Add((model, epochsCurrent));
                     }
                 }
 
@@ -331,9 +330,9 @@ namespace LvqGui
                             Task.Factory.StartNew(
                                 () => {
                                     foreach (var next in trainingqueue.GetConsumingEnumerable(cancel)) {
-                                        toLog.Add(next.Item1.ModelLabel + "  #" + next.Item1.DataFold + "   " + next.Item2.ToString(CultureInfo.InvariantCulture).PadLeft(6, '.') + "Begin");
-                                        next.Item1.TrainUpto(next.Item2);
-                                        toLog.Add(next.Item1.ModelLabel + "  #" + next.Item1.DataFold + "   " + next.Item2.ToString(CultureInfo.InvariantCulture).PadLeft(6, '.') + "End");
+                                        toLog.Add(next.model.ModelLabel + "  #" + next.model.DataFold + "   " + next.epochsToTrainTo.ToString(CultureInfo.InvariantCulture).PadLeft(6, '.') + "Begin");
+                                        next.model.TrainUpto(next.epochsToTrainTo);
+                                        toLog.Add(next.model.ModelLabel + "  #" + next.model.DataFold + "   " + next.epochsToTrainTo.ToString(CultureInfo.InvariantCulture).PadLeft(6, '.') + "End");
                                     }
                                 },
                                 cancel,
@@ -344,7 +343,7 @@ namespace LvqGui
 
                 Task.WaitAll(helpers, cancel);
             } finally {
-                Interlocked.Decrement(ref trainersRunning);
+                _ = Interlocked.Decrement(ref trainersRunning);
             }
         }
 
@@ -379,7 +378,7 @@ namespace LvqGui
 
             return datasetDir.GetFiles(iterPrefix + "*.txt").FirstOrDefault(
                 file => {
-                    var otherSettings = CreateLvqModelValues.TryParseShorthand(Path.GetFileNameWithoutExtension(file.Name).Substring(iterPrefix.Length));
+                    var otherSettings = CreateLvqModelValues.TryParseShorthand(Path.GetFileNameWithoutExtension(file.Name)[iterPrefix.Length..]);
                     return otherSettings.HasValue && otherSettings.Value.ToShorthand() == mSettingsShorthand;
                 }
             ) ?? new FileInfo(Path.Combine(datasetDir.FullName + "\\", iterPrefix + mSettingsShorthand + ".txt"));
