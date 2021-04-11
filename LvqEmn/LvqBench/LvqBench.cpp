@@ -20,7 +20,8 @@ int file_size(const char* sFileName)
 
 int main(int, char* argv[]) {
 #ifdef _MSC_VER
-    _controlfp(_DN_FLUSH, _MCW_DN);
+    unsigned int current_word = 0;
+    _controlfp_s(&current_word, _DN_FLUSH, _MCW_DN);
 #endif
     using std::cout;
     cout << "LvqBench";
